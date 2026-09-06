@@ -175,8 +175,18 @@ function LoginForm() {
                     </form>
                 </div>
 
+                {/* Sign up link */}
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+                        Don't have an account?{' '}
+                        <Link href="/register" style={{ color: '#4ade80', fontWeight: '700', textDecoration: 'none' }}>
+                            Sign Up here →
+                        </Link>
+                    </p>
+                </div>
+
                 {/* Contact info */}
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
                     <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.2)' }}>
                         Need help?{' '}
                         <a href="https://wa.me/917879337770" target="_blank" rel="noopener noreferrer"
