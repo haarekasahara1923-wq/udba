@@ -80,7 +80,7 @@ export default function AIToolsPage() {
                 <div className="page-header">
                     <div>
                         <h1 className="page-title">🤖 AI-Powered Tools</h1>
-                        <p className="page-subtitle">Powered by GPT-4 & Gemini</p>
+                        <p className="page-subtitle">Powered by Groq AI (Llama 3.3 70B)</p>
                     </div>
                     <div style={{ padding: '6px 14px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px', fontSize: '13px', color: '#a78bfa', fontWeight: '600' }}>
                         ✨ AI Active
