@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -92,13 +92,41 @@ export default function ExamsPage() {
         }
     }
 
+    const [activeTab, setActiveTab] = useState<'create' | 'history'>('create')
+    const [pastExams, setPastExams] = useState<any[]>([])
+    const [loadingPastExams, setLoadingPastExams] = useState(false)
+    const [viewingExam, setViewingExam] = useState<any>(null)
+
+    const loadPastExams = () => {
+        if (!token) return
+        setLoadingPastExams(true)
+        fetch('/api/exams', { headers: { Authorization: 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) setPastExams(d.data || [])
+                setLoadingPastExams(false)
+            })
+            .catch(() => setLoadingPastExams(false))
+    }
+
+    useEffect(() => {
+        if (activeTab === 'history') loadPastExams()
+    }, [activeTab, token])
+
+    const handleDeleteExam = async (examId: string) => {
+        if (!confirm('Are you sure you want to delete this exam and its student marks?')) return
+        await fetch(`/api/exams?id=${examId}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } })
+        if (viewingExam?.id === examId) setViewingExam(null)
+        loadPastExams()
+    }
+
     return (
         <div>
             {/* Header */}
             <div className="page-header">
                 <div>
                     <h1 className="page-title">📑 Monthly Tests & Marks</h1>
-                    <p className="page-subtitle">Teacher fills marks → Parents see them instantly on their portal</p>
+                    <p className="page-subtitle">Teacher publishes marks → Parents view them instantly on Parent Portal</p>
                 </div>
             </div>
 
@@ -113,31 +141,151 @@ export default function ExamsPage() {
                 </div>
             )}
 
-            {/* Step indicator */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-                {[
-                    { n: 1, label: 'Test Details' },
-                    { n: 2, label: 'Enter Marks' },
-                ].map(s => (
-                    <div key={s.n} style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '8px 18px', borderRadius: '999px',
-                        background: step === s.n ? 'var(--primary)' : 'var(--surface-2)',
-                        color: step === s.n ? 'white' : 'var(--text-muted)',
-                        fontWeight: step === s.n ? 700 : 400,
-                        fontSize: '13px',
-                        transition: 'all 0.2s',
-                    }}>
-                        <span style={{
-                            width: '22px', height: '22px', borderRadius: '50%',
-                            background: step === s.n ? 'rgba(255,255,255,0.25)' : 'var(--border)',
-                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            fontWeight: 800, fontSize: '12px',
-                        }}>{s.n}</span>
-                        {s.label}
-                    </div>
-                ))}
+            {/* Main Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('create')}
+                    className="btn btn-sm"
+                    style={{
+                        background: activeTab === 'create' ? 'var(--primary)' : 'var(--surface-2)',
+                        color: activeTab === 'create' ? 'white' : 'var(--text-muted)',
+                        fontWeight: activeTab === 'create' ? 700 : 500,
+                        padding: '8px 16px',
+                    }}
+                >
+                    ➕ Conduct New Exam & Marks
+                </button>
+                <button
+                    type="button"
+                    onClick={() => { setActiveTab('history'); setViewingExam(null); }}
+                    className="btn btn-sm"
+                    style={{
+                        background: activeTab === 'history' ? 'var(--primary)' : 'var(--surface-2)',
+                        color: activeTab === 'history' ? 'white' : 'var(--text-muted)',
+                        fontWeight: activeTab === 'history' ? 700 : 500,
+                        padding: '8px 16px',
+                    }}
+                >
+                    📜 Past Exams & Marks Sheet
+                </button>
             </div>
+
+            {activeTab === 'create' && (
+                <>
+                    {/* Step indicator */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                        {[
+                            { n: 1, label: 'Test Details' },
+                            { n: 2, label: 'Enter Marks' },
+                        ].map(s => (
+                            <div key={s.n} style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                padding: '8px 18px', borderRadius: '999px',
+                                background: step === s.n ? 'var(--primary)' : 'var(--surface-2)',
+                                color: step === s.n ? 'white' : 'var(--text-muted)',
+                                fontWeight: step === s.n ? 700 : 400,
+                                fontSize: '13px',
+                                transition: 'all 0.2s',
+                            }}>
+                                <span style={{
+                                    width: '22px', height: '22px', borderRadius: '50%',
+                                    background: step === s.n ? 'rgba(255,255,255,0.25)' : 'var(--border)',
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    fontWeight: 800, fontSize: '12px',
+                                }}>{s.n}</span>
+                                {s.label}
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {activeTab === 'history' && (
+                <div>
+                    {loadingPastExams ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading past exams...</div>
+                    ) : viewingExam ? (
+                        <div className="card" style={{ padding: 0 }}>
+                            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <h3 style={{ fontWeight: 700, margin: 0 }}>{viewingExam.title} - Marks Sheet</h3>
+                                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                                        {viewingExam.course?.name} • {viewingExam.batch?.name} • Subject: {viewingExam.subject} • Max Marks: {viewingExam.maxMarks}
+                                    </p>
+                                </div>
+                                <button onClick={() => setViewingExam(null)} className="btn btn-secondary btn-sm">← Back to Exams</button>
+                            </div>
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Student</th>
+                                            <th>Roll No.</th>
+                                            <th>Marks Obtained</th>
+                                            <th>Percentage</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {viewingExam.results?.map((r: any, i: number) => {
+                                            const pct = viewingExam.maxMarks > 0 ? Math.round((r.marksObtained / viewingExam.maxMarks) * 100) : 0
+                                            return (
+                                                <tr key={r.id}>
+                                                    <td style={{ color: 'var(--text-muted)' }}>{i + 1}</td>
+                                                    <td style={{ fontWeight: 600 }}>{r.student?.fullName}</td>
+                                                    <td style={{ color: 'var(--text-muted)' }}>{r.student?.studentId}</td>
+                                                    <td style={{ fontWeight: 700, color: pct >= 40 ? '#10b981' : '#ef4444' }}>
+                                                        {r.marksObtained} / {viewingExam.maxMarks}
+                                                    </td>
+                                                    <td>
+                                                        <span className={`badge ${pct >= 60 ? 'badge-success' : pct >= 40 ? 'badge-warning' : 'badge-danger'}`}>
+                                                            {pct}%
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{r.remarks || '—'}</td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ) : pastExams.length === 0 ? (
+                        <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
+                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📑</div>
+                            <p style={{ color: 'var(--text-muted)' }}>No exams published yet.</p>
+                            <button onClick={() => setActiveTab('create')} className="btn btn-primary btn-sm" style={{ marginTop: '8px' }}>
+                                + Conduct Your First Exam
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+                            {pastExams.map(ex => (
+                                <div key={ex.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{ex.title}</h3>
+                                            <div style={{ fontSize: '12px', color: 'var(--primary-light)', marginTop: '2px', fontWeight: 600 }}>{ex.subject}</div>
+                                        </div>
+                                        <button onClick={() => handleDeleteExam(ex.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>🗑️</button>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                        {ex.course?.name} • {ex.batch?.name} • Max: {ex.maxMarks} Marks
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                        📅 Date: {new Date(ex.date).toLocaleDateString('en-IN')} • {ex.results?.length || 0} Students Evaluated
+                                    </div>
+                                    <button onClick={() => setViewingExam(ex)} className="btn btn-secondary btn-sm" style={{ marginTop: 'auto', justifyContent: 'center' }}>
+                                        👁️ View Marks Sheet
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* ── STEP 1: Test Details ── */}
             {step === 1 && (

@@ -8,13 +8,15 @@ export async function GET(req: NextRequest) {
     if (error) return error
 
     try {
-        const { search, course, batch, status } = Object.fromEntries(
+        const { search, course, courseId, batch, batchId, status } = Object.fromEntries(
             new URL(req.url).searchParams.entries()
         )
 
         const where: any = { tenantId: user!.tenantId }
-        if (course) where.courseId = course
-        if (batch) where.batchId = batch
+        const resolvedCourseId = course || courseId
+        const resolvedBatchId = batch || batchId
+        if (resolvedCourseId) where.courseId = resolvedCourseId
+        if (resolvedBatchId) where.batchId = resolvedBatchId
         if (status) where.status = status
         if (search) {
             where.OR = [

@@ -9,6 +9,7 @@ export interface JWTPayload {
     tenantId: string
     role: string
     email: string
+    phone?: string | null
 }
 
 export function signAccessToken(payload: JWTPayload): string {

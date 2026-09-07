@@ -27,23 +27,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
     }
 
-    if (student.parentLinks.length === 0) {
-      return NextResponse.json({ error: 'Student has no linked parent account' }, { status: 400 })
-    }
-
     const createdNotices = []
+
+    // Always create notice with targetId: student.id so Parent portal will display it for this child
+    const primaryNotice = await prisma.notification.create({
+      data: {
+        tenantId: user!.tenantId,
+        title: `📌 To ${student.fullName}'s Parent: ${title}`,
+        message,
+        type: 'NOTICE',
+        targetRole: 'PARENT',
+        targetId: student.id,
+      },
+    })
+    createdNotices.push(primaryNotice)
+
+    // Also link to specific parent userIds if available
     for (const parent of student.parentLinks) {
-      const notice = await prisma.notification.create({
-        data: {
-          tenantId: user!.tenantId,
-          title: `To ${student.fullName}'s Parent: ${title}`,
-          message,
-          type: 'NOTICE',
-          targetRole: 'PARENT',
-          targetId: parent.userId,
-        },
-      })
-      createdNotices.push(notice)
+      if (parent.userId) {
+        const pNotice = await prisma.notification.create({
+          data: {
+            tenantId: user!.tenantId,
+            title: `📌 To ${student.fullName}'s Parent: ${title}`,
+            message,
+            type: 'NOTICE',
+            targetRole: 'PARENT',
+            targetId: parent.userId,
+          },
+        })
+        createdNotices.push(pNotice)
+      }
     }
 
     return NextResponse.json({ success: true, notices: createdNotices }, { status: 201 })

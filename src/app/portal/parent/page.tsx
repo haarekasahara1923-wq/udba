@@ -32,19 +32,28 @@ export default function ParentHome() {
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Parent Portal</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
         <Link href="/portal/parent/children" style={{ textDecoration: 'none' }}>
-          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '30px', marginBottom: '8px' }}>👶</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>My Children</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', color: '#ec4899', marginTop: '4px' }}>{children.length}</div>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '26px', marginBottom: '6px' }}>👶</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Children</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>{children.length}</div>
+          </div>
+        </Link>
+        <Link href="/portal/parent/exams" style={{ textDecoration: 'none' }}>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📑</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Test Marks</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>
+              {children.reduce((acc: number, c: any) => acc + (c.examResults?.length || 0), 0)}
+            </div>
           </div>
         </Link>
         <Link href="/portal/parent/notices" style={{ textDecoration: 'none' }}>
-          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '18px', textAlign: 'center' }}>
-            <div style={{ fontSize: '30px', marginBottom: '8px' }}>📢</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>Notices</div>
-            <div style={{ fontSize: '20px', fontWeight: '800', color: '#6366f1', marginTop: '4px' }}>{notices.length}</div>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📢</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Notices</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#6366f1', marginTop: '2px' }}>{notices.length}</div>
           </div>
         </Link>
       </div>
@@ -76,7 +85,10 @@ export default function ParentHome() {
 
                 {child.examResults && child.examResults.length > 0 && (
                     <div style={{ marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                        <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: 600 }}>Recent Exam Marks</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>Recent Exam Marks</span>
+                          <Link href="/portal/parent/exams" style={{ fontSize: '11px', color: '#10b981', textDecoration: 'none', fontWeight: 600 }}>View All Marks →</Link>
+                        </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {child.examResults.map((er: any) => (
                                 <div key={er.id} style={{ display: 'flex', justifyContent: 'space-between', background: '#0f172a', padding: '8px 12px', borderRadius: '8px' }}>

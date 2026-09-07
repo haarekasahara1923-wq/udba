@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
             tenantId: user.tenantId,
             role: user.role,
             email: user.email,
+            phone: user.phone || null,
         }
 
         const accessToken = signAccessToken(payload)

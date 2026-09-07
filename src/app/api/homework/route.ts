@@ -12,28 +12,56 @@ export async function GET(req: NextRequest) {
   const where: any = { tenantId: user!.tenantId }
   if (batchId) where.batchId = batchId
 
-  let finalWhere = where
+  let student: any = null
   if (user!.role === 'STUDENT') {
-    const student = await prisma.student.findUnique({ where: { userId: user!.userId } })
+    student = await prisma.student.findFirst({
+      where: {
+        tenantId: user!.tenantId,
+        OR: [
+          { userId: user!.userId },
+          { email: user!.email },
+          { phone: user!.email },
+          ...(user!.phone ? [{ phone: user!.phone }] : [])
+        ]
+      }
+    })
+
     if (student) {
-      finalWhere.batchId = student.batchId
+      if (!student.userId) {
+        await prisma.student.update({
+          where: { id: student.id },
+          data: { userId: user!.userId }
+        }).catch(() => {})
+      }
+      where.batchId = student.batchId
     }
   }
 
   const homeworks = await prisma.homework.findMany({
-    where: finalWhere,
-    include: { 
-      batch: { select: { name: true } }, 
+    where,
+    include: {
+      batch: {
+        select: {
+          id: true,
+          name: true,
+          course: { select: { id: true, name: true } }
+        }
+      },
       _count: { select: { submissions: true } },
-      submissions: user!.role === 'STUDENT' ? {
-        where: { student: { userId: user!.userId } },
-        select: { id: true, content: true, grade: true, feedback: true, status: true, submittedAt: true }
-      } : false
+      submissions: user!.role === 'STUDENT' ? (student ? {
+        where: { studentId: student.id },
+        select: { id: true, content: true, attachmentUrl: true, grade: true, feedback: true, status: true, submittedAt: true }
+      } : false) : {
+        include: {
+          student: { select: { id: true, fullName: true, studentId: true, phone: true } }
+        },
+        orderBy: { submittedAt: 'desc' }
+      }
     },
     orderBy: { createdAt: 'desc' },
   })
 
-  return NextResponse.json({ success: true, homeworks })
+  return NextResponse.json({ success: true, homeworks, studentId: student?.id || null })
 }
 
 export async function POST(req: NextRequest) {
@@ -43,7 +71,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { batchId, title, description, subject, dueDate, attachmentUrl } = body
 
-  if (!batchId || !title) return NextResponse.json({ error: 'batchId and title are required' }, { status: 400 })
+  if (!batchId || !title) return NextResponse.json({ error: 'Section/Batch and Title are required' }, { status: 400 })
 
   const homework = await prisma.homework.create({
     data: {
@@ -51,17 +79,26 @@ export async function POST(req: NextRequest) {
       batchId,
       teacherId: user!.userId,
       title,
-      description,
-      subject,
+      description: description || '',
+      subject: subject || '',
       dueDate: dueDate ? new Date(dueDate) : null,
-      attachmentUrl,
+      attachmentUrl: attachmentUrl || null,
     },
+    include: {
+      batch: {
+        select: {
+          id: true,
+          name: true,
+          course: { select: { id: true, name: true } }
+        }
+      }
+    }
   })
 
   // Notify students in the batch
   const students = await prisma.student.findMany({
     where: { tenantId: user!.tenantId, batchId },
-    select: { userId: true, fullName: true },
+    select: { id: true, userId: true, fullName: true },
   })
 
   const studentsWithAccount = students.filter(s => s.userId)
@@ -69,8 +106,8 @@ export async function POST(req: NextRequest) {
     await prisma.notification.createMany({
       data: studentsWithAccount.map(s => ({
         tenantId: user!.tenantId,
-        title: `New Homework: ${title}`,
-        message: `${subject ? subject + ' - ' : ''}${description || title}`,
+        title: `📚 New Homework: ${title}`,
+        message: `${subject ? subject + ' • ' : ''}${description || title}`,
         type: 'HOMEWORK',
         targetRole: 'STUDENT',
         targetId: s.userId!,
