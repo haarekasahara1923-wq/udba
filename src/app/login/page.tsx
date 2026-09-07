@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 // UDBA Single School — tenantId is auto-injected from env
 const SCHOOL_TENANT_ID = process.env.NEXT_PUBLIC_SCHOOL_TENANT_ID || ''
@@ -13,6 +14,7 @@ function LoginForm() {
     const [role, setRole] = useState('COACHING_ADMIN')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
@@ -142,16 +144,44 @@ function LoginForm() {
                                 <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>Password</label>
                                 <Link href="/forgot-password" style={{ fontSize: '12px', color: '#2d8a57', fontWeight: '600', textDecoration: 'none' }}>Forgot password?</Link>
                             </div>
-                            <input
-                                type="password"
-                                style={{ width: '100%', padding: '11px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
-                                placeholder="Enter your password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                required
-                                onFocus={e => (e.target.style.borderColor = '#2d8a57')}
-                                onBlur={e => (e.target.style.borderColor = 'rgba(26,92,56,0.3)')}
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    style={{ width: '100%', padding: '11px 42px 11px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    required
+                                    onFocus={e => (e.target.style.borderColor = '#2d8a57')}
+                                    onBlur={e => (e.target.style.borderColor = 'rgba(26,92,56,0.3)')}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '12px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: 'rgba(255, 255, 255, 0.45)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        padding: '4px',
+                                        borderRadius: '6px',
+                                        transition: 'color 0.2s',
+                                    }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = '#4ade80')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.45)')}
+                                    title={showPassword ? 'Hide password' : 'Show password'}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
 
                         {error && (

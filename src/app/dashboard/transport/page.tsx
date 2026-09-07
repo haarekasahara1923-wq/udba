@@ -1,6 +1,7 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function TransportDashboard() {
   const { token } = useAuth()
@@ -15,6 +16,7 @@ export default function TransportDashboard() {
 
   const [vForm, setVForm] = useState({ registrationNo: '', routeDetails: '', capacity: '40' })
   const [dForm, setDForm] = useState({ name: '', phone: '', email: '', password: '', licenseNo: '', vehicleId: '' })
+  const [showDriverPassword, setShowDriverPassword] = useState(false)
 
   const loadVehicles = () => fetch('/api/transport/vehicle', { headers: h }).then(r=>r.json()).then(d => setVehicles(d.data||[]))
   const loadDrivers = () => fetch('/api/transport/driver', { headers: h }).then(r=>r.json()).then(d => setDrivers(d.data||[]))
@@ -113,7 +115,43 @@ export default function TransportDashboard() {
               <input className="input" placeholder="Driver Name" value={dForm.name} onChange={e=>setDForm({...dForm, name: e.target.value})} required />
               <input className="input" placeholder="Phone" value={dForm.phone} onChange={e=>setDForm({...dForm, phone: e.target.value})} required />
               <input className="input" placeholder="Email (Optional)" value={dForm.email} onChange={e=>setDForm({...dForm, email: e.target.value})} />
-              <input className="input" placeholder="Password for Login" type="password" value={dForm.password} onChange={e=>setDForm({...dForm, password: e.target.value})} required />
+              <div style={{ position: 'relative' }}>
+                <input
+                  className="input"
+                  placeholder="Password for Login"
+                  type={showDriverPassword ? 'text' : 'password'}
+                  style={{ paddingRight: '42px' }}
+                  value={dForm.password}
+                  onChange={e=>setDForm({...dForm, password: e.target.value})}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDriverPassword(!showDriverPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px',
+                    borderRadius: '6px',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  title={showDriverPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showDriverPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showDriverPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <input className="input" placeholder="License Number" value={dForm.licenseNo} onChange={e=>setDForm({...dForm, licenseNo: e.target.value})} />
               <select className="input" value={dForm.vehicleId} onChange={e=>setDForm({...dForm, vehicleId: e.target.value})}>
                 <option value="">-- Assign Vehicle --</option>

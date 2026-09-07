@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function AffiliateRegisterPage() {
     const router = useRouter()
@@ -14,6 +15,7 @@ export default function AffiliateRegisterPage() {
         ifscCode: '',
         upiId: ''
     })
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
@@ -95,7 +97,44 @@ export default function AffiliateRegisterPage() {
 
                         <div style={{ marginBottom: '16px' }}>
                             <label className="label">Password</label>
-                            <input type="password" className="input" placeholder="Minimum 6 characters" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required minLength={6} />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    className="input"
+                                    style={{ paddingRight: '42px' }}
+                                    placeholder="Minimum 6 characters"
+                                    value={form.password}
+                                    onChange={e => setForm({ ...form, password: e.target.value })}
+                                    required
+                                    minLength={6}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '12px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: 'var(--text-muted)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        padding: '4px',
+                                        borderRadius: '6px',
+                                        transition: 'color 0.2s',
+                                    }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = '#10b981')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                    title={showPassword ? 'Hide password' : 'Show password'}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div style={{ marginTop: '24px', marginBottom: '16px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>

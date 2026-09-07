@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Eye, EyeOff } from 'lucide-react'
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams()
@@ -9,6 +10,8 @@ function ResetPasswordForm() {
     const token = searchParams.get('token')
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
@@ -72,26 +75,84 @@ function ResetPasswordForm() {
                         <form onSubmit={handleSubmit}>
                             <div style={{ marginBottom: '20px' }}>
                                 <label className="label">New Password</label>
-                                <input
-                                    type="password"
-                                    className="input"
-                                    placeholder="Enter new password"
-                                    value={newPassword}
-                                    onChange={e => setNewPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showNewPassword ? 'text' : 'password'}
+                                        className="input"
+                                        style={{ paddingRight: '42px' }}
+                                        placeholder="Enter new password"
+                                        value={newPassword}
+                                        onChange={e => setNewPassword(e.target.value)}
+                                        required
+                                        minLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '12px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: 'var(--text-muted)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '4px',
+                                            borderRadius: '6px',
+                                            transition: 'color 0.2s',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.color = '#818cf8')}
+                                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                        title={showNewPassword ? 'Hide password' : 'Show password'}
+                                        aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
                             <div style={{ marginBottom: '24px' }}>
                                 <label className="label">Confirm New Password</label>
-                                <input
-                                    type="password"
-                                    className="input"
-                                    placeholder="Confirm new password"
-                                    value={confirmPassword}
-                                    onChange={e => setConfirmPassword(e.target.value)}
-                                    required
-                                />
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        className="input"
+                                        style={{ paddingRight: '42px' }}
+                                        placeholder="Confirm new password"
+                                        value={confirmPassword}
+                                        onChange={e => setConfirmPassword(e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '12px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: 'var(--text-muted)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '4px',
+                                            borderRadius: '6px',
+                                            transition: 'color 0.2s',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.color = '#818cf8')}
+                                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                        title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
 
                             {error && (
