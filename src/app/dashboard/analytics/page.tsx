@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend, AreaChart, Area } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
+import { downloadCSV, generateAndPrintPDF } from '@/lib/reportExport'
 import { FeatureGate } from '../layout'
 
 const COLORS = ['#6366f1', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
@@ -28,7 +29,7 @@ interface DashboardData {
 }
 
 export default function AnalyticsPage() {
-    const { token } = useAuth()
+    const { token, tenant } = useAuth()
     const [data, setData] = useState<DashboardData | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -52,15 +53,133 @@ export default function AnalyticsPage() {
         profit: Math.round(m.amount * 0.4),
     }))
 
+    const handleExportCSV = () => {
+        if (!data) return
+        const timestamp = new Date().toISOString().split('T')[0]
+        const csvRows: (string | number)[][] = [
+            ['UNIVERSAL DAY BOARDING ACADEMY - EXECUTIVE ANALYTICS REPORT'],
+            ['Generated On', new Date().toLocaleString('en-IN')],
+            ['Institute', tenant?.name || 'Universal Day Boarding Academy'],
+            ['Address', 'Pinto Park, Gwalior (MP)'],
+            [''],
+            ['--- EXECUTIVE KEY PERFORMANCE INDICATORS ---'],
+            ['Metric', 'Value', 'Context'],
+            ['Total Students', data.overview.totalStudents, 'All-time registered students'],
+            ['Active Students', data.overview.activeStudents, 'Currently active enrollment'],
+            ['New Admissions This Month', data.overview.newAdmissionsThisMonth, 'Admitted during current month'],
+            ['Total Lifetime Revenue', `₹${data.overview.totalRevenue.toLocaleString('en-IN')}`, 'Lifetime fee collection'],
+            ['This Month Revenue', `₹${data.overview.thisMonthRevenue.toLocaleString('en-IN')}`, 'Collected during current month'],
+            ['Total Outstanding Dues', `₹${data.overview.totalOutstanding.toLocaleString('en-IN')}`, 'Pending balance student fees'],
+            ['Total Operating Expenses', `₹${data.overview.totalExpenses.toLocaleString('en-IN')}`, 'All-time expenses recorded'],
+            ['Net Profit', `₹${data.overview.netProfit.toLocaleString('en-IN')}`, 'Revenue minus expenses'],
+            ['Total Teaching Staff', data.overview.totalTeachers, 'Active faculty members'],
+            ['Total CRM Leads', data.overview.totalLeads, 'Inquiries in pipeline'],
+            ['Mock Tests Conducted', data.overview.totalTests, 'Total tests published'],
+            [''],
+            ['--- MONTHLY FINANCIAL TREND (REVENUE vs EXPENSES vs PROFIT) ---'],
+            ['Month', 'Gross Revenue (INR)', 'Operating Expenses (INR)', 'Net Profit (INR)', 'Profit Margin (%)'],
+            ...profitData.map(m => [
+                m.month,
+                m.revenue,
+                m.expenses,
+                m.profit,
+                m.revenue > 0 ? `${Math.round((m.profit / m.revenue) * 100)}%` : '0%'
+            ]),
+            [''],
+            ['--- STUDENT ENROLLMENT BY COURSE ---'],
+            ['Course / Class Name', 'Enrolled Students', 'Distribution Share (%)'],
+            ...data.courseDistribution.map(c => {
+                const totalCourseStudents = data.courseDistribution.reduce((acc, curr) => acc + curr.value, 0)
+                const share = totalCourseStudents > 0 ? `${((c.value / totalCourseStudents) * 100).toFixed(1)}%` : '0%'
+                return [c.name, c.value, share]
+            }),
+            [''],
+            ['--- CRM LEAD CONVERSION FUNNEL ---'],
+            ['Pipeline Stage', 'Leads Count'],
+            ...data.leadFunnel.map(l => [l.stage, l.count]),
+        ]
+
+        downloadCSV(`udba-analytics-report-${timestamp}.csv`, csvRows)
+    }
+
+    const handleExportPDF = () => {
+        if (!data) return
+        generateAndPrintPDF({
+            title: 'Executive Analytics & Performance Report',
+            subtitle: 'Institutional Performance, Financial Intelligence & Enrollment Analysis',
+            schoolName: tenant?.name || 'Universal Day Boarding Academy',
+            schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+            stats: [
+                { label: 'Total Revenue', value: formatCurrency(data.overview.totalRevenue), subtext: 'All-time collection', color: '#10b981' },
+                { label: 'This Month Revenue', value: formatCurrency(data.overview.thisMonthRevenue), subtext: 'Current month intake', color: '#10b981' },
+                { label: 'Total Outstanding', value: formatCurrency(data.overview.totalOutstanding), subtext: 'Pending student dues', color: '#f59e0b' },
+                { label: 'Net Profit', value: formatCurrency(data.overview.netProfit), subtext: 'After expenses', color: data.overview.netProfit >= 0 ? '#10b981' : '#ef4444' },
+                { label: 'Active Students', value: `${data.overview.activeStudents} / ${data.overview.totalStudents}`, subtext: 'Enrolled students', color: '#6366f1' },
+                { label: 'Faculty Strength', value: data.overview.totalTeachers, subtext: 'Teaching staff', color: '#8b5cf6' },
+                { label: 'CRM Leads', value: data.overview.totalLeads, subtext: 'Student enquiries', color: '#06b6d4' },
+                { label: 'Mock Tests', value: data.overview.totalTests, subtext: 'Assessments created', color: '#ec4899' },
+            ],
+            tables: [
+                {
+                    title: '📈 Monthly Financial Trend (Last 6 Months)',
+                    headers: ['Month', 'Gross Revenue', 'Operating Expenses', 'Net Profit', 'Profit Margin'],
+                    rows: profitData.map(m => [
+                        m.month,
+                        `₹${m.revenue.toLocaleString('en-IN')}`,
+                        `₹${m.expenses.toLocaleString('en-IN')}`,
+                        `₹${m.profit.toLocaleString('en-IN')}`,
+                        m.revenue > 0 ? `${Math.round((m.profit / m.revenue) * 100)}%` : '0%'
+                    ])
+                },
+                {
+                    title: '📚 Student Distribution by Course / Class',
+                    headers: ['Course / Class', 'Enrolled Students', 'Percentage Share'],
+                    rows: data.courseDistribution.map(c => {
+                        const totalCourseStudents = data.courseDistribution.reduce((acc, curr) => acc + curr.value, 0)
+                        const share = totalCourseStudents > 0 ? `${((c.value / totalCourseStudents) * 100).toFixed(1)}%` : '0%'
+                        return [c.name, c.value, share]
+                    })
+                },
+                {
+                    title: '🔄 CRM Lead Funnel Status',
+                    headers: ['Pipeline Stage', 'Number of Leads', 'Conversion Status'],
+                    rows: data.leadFunnel.map(l => [
+                        l.stage,
+                        l.count,
+                        l.stage === 'Converted' ? '✅ Enrolled' : l.stage === 'Interested' ? '🔥 High Priority' : '⏳ In Progress'
+                    ])
+                }
+            ],
+            notes: 'Financial metrics account for both online and offline fee collections. Revenue and expense calculations reflect verified system records. Confidential document intended for school management only.'
+        })
+    }
+
     return (
         <FeatureGate feature="analytics">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <div className="page-header">
+                <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                         <h1 className="page-title">📊 Analytics & Reports</h1>
                         <p className="page-subtitle">Business intelligence for your coaching center</p>
                     </div>
-                    <button className="btn btn-secondary">⬇️ Export Report</button>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <button
+                            onClick={handleExportCSV}
+                            className="btn btn-secondary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', fontSize: '13px' }}
+                            title="Download complete Analytics data in CSV format"
+                        >
+                            <span>⬇️</span> Download CSV
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            className="btn btn-primary"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', fontSize: '13px', background: 'linear-gradient(135deg, #1a5c38, #0f3d26)' }}
+                            title="Open print preview to Save as PDF"
+                        >
+                            <span>🖨️</span> Download PDF
+                        </button>
+                    </div>
                 </div>
 
                 {/* KPI Row */}

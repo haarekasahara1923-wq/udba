@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { downloadCSV, generateAndPrintPDF } from '@/lib/reportExport'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 interface Expense {
@@ -17,7 +18,7 @@ const CATEGORIES = ['Rent', 'Salary', 'Electricity', 'Marketing', 'Internet', 'O
 const COLORS = { Rent: '#6366f1', Salary: '#ec4899', Electricity: '#f59e0b', Marketing: '#06b6d4', Misc: '#94a3b8', Internet: '#10b981', 'Office Supplies': '#8b5cf6', Maintenance: '#ef4444' }
 
 export default function ExpensesPage() {
-    const { token } = useAuth()
+    const { token, tenant } = useAuth()
     const [expenses, setExpenses] = useState<Expense[]>([])
     const [loading, setLoading] = useState(true)
     const [showAdd, setShowAdd] = useState(false)
@@ -59,14 +60,90 @@ export default function ExpensesPage() {
         }
     }
 
+    const handleExportCSV = () => {
+        const timestamp = new Date().toISOString().split('T')[0]
+        const rows = [
+            ['UNIVERSAL DAY BOARDING ACADEMY - EXPENSES REPORT'],
+            ['Generated On', new Date().toLocaleString('en-IN')],
+            ['Total Expenses', formatCurrency(total)],
+            ['Total Expense Records', expenses.length],
+            [''],
+            ['Category', 'Amount (INR)', 'Paid To', 'Date', 'Description']
+        ]
+        expenses.forEach(e => {
+            rows.push([
+                e.category,
+                e.amount,
+                e.paidTo || '-',
+                e.date,
+                e.description || '-'
+            ])
+        })
+        downloadCSV(`udba-expenses-report-${timestamp}.csv`, rows)
+    }
+
+    const handleExportPDF = () => {
+        generateAndPrintPDF({
+            title: 'Institute Operating Expenses Report',
+            subtitle: `Consolidated Expenditure Summary - Generated on ${new Date().toLocaleDateString('en-IN')}`,
+            schoolName: tenant?.name || 'Universal Day Boarding Academy',
+            schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+            stats: [
+                { label: 'Total Expenses', value: formatCurrency(total), subtext: 'All-time expenditures', color: '#ef4444' },
+                { label: 'Total Entries', value: expenses.length, subtext: 'Recorded items', color: '#6366f1' },
+                { label: 'Top Category', value: byCat[0]?.name || 'Rent', subtext: `${formatCurrency(byCat[0]?.amount || 0)}`, color: '#f59e0b' },
+            ],
+            tables: [
+                {
+                    title: 'Expense Category Breakdown',
+                    headers: ['Category', 'Total Spent (₹)', 'Share (%)'],
+                    rows: byCat.map(c => [
+                        c.name,
+                        `₹${c.amount.toLocaleString('en-IN')}`,
+                        total > 0 ? `${((c.amount / total) * 100).toFixed(1)}%` : '0%'
+                    ])
+                },
+                {
+                    title: 'Detailed Expense Records',
+                    headers: ['Date', 'Category', 'Paid To / Vendor', 'Amount (₹)', 'Description'],
+                    rows: expenses.map(e => [
+                        formatDate(e.date),
+                        e.category,
+                        e.paidTo || '-',
+                        `₹${e.amount.toLocaleString('en-IN')}`,
+                        e.description || '-'
+                    ])
+                }
+            ]
+        })
+    }
+
     return (
         <div>
-            <div className="page-header">
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                     <h1 className="page-title">📉 Expense Management</h1>
                     <p className="page-subtitle">Total expenses: {formatCurrency(total)}</p>
                 </div>
-                <button onClick={() => setShowAdd(true)} className="btn btn-primary">➕ Add Expense</button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={handleExportCSV}
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '9px 14px' }}
+                        title="Download expenses in CSV format"
+                    >
+                        <span>⬇️</span> Download CSV
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '9px 14px', background: 'linear-gradient(135deg, #1a5c38, #0f3d26)' }}
+                        title="Print or Save expense report as PDF"
+                    >
+                        <span>🖨️</span> Download PDF
+                    </button>
+                    <button onClick={() => setShowAdd(true)} className="btn btn-primary">➕ Add Expense</button>
+                </div>
             </div>
 
             {toast && <div className="toast toast-success" style={{ position: 'relative', marginBottom: '16px', maxWidth: '100%' }}>✓ {toast}</div>}

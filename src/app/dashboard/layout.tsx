@@ -11,6 +11,7 @@ const navItems = [
         group: 'OVERVIEW', items: [
             { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
             { href: '/dashboard/analytics', icon: '📊', label: 'Analytics' },
+            { href: '/dashboard/reports', icon: '📑', label: 'Reports' },
         ]
     },
     {

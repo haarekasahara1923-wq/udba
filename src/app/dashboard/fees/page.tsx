@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency } from '@/lib/utils'
+import { downloadCSV, generateAndPrintPDF } from '@/lib/reportExport'
 
 interface Student {
     id: string
@@ -15,7 +16,7 @@ interface Student {
 }
 
 export default function FeesPage() {
-    const { token } = useAuth()
+    const { token, tenant } = useAuth()
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('outstanding')
@@ -94,12 +95,99 @@ export default function FeesPage() {
         setProcessingPayment(null)
     }
 
+    const getCurrentList = () => activeTab === 'outstanding' ? outstanding : activeTab === 'paid' ? paid : students
+
+    const handleExportCSV = () => {
+        const list = getCurrentList()
+        const timestamp = new Date().toISOString().split('T')[0]
+        const tabTitle = activeTab === 'outstanding' ? 'OUTSTANDING DUES' : activeTab === 'paid' ? 'PAID FEES' : 'ALL STUDENTS'
+        const rows = [
+            [`UNIVERSAL DAY BOARDING ACADEMY - FEE REPORT (${tabTitle})`],
+            ['Generated On', new Date().toLocaleString('en-IN')],
+            ['Total Students In List', list.length],
+            ['Total Outstanding Dues', formatCurrency(totalDue)],
+            ['Total Collected', formatCurrency(totalCollected)],
+            [''],
+            ['Student Name', 'Phone', 'Parent Phone', 'Course', 'Total Fee (INR)', 'Paid Fee (INR)', 'Pending Due (INR)', 'Payment %', 'Status']
+        ]
+        list.forEach(s => {
+            const pending = s.totalFee - s.paidFee
+            const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
+            rows.push([
+                s.fullName,
+                s.phone || '-',
+                s.parentPhone || '-',
+                s.courseName || '-',
+                s.totalFee,
+                s.paidFee,
+                Math.max(0, pending),
+                `${pct}%`,
+                s.status
+            ])
+        })
+        downloadCSV(`udba-fees-${activeTab}-${timestamp}.csv`, rows)
+    }
+
+    const handleExportPDF = () => {
+        const list = getCurrentList()
+        const tabTitle = activeTab === 'outstanding' ? 'Outstanding Fees Report' : activeTab === 'paid' ? 'Paid Fees Report' : 'Student Fee Accounts Report'
+        generateAndPrintPDF({
+            title: tabTitle,
+            subtitle: `Filter: ${activeTab.toUpperCase()} | Generated: ${new Date().toLocaleDateString('en-IN')}`,
+            schoolName: tenant?.name || 'Universal Day Boarding Academy',
+            schoolAddress: '📍 Pinto Park, Gwalior (MP)',
+            stats: [
+                { label: 'Total Collected', value: formatCurrency(totalCollected), subtext: 'Received so far', color: '#10b981' },
+                { label: 'Total Outstanding', value: formatCurrency(totalDue), subtext: 'Pending balance', color: '#f59e0b' },
+                { label: 'Students with Dues', value: outstanding.length, subtext: 'Unpaid installments', color: '#ef4444' },
+                { label: 'Fully Paid Students', value: paid.length, subtext: 'Completed payments', color: '#6366f1' },
+            ],
+            tables: [
+                {
+                    title: `Fee Accounts (${list.length} Students)`,
+                    headers: ['Student Name', 'Phone', 'Course', 'Total Fee', 'Paid', 'Pending Due', 'Payment %'],
+                    rows: list.map(s => {
+                        const pending = s.totalFee - s.paidFee
+                        const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
+                        return [
+                            s.fullName,
+                            s.parentPhone || s.phone || '-',
+                            s.courseName,
+                            formatCurrency(s.totalFee),
+                            formatCurrency(s.paidFee),
+                            pending > 0 ? formatCurrency(pending) : '✅ Clear',
+                            `${pct}%`
+                        ]
+                    })
+                }
+            ]
+        })
+    }
+
     return (
         <div>
-            <div className="page-header">
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                     <h1 className="page-title">💰 Fee Management</h1>
                     <p className="page-subtitle">Track and manage student fees</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        onClick={handleExportCSV}
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '9px 14px' }}
+                        title="Download current fee list as CSV"
+                    >
+                        <span>⬇️</span> Download CSV
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '9px 14px', background: 'linear-gradient(135deg, #1a5c38, #0f3d26)' }}
+                        title="Print or Save current fee report as PDF"
+                    >
+                        <span>🖨️</span> Download PDF
+                    </button>
                 </div>
             </div>
 
