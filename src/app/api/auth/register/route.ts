@@ -38,13 +38,7 @@ export async function POST(req: NextRequest) {
         if (!school) {
             const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
             school = await prisma.tenant.findFirst({ 
-                where: { 
-                    OR: [
-                        { slug: schoolSlug }, 
-                        { id: 'tenant_udba' },
-                        { name: { contains: 'Universal Day Boarding Academy', mode: 'insensitive' } }
-                    ] 
-                } 
+                where: { slug: schoolSlug } 
             })
         }
 

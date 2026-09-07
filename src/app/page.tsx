@@ -143,10 +143,10 @@ export default function LandingPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
               {[
-                { label: 'Total Students', value: '486', icon: '👨‍🎓', color: '#1a5c38' },
-                { label: 'Fee Collected', value: '₹3.8L', icon: '💰', color: '#f97316' },
-                { label: 'Present Today', value: '92.4%', icon: '✅', color: '#10b981' },
-                { label: 'Pending Dues', value: '₹42K', icon: '⚠️', color: '#ef4444' },
+                { label: 'Total Students', value: '—', icon: '👨‍🎓', color: '#1a5c38' },
+                { label: 'Fee Collected', value: '—', icon: '💰', color: '#f97316' },
+                { label: 'Present Today', value: '—', icon: '✅', color: '#10b981' },
+                { label: 'Pending Dues', value: '—', icon: '⚠️', color: '#ef4444' },
               ].map(card => (
                 <div key={card.label} style={{ background: `linear-gradient(135deg, ${card.color}18, ${card.color}08)`, border: `1px solid ${card.color}30`, borderRadius: '12px', padding: '14px' }}>
                   <div style={{ fontSize: '20px', marginBottom: '6px' }}>{card.icon}</div>
@@ -156,21 +156,21 @@ export default function LandingPage() {
               ))}
             </div>
 
-            <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Recent Activity</div>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Live Dashboard</div>
             {[
-              { msg: 'Rahul Sharma ka fee ₹8,000 mila', time: '2m ago', dot: '#10b981' },
-              { msg: 'Class 9-A ki attendance mark hui', time: '18m ago', dot: '#1a5c38' },
-              { msg: 'New admission: Priya Patel', time: '1h ago', dot: '#f97316' },
+              { msg: 'Student management — admissions & profiles', dot: '#10b981' },
+              { msg: 'Fee collection — UPI, cash & bank transfers', dot: '#1a5c38' },
+              { msg: 'Attendance, exams & parent notifications', dot: '#f97316' },
             ].map(item => (
               <div key={item.msg} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.dot, flexShrink: 0 }} />
                 <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', flex: 1 }}>{item.msg}</span>
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)' }}>{item.time}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
+
 
       {/* Features */}
       <section id="features" style={{ padding: '96px 32px', maxWidth: '1200px', margin: '0 auto' }}>
