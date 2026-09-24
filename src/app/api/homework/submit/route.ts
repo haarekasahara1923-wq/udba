@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     if (student) studentId = student.id
   } else if (studentId) {
     student = await prisma.student.findUnique({ where: { id: studentId } })
+  } else if (user?.role === 'PARENT' && !studentId) {
+    // Parent must pass studentId (child's id) explicitly
+    return NextResponse.json({ error: 'Parent must provide studentId (child ID) to submit homework' }, { status: 400 })
   }
 
   if (!homeworkId || !studentId) {

@@ -32,12 +32,19 @@ export default function ParentHome() {
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Parent Portal</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
         <Link href="/portal/parent/children" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
             <div style={{ fontSize: '26px', marginBottom: '6px' }}>👶</div>
             <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Children</div>
             <div style={{ fontSize: '18px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>{children.length}</div>
+          </div>
+        </Link>
+        <Link href="/portal/parent/homework" style={{ textDecoration: 'none' }}>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📚</div>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Homework</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#8b5cf6', marginTop: '2px' }}>View</div>
           </div>
         </Link>
         <Link href="/portal/parent/exams" style={{ textDecoration: 'none' }}>

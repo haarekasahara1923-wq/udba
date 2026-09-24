@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   if (batchId) where.batchId = batchId
 
   let student: any = null
+
   if (user!.role === 'STUDENT') {
     student = await prisma.student.findFirst({
       where: {
@@ -35,6 +36,35 @@ export async function GET(req: NextRequest) {
       }
       where.batchId = student.batchId
     }
+  } else if (user!.role === 'PARENT') {
+    // For parents: fetch all children linked to them and get their batchIds
+    const parentProfile = await prisma.parentProfile.findUnique({
+      where: { userId: user!.userId },
+      include: {
+        children: { select: { id: true, batchId: true, fullName: true } }
+      }
+    })
+    const childrenBatchIds = (parentProfile?.children || []).map((c: any) => c.batchId).filter(Boolean)
+    if (childrenBatchIds.length > 0) {
+      where.batchId = { in: childrenBatchIds }
+    } else {
+      return NextResponse.json({ success: true, homeworks: [], studentId: null, children: [] })
+    }
+
+    const children = parentProfile?.children || []
+    const homeworks = await prisma.homework.findMany({
+      where,
+      include: {
+        batch: { select: { id: true, name: true, course: { select: { id: true, name: true } } } },
+        _count: { select: { submissions: true } },
+        submissions: {
+          where: { studentId: { in: children.map((c: any) => c.id) } },
+          include: { student: { select: { id: true, fullName: true, studentId: true } } }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    return NextResponse.json({ success: true, homeworks, studentId: null, children })
   }
 
   const homeworks = await prisma.homework.findMany({
