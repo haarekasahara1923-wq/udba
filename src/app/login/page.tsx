@@ -147,7 +147,7 @@ function LoginForm() {
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type={showPassword ? 'text' : 'password'}
-                                    style={{ width: '100%', padding: '11px 42px 11px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
+                                    style={{ width: '100%', padding: '11px 48px 11px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
                                     placeholder="Enter your password"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
@@ -160,26 +160,33 @@ function LoginForm() {
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{
                                         position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
+                                        right: '4px',
+                                        top: '0',
+                                        bottom: '0',
+                                        width: '42px',
                                         background: 'transparent',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: 'rgba(255, 255, 255, 0.45)',
+                                        color: showPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        padding: '4px',
-                                        borderRadius: '6px',
-                                        transition: 'color 0.2s',
+                                        borderRadius: '8px',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = '#4ade80')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.45)')}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.color = '#4ade80'
+                                        e.currentTarget.style.background = 'rgba(74, 222, 128, 0.1)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.color = showPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)'
+                                        e.currentTarget.style.background = 'transparent'
+                                    }}
                                     title={showPassword ? 'Hide password' : 'Show password'}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                         </div>

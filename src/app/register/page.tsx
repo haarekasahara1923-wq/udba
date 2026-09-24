@@ -11,7 +11,9 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('')
     const [phone, setPhone] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
@@ -26,6 +28,18 @@ export default function RegisterPage() {
         e.preventDefault()
         setLoading(true)
         setError('')
+
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters long')
+            setLoading(false)
+            return
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match. Please re-check both password fields.')
+            setLoading(false)
+            return
+        }
 
         try {
             const res = await fetch('/api/auth/register', {
@@ -147,7 +161,7 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        <div style={{ marginBottom: '20px' }}>
+                        <div style={{ marginBottom: '14px' }}>
                             <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Password *</label>
                             <div style={{ position: 'relative' }}>
                                 <input
@@ -155,34 +169,88 @@ export default function RegisterPage() {
                                     required
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    placeholder="Create a secure password"
-                                    style={{ width: '100%', padding: '10px 42px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                                    placeholder="Create a secure password (min 6 chars)"
+                                    style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{
                                         position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
+                                        right: '4px',
+                                        top: '0',
+                                        bottom: '0',
+                                        width: '42px',
                                         background: 'transparent',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: 'rgba(255, 255, 255, 0.45)',
+                                        color: showPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        padding: '4px',
-                                        borderRadius: '6px',
-                                        transition: 'color 0.2s',
+                                        borderRadius: '8px',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = '#4ade80')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.45)')}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.color = '#4ade80'
+                                        e.currentTarget.style.background = 'rgba(74, 222, 128, 0.1)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.color = showPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)'
+                                        e.currentTarget.style.background = 'transparent'
+                                    }}
                                     title={showPassword ? 'Hide password' : 'Show password'}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Confirm Password *</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="Re-enter your password"
+                                    style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '4px',
+                                        top: '0',
+                                        bottom: '0',
+                                        width: '42px',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        color: showConfirmPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '8px',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
+                                    }}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.color = '#4ade80'
+                                        e.currentTarget.style.background = 'rgba(74, 222, 128, 0.1)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.color = showConfirmPassword ? '#4ade80' : 'rgba(255, 255, 255, 0.8)'
+                                        e.currentTarget.style.background = 'transparent'
+                                    }}
+                                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                         </div>

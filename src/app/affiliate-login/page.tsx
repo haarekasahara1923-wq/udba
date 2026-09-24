@@ -66,7 +66,7 @@ export default function AffiliateLoginPage() {
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     className="input"
-                                    style={{ paddingRight: '42px' }}
+                                    style={{ paddingRight: '48px' }}
                                     placeholder="••••••••"
                                     value={form.password}
                                     onChange={e => setForm({ ...form, password: e.target.value })}
@@ -77,26 +77,33 @@ export default function AffiliateLoginPage() {
                                     onClick={() => setShowPassword(!showPassword)}
                                     style={{
                                         position: 'absolute',
-                                        right: '12px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
+                                        right: '4px',
+                                        top: '0',
+                                        bottom: '0',
+                                        width: '42px',
                                         background: 'transparent',
                                         border: 'none',
                                         cursor: 'pointer',
-                                        color: 'var(--text-muted)',
+                                        color: showPassword ? '#10b981' : 'rgba(255, 255, 255, 0.8)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        padding: '4px',
-                                        borderRadius: '6px',
-                                        transition: 'color 0.2s',
+                                        borderRadius: '8px',
+                                        zIndex: 10,
+                                        transition: 'all 0.2s',
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = '#10b981')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                                    onMouseEnter={e => {
+                                        e.currentTarget.style.color = '#10b981'
+                                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.color = showPassword ? '#10b981' : 'rgba(255, 255, 255, 0.8)'
+                                        e.currentTarget.style.background = 'transparent'
+                                    }}
                                     title={showPassword ? 'Hide password' : 'Show password'}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                         </div>
