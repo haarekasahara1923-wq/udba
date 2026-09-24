@@ -163,7 +163,7 @@ function DashboardHeader({ onMenuClick }: { onMenuClick: () => void }) {
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button onClick={onMenuClick} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px', padding: '4px' }} id="mobile-menu-btn">
+                <button onClick={onMenuClick} className="hide-desktop" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px', padding: '4px' }} id="mobile-menu-btn">
                     ☰
                 </button>
                 <div className="header-title-container">
