@@ -28,6 +28,7 @@ const roles = [
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -70,6 +71,30 @@ export default function LandingPage() {
         </div>
 
         <div className="hide-mobile" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setQrModalOpen(!qrModalOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', fontSize: '20px' }}>
+              📱
+            </button>
+            {qrModalOpen && (
+              <div style={{
+                position: 'absolute', top: '40px', right: '-80px', width: '220px',
+                background: 'rgba(8,14,6,0.95)', border: '1px solid rgba(26,92,56,0.5)', backdropFilter: 'blur(10px)',
+                borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.7)', zIndex: 200
+              }}>
+                <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>Download Android App</div>
+                <img src="/downloads/UDBA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>Scan to install on Android</div>
+                <a href="/downloads/UDBA.apk" download style={{ 
+                  background: 'linear-gradient(135deg, #1a5c38, #f97316)', color: 'white', textDecoration: 'none',
+                  padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold',
+                  width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', border: 'none'
+                }}>
+                  ⬇️ Download APK
+                </a>
+              </div>
+            )}
+          </div>
           <Link href="/login" style={{ padding: '9px 24px', fontSize: '14px', fontWeight: '700', background: 'linear-gradient(135deg, #1a5c38, #f97316)', color: 'white', borderRadius: '8px', textDecoration: 'none', boxShadow: '0 4px 20px rgba(26,92,56,0.35)' }}>🔑 Staff Login</Link>
         </div>
 
