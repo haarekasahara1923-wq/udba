@@ -119,7 +119,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
               }}>
                 <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold', textAlign: 'center' }}>Download App</div>
                 <img src="/downloads/UDBA-app-qrcode.png" alt="QR Code" style={{ width: '120px', height: '120px', borderRadius: '8px', background: 'white', padding: '6px' }} />
-                <a href="/downloads/UDBA.apk" download style={{ background: '#6366f1', color: 'white', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', width: '100%', textAlign: 'center', border: 'none' }}>⬇️ APK</a>
+                <a href="/downloads/UDBA-app-qrcode.png" download="UDBA-app-qrcode.png" style={{ background: '#6366f1', color: 'white', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', width: '100%', textAlign: 'center', border: 'none' }}>⬇️ Download QR</a>
               </div>
             )}
           </div>

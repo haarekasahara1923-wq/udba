@@ -87,12 +87,12 @@ export default function LandingPage() {
                 <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>Download Android App</div>
                 <img src="/downloads/UDBA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>Scan to install on Android</div>
-                <a href="/downloads/UDBA.apk" download style={{ 
+                <a href="/downloads/UDBA-app-qrcode.png" download="UDBA-app-qrcode.png" style={{ 
                   background: 'linear-gradient(135deg, #1a5c38, #f97316)', color: 'white', textDecoration: 'none',
                   padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold',
                   width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', border: 'none'
                 }}>
-                  ⬇️ Download APK
+                  ⬇️ Download QR Code
                 </a>
               </div>
             )}
