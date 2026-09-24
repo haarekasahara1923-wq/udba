@@ -74,7 +74,9 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
             <aside className={`sidebar ${open ? 'open' : ''}`}>
                 {/* Logo */}
                 <div className="sidebar-logo">
-                    <div className="sidebar-logo-icon">{isSuperAdmin ? '👑' : '🏫'}</div>
+                    <div className="sidebar-logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {isSuperAdmin ? '👑' : <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
+                    </div>
                     <div>
                         <div style={{ fontSize: '13px', fontWeight: '800', color: 'white' }}>UDBA</div>
                         <div style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

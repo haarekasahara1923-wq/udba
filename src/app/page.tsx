@@ -54,7 +54,9 @@ export default function LandingPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #1a5c38, #f97316)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🏫</div>
+          <div style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: '800', color: 'white', lineHeight: 1.2 }}>UDBA</div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.5px' }}>Universal Day Boarding Academy</div>
@@ -283,7 +285,9 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ background: 'rgba(26,92,56,0.05)', borderTop: '1px solid rgba(26,92,56,0.15)', padding: '40px 32px', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #1a5c38, #f97316)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🏫</div>
+          <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
           <div style={{ textAlign: 'left' }}>
             <div style={{ fontWeight: '800', fontSize: '16px' }}>UDBA</div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Universal Day Boarding Academy</div>
