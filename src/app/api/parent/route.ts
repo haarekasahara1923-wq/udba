@@ -9,13 +9,14 @@ export async function GET(req: NextRequest) {
   const profile = await prisma.parentProfile.findUnique({
     where: { userId: user!.userId },
     include: {
+      tenant: { select: { name: true } },
       children: {
         include: {
-          course: { select: { name: true } },
+          course: { select: { name: true, subjects: true } },
           batch: { select: { name: true } },
           attendances: { orderBy: { date: 'desc' }, take: 10 },
           fees: { orderBy: { dueDate: 'desc' }, take: 5 },
-          examResults: { include: { exam: true }, orderBy: { createdAt: 'desc' }, take: 5 },
+          examResults: { include: { exam: true }, orderBy: { createdAt: 'desc' } },
         },
       },
     },
