@@ -38,10 +38,19 @@ export async function POST(req: NextRequest) {
   // Verify students belong to same tenant
   const students = await prisma.student.findMany({
     where: { id: { in: studentIds }, tenantId: user!.tenantId },
+    include: { parentLinks: true }
   })
 
   if (students.length !== studentIds.length) {
     return NextResponse.json({ error: 'Invalid student IDs' }, { status: 400 })
+  }
+
+  // Check if any of these students are already linked to a DIFFERENT parent
+  for (const student of students) {
+    const otherParent = student.parentLinks.find(p => p.userId !== user!.userId);
+    if (otherParent) {
+      return NextResponse.json({ error: `Student ${student.fullName} is already linked to another parent.` }, { status: 400 })
+    }
   }
 
   // Upsert parent profile
