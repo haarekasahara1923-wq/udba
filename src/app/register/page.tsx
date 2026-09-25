@@ -139,24 +139,13 @@ export default function RegisterPage() {
                         </div>
 
                         <div style={{ marginBottom: '14px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Email Address *</label>
+                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Email / Mobile No. *</label>
                             <input
-                                type="email"
+                                type="text"
                                 required
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                placeholder="name@example.com"
-                                style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '14px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Phone / WhatsApp Number</label>
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={e => setPhone(e.target.value)}
-                                placeholder="9876543210"
+                                placeholder="name@example.com or 9876543210"
                                 style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
                             />
                         </div>

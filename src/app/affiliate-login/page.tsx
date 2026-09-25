@@ -56,8 +56,8 @@ export default function AffiliateLoginPage() {
                 <div className="card" style={{ borderRadius: '20px', padding: '32px' }}>
                     <form onSubmit={handleSubmit}>
                         <div style={{ marginBottom: '16px' }}>
-                            <label className="label">Email Address</label>
-                            <input type="email" className="input" placeholder="rahul@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+                            <label className="label">Email / Mobile No.</label>
+                            <input type="text" className="input" placeholder="rahul@example.com or 9876543210" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
                         </div>
 
                         <div style={{ marginBottom: '24px' }}>
