@@ -822,5 +822,6 @@ tbody td {
 @media (max-width: 768px) {
   .header {
     left: 0 !important;
+    width: 100% !important;
   }
 }

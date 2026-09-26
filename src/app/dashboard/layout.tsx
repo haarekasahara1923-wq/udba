@@ -363,6 +363,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                 bottom: 0,
                 left: 0,
                 right: 0,
+                width: '100%',
                 zIndex: 1000,
                 background: 'var(--surface)',
                 borderTop: '1px solid var(--border)',

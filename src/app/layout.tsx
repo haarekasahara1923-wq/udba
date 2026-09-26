@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "UDBA — Universal Day Boarding Academy, Gwalior",
   description: "Universal Day Boarding Academy, Pinto Park, Gwalior (MP) — Complete School Management System. Manage students, fees, attendance, exams, and parent communication.",
