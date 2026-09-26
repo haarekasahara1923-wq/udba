@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
         // For non-admin roles: use provided tenantId, or fall back to env school slug
         let resolvedTenantId = tenantId
 
-        if (!resolvedTenantId && role && role !== 'COACHING_ADMIN' && role !== 'SUPER_ADMIN') {
+        const ADMIN_ROLES = ['SUPER_ADMIN', 'COACHING_ADMIN', 'ADMIN_OPERATION', 'ADMIN_LIBRARY', 'ADMIN_SPORTS', 'ADMIN_TRANSPORT']
+
+        if (role && ADMIN_ROLES.includes(role)) {
+            resolvedTenantId = undefined
+        } else if (!resolvedTenantId && role) {
             // Auto-resolve from env: find UDBA's tenant by slug
             const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG
             if (schoolSlug) {
