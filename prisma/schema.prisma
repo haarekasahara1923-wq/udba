@@ -392,6 +392,7 @@ model Payment {
   tenantId   String
   studentId  String
   feeId      String?
+  receiptNo  String?     // Auto-generated receipt number
   amount     Float
   mode       PaymentMode @default(CASH)
   reference  String?
@@ -405,6 +406,8 @@ model Payment {
   fee     Fee?    @relation(fields: [feeId], references: [id])
 
   @@index([tenantId])
+  @@index([tenantId, studentId])
+  @@index([tenantId, receiptNo])
 }
 
 enum PaymentMode {
