@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       role: { in: SUB_ADMIN_ROLES as any },
     },
     select: {
-      id: true, name: true, email: true, phone: true, role: true, isActive: true, createdAt: true,
+      id: true, name: true, email: true, phone: true, role: true, isActive: true, createdAt: true, plainPassword: true,
     },
     orderBy: { createdAt: 'desc' },
   })

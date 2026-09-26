@@ -230,9 +230,12 @@ export default function ManageAdminsPage() {
                   </div>
                   <div>
                     <div style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>{admin.name}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      📱 {admin.phone || admin.email} &nbsp;•&nbsp;
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
                       <span style={{ color: info?.color || '#6366f1', fontWeight: '600' }}>{info?.label || admin.role}</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'white', marginTop: '8px', background: '#0f172a', padding: '6px 10px', borderRadius: '6px', border: '1px solid #334155', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div>📱 <span style={{ fontWeight: '700', color: '#4ade80' }}>{admin.phone}</span></div>
+                      <div>🔑 <span style={{ fontWeight: '700', color: '#facc15' }}>{admin.plainPassword || '••••••'}</span></div>
                     </div>
                   </div>
                 </div>
