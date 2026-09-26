@@ -57,16 +57,73 @@ const superAdminNav = [
         group: 'SUPER ADMIN', items: [
             { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview' },
             { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools' },
+            { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins' },
             { href: '/dashboard/super-admin/subscriptions', icon: '💎', label: 'System Config' },
         ]
     },
 ]
 
+// Navigation items allowed for sub-admin roles
+const adminOperationNav = [
+    {
+        group: 'STUDENTS', items: [
+            { href: '/dashboard/courses', icon: '🏫', label: 'Classes & Batches' },
+            { href: '/dashboard/students', icon: '👨‍🎓', label: 'All Students' },
+            { href: '/dashboard/students/add', icon: '➕', label: 'Add Student' },
+            { href: '/dashboard/attendance', icon: '✅', label: 'Attendance' },
+        ]
+    },
+    {
+        group: 'FINANCE', items: [
+            { href: '/dashboard/fees', icon: '💰', label: 'Fee Management' },
+            { href: '/dashboard/payments', icon: '💳', label: 'Payments' },
+        ]
+    },
+    {
+        group: 'MANAGEMENT', items: [
+            { href: '/dashboard/teachers', icon: '👩‍🏫', label: 'Teachers & Staff' },
+        ]
+    },
+]
+
+const adminLibraryNav = [
+    {
+        group: 'LIBRARY', items: [
+            { href: '/dashboard/library', icon: '📚', label: 'Library' },
+        ]
+    },
+]
+
+const adminSportsNav = [
+    {
+        group: 'SPORTS', items: [
+            { href: '/dashboard/sports', icon: '🏆', label: 'Sports' },
+        ]
+    },
+]
+
+const adminTransportNav = [
+    {
+        group: 'TRANSPORT', items: [
+            { href: '/dashboard/transport', icon: '🚌', label: 'Transport' },
+        ]
+    },
+]
+
+const getNavForRole = (role: string) => {
+    if (role === 'SUPER_ADMIN') return superAdminNav
+    if (role === 'ADMIN_OPERATION') return adminOperationNav
+    if (role === 'ADMIN_LIBRARY') return adminLibraryNav
+    if (role === 'ADMIN_SPORTS') return adminSportsNav
+    if (role === 'ADMIN_TRANSPORT') return adminTransportNav
+    return navItems
+}
+
 function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
     const pathname = usePathname()
     const { user, tenant, logout } = useAuth()
     const isSuperAdmin = user?.role === 'SUPER_ADMIN'
-    const allNavItems = isSuperAdmin ? superAdminNav : navItems
+    const allNavItems = getNavForRole(user?.role || 'COACHING_ADMIN')
 
     return (
         <>

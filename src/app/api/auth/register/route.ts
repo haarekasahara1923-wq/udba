@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, signAccessToken, signRefreshToken } from '@/lib/auth'
 
+// These roles can ONLY be created by super admin, not via self-registration
+const ADMIN_ONLY_ROLES = ['ADMIN_OPERATION', 'ADMIN_LIBRARY', 'ADMIN_SPORTS', 'ADMIN_TRANSPORT', 'COACHING_ADMIN']
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
@@ -11,21 +14,32 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Name, email/phone, and password are required' }, { status: 400 })
         }
 
+        const userRole = role || 'STUDENT'
+
+        // Block sub-admin self-registration — only super admin can create those
+        if (ADMIN_ONLY_ROLES.includes(userRole)) {
+            return NextResponse.json({ error: 'Admin accounts are created by the Super Admin. Please contact your school administration.' }, { status: 403 })
+        }
+
+        // Determine email / phone from identifier
+        const isRealEmail = email.includes('@') && !email.includes('@udba.local')
+        const resolvedEmail = isRealEmail ? email.toLowerCase() : `${phone || email}@udba.local`
+        const resolvedPhone = phone || (isRealEmail ? undefined : email)
+
         // Check if user already exists
-        const existingUser = await prisma.user.findFirst({ 
-            where: { 
+        const existingUser = await prisma.user.findFirst({
+            where: {
                 OR: [
-                    { email: email.toLowerCase() },
-                    { phone: phone || email }
+                    { email: resolvedEmail },
+                    ...(resolvedPhone ? [{ phone: resolvedPhone }] : []),
                 ]
-            } 
+            }
         })
         if (existingUser) {
             return NextResponse.json({ error: 'An account with this email/phone already exists' }, { status: 409 })
         }
 
         const hashedPassword = await hashPassword(password)
-        const userRole = role || 'STUDENT'
 
         // Single-School UDBA: Auto-resolve UDBA tenant
         let targetTenantId = tenantId || process.env.NEXT_PUBLIC_SCHOOL_TENANT_ID
@@ -37,9 +51,22 @@ export async function POST(req: NextRequest) {
 
         if (!school) {
             const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
-            school = await prisma.tenant.findFirst({ 
-                where: { slug: schoolSlug } 
-            })
+            school = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+        }
+
+        // For SUPER_ADMIN: create or use the first tenant
+        if (!school && userRole === 'SUPER_ADMIN') {
+            school = await prisma.tenant.findFirst()
+            if (!school) {
+                school = await prisma.tenant.create({
+                    data: {
+                        name: 'Universal Day Boarding Academy',
+                        slug: 'udba',
+                        phone: '7879337770',
+                        address: 'Pinto Park, Gwalior (MP)',
+                    }
+                })
+            }
         }
 
         if (!school) {
@@ -52,8 +79,8 @@ export async function POST(req: NextRequest) {
             const user = await tx.user.create({
                 data: {
                     tenantId: resolvedTenantId,
-                    email: email.toLowerCase(),
-                    phone: phone || email,
+                    email: resolvedEmail,
+                    phone: resolvedPhone || null,
                     password: hashedPassword,
                     plainPassword: password,
                     name,
@@ -65,22 +92,18 @@ export async function POST(req: NextRequest) {
             let studentId = null
 
             if (userRole === 'STUDENT') {
-                // Link to existing student profile or create new
                 const existingStudent = await tx.student.findFirst({
                     where: {
                         tenantId: resolvedTenantId,
                         OR: [
-                            { email: email.toLowerCase() },
-                            { phone: phone || email }
+                            { email: resolvedEmail },
+                            ...(resolvedPhone ? [{ phone: resolvedPhone }] : []),
                         ]
                     }
                 })
 
                 if (existingStudent) {
-                    await tx.student.update({
-                        where: { id: existingStudent.id },
-                        data: { userId: user.id }
-                    })
+                    await tx.student.update({ where: { id: existingStudent.id }, data: { userId: user.id } })
                     studentId = existingStudent.id
                 } else {
                     let dummyCourse = await tx.course.findFirst({ where: { tenantId: resolvedTenantId } })
@@ -91,13 +114,12 @@ export async function POST(req: NextRequest) {
                     if (!dummyBatch) {
                         dummyBatch = await tx.batch.create({ data: { tenantId: resolvedTenantId, courseId: dummyCourse.id, name: 'Section A' } })
                     }
-
                     const newStudent = await tx.student.create({
                         data: {
                             tenantId: resolvedTenantId,
                             userId: user.id,
                             fullName: name,
-                            phone: phone || email,
+                            phone: resolvedPhone || null,
                             courseId: dummyCourse.id,
                             batchId: dummyBatch.id,
                             status: 'ACTIVE',
@@ -111,7 +133,7 @@ export async function POST(req: NextRequest) {
                         tenantId: resolvedTenantId,
                         userId: user.id,
                         name,
-                        phone: phone || email,
+                        phone: resolvedPhone || null,
                     }
                 })
             } else if (userRole === 'TEACHER') {
@@ -119,8 +141,8 @@ export async function POST(req: NextRequest) {
                     data: {
                         tenantId: resolvedTenantId,
                         name,
-                        email: email.toLowerCase(),
-                        phone: phone || email,
+                        email: resolvedEmail,
+                        phone: resolvedPhone || null,
                     }
                 })
             } else if (userRole === 'DRIVER') {
@@ -128,7 +150,7 @@ export async function POST(req: NextRequest) {
                     data: {
                         tenantId: resolvedTenantId,
                         userId: user.id,
-                        phone: phone || email,
+                        phone: resolvedPhone || null,
                         isActive: true
                     }
                 })
@@ -137,7 +159,7 @@ export async function POST(req: NextRequest) {
             return { tenant: school, user, studentId }
         })
 
-        const payload = { userId: result.user.id, tenantId: resolvedTenantId, role: userRole, email: email.toLowerCase() }
+        const payload = { userId: result.user.id, tenantId: resolvedTenantId, role: userRole, email: resolvedEmail }
         const accessToken = signAccessToken(payload)
         const refreshToken = signRefreshToken(payload)
 
@@ -146,7 +168,7 @@ export async function POST(req: NextRequest) {
             message: 'Registration successful',
             accessToken,
             refreshToken,
-            user: { id: result.user.id, name, email, role: userRole, tenantId: resolvedTenantId, studentId: result.studentId || null },
+            user: { id: result.user.id, name, email: resolvedEmail, role: userRole, tenantId: resolvedTenantId, studentId: result.studentId || null },
             tenant: { id: school.id, name: school.name, themeColor: school.themeColor },
         }, { status: 201 })
     } catch (error) {

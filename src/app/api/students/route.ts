@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
-import { requireAuth, checkPlanLimit } from '@/app/api/middleware'
+import { requireAuth, requireWriteAccess, checkPlanLimit } from '@/app/api/middleware'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-    const { error, user } = requireAuth(req)
+    const { error, user } = requireWriteAccess(req)
     if (error) return error
 
     try {
@@ -184,7 +184,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-    const { error, user } = requireAuth(req)
+    const { error, user } = requireWriteAccess(req)
     if (error) return error
 
     try {

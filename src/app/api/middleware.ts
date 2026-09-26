@@ -29,6 +29,28 @@ export function requireRole(req: NextRequest, roles: string[]) {
     return { error: null, user }
 }
 
+// Full-access roles (can create, edit, delete, block)
+const FULL_ACCESS_ROLES = ['SUPER_ADMIN', 'COACHING_ADMIN']
+// Sub-admin roles (can only add/view, NOT edit/delete/block)
+const SUB_ADMIN_ROLES = ['ADMIN_OPERATION', 'ADMIN_LIBRARY', 'ADMIN_SPORTS', 'ADMIN_TRANSPORT']
+
+export function requireWriteAccess(req: NextRequest) {
+    const { error, user } = requireAuth(req)
+    if (error) return { error, user: null }
+    if (SUB_ADMIN_ROLES.includes(user!.role)) {
+        return {
+            error: NextResponse.json({ error: 'Permission denied. Only Super Admin can edit, delete, or block records.' }, { status: 403 }),
+            user: null,
+        }
+    }
+    return { error: null, user }
+}
+
+export function isSubAdminRole(role: string): boolean {
+    return SUB_ADMIN_ROLES.includes(role)
+}
+
+
 // Get the current tenant's subscription plan from database
 export async function getTenantPlan(tenantId: string): Promise<string> {
     try {
