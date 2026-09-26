@@ -33,7 +33,8 @@ const statusColors: Record<string, string> = {
 }
 
 export default function StudentsPage() {
-    const { token } = useAuth()
+    const { token, user } = useAuth()
+    const canEditOrDelete = user?.role === 'SUPER_ADMIN' || user?.role === 'COACHING_ADMIN'
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -246,11 +247,15 @@ export default function StudentsPage() {
                                             <td>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
                                                     <button onClick={() => setSelectedStudent(s)} className="btn btn-secondary btn-sm" title="View">👁️</button>
-                                                    <button onClick={() => { setSelectedStudent(s); setEditForm(s); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit">✏️</button>
-                                                    <button onClick={() => toggleBlock(s)} className={`btn btn-sm ${s.status === 'ACTIVE' ? 'btn-secondary' : 'btn-success'}`} title={s.status === 'ACTIVE' ? 'Block' : 'Unblock'}>
-                                                        {s.status === 'ACTIVE' ? '🚫' : '✅'}
-                                                    </button>
-                                                    <button onClick={() => handleDelete(s.id)} className="btn btn-secondary btn-sm" style={{ color: '#ef4444' }} title="Delete">🗑️</button>
+                                                    {canEditOrDelete && (
+                                                        <>
+                                                            <button onClick={() => { setSelectedStudent(s); setEditForm(s); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit">✏️</button>
+                                                            <button onClick={() => toggleBlock(s)} className={`btn btn-sm ${s.status === 'ACTIVE' ? 'btn-secondary' : 'btn-success'}`} title={s.status === 'ACTIVE' ? 'Block' : 'Unblock'}>
+                                                                {s.status === 'ACTIVE' ? '🚫' : '✅'}
+                                                            </button>
+                                                            <button onClick={() => handleDelete(s.id)} className="btn btn-secondary btn-sm" style={{ color: '#ef4444' }} title="Delete">🗑️</button>
+                                                        </>
+                                                    )}
                                                     <a href={`https://wa.me/${s.parentPhone?.replace(/\D/g, '') || s.phone?.replace(/\D/g, '')}`} target="_blank" className="btn btn-sm" style={{ background: '#25d366', color: 'white', textDecoration: 'none' }} title="WhatsApp">💬</a>
                                                 </div>
                                             </td>
@@ -345,7 +350,9 @@ export default function StudentsPage() {
                         </div>
                         {!isEditing && (
                             <div className="modal-footer">
-                                <button onClick={() => { setEditForm(selectedStudent); setIsEditing(true); }} className="btn btn-secondary">✏️ Edit Details</button>
+                                {canEditOrDelete && (
+                                    <button onClick={() => { setEditForm(selectedStudent); setIsEditing(true); }} className="btn btn-secondary">✏️ Edit Details</button>
+                                )}
                                 <a href={`https://wa.me/${(selectedStudent.parentPhone || selectedStudent.phone)?.replace(/\D/g, '')}?text=Dear Parent, This is regarding ${selectedStudent.fullName} from our coaching institute.`} target="_blank" className="btn btn-success">💬 WhatsApp Parent</a>
                                 <button onClick={() => setSelectedStudent(null)} className="btn btn-secondary">Close</button>
                             </div>

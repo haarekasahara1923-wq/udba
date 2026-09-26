@@ -113,7 +113,7 @@ const adminTransportNav = [
 ]
 
 const getNavForRole = (role: string) => {
-    if (role === 'SUPER_ADMIN') return superAdminNav
+    if (role === 'SUPER_ADMIN') return [...superAdminNav, ...adminOperationNav]
     if (role === 'ADMIN_OPERATION') return adminOperationNav
     if (role === 'ADMIN_LIBRARY') return adminLibraryNav
     if (role === 'ADMIN_SPORTS') return adminSportsNav
