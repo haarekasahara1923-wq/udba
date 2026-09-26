@@ -129,7 +129,7 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
 
     return (
         <>
-            {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 49 }} className="hide-desktop" />}
+            {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1049 }} className="hide-desktop" />}
             <aside className={`sidebar ${open ? 'open' : ''}`}>
                 {/* Logo */}
                 <div className="sidebar-logo">
