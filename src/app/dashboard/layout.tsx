@@ -325,6 +325,17 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         }
     }, [user, isLoading, router, pathname])
 
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => {
+            document.body.style.overflow = ''
+        }
+    }, [sidebarOpen])
+
     if (isLoading) {
         return (
             <div style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -342,9 +353,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         { href: '/dashboard', label: 'Home', icon: '🏠' },
         { href: '/dashboard/students', label: 'Students', icon: '👨‍🎓' },
         { href: '/dashboard/fees', label: 'Fees', icon: '💰' },
-        { href: '/dashboard/notices', label: 'Notices', icon: '📢' },
         { href: '/dashboard/reports', label: 'Reports', icon: '📊' },
     ]
+
+    const { logout } = useAuth()
 
     return (
         <div>
@@ -400,6 +412,23 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                         </Link>
                     )
                 })}
+                {/* Logout Button in Bottom Nav */}
+                <button onClick={logout} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flex: 1,
+                    padding: '8px 4px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#ef4444',
+                    gap: '3px',
+                    cursor: 'pointer',
+                }}>
+                    <span style={{ fontSize: '20px', lineHeight: 1 }}>🚪</span>
+                    <span style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px' }}>Logout</span>
+                </button>
             </nav>
         </div>
     )
