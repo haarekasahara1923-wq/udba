@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   const { error, user } = requireAuth(req)
   if (error) return error
 
-  // Only super admin and coaching admin can access ledger
+  // Only super admin and school admin can access ledger
   if (!['SUPER_ADMIN', 'COACHING_ADMIN', 'ADMIN_OPERATION'].includes(user!.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

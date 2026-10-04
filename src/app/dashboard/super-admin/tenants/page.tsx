@@ -32,7 +32,7 @@ export default function AllTenantsPage() {
 
     const handleAction = async (tenantId: string, action: string, plan?: string) => {
         if (action === 'delete') {
-            if (!window.confirm('CRITICAL: Delete this coaching center and ALL its data (students, payments, attendance)? This cannot be undone.')) return
+            if (!window.confirm('CRITICAL: Delete this school and ALL its data (students, payments, attendance)? This cannot be undone.')) return
             try {
                 const res = await fetch(`/api/super-admin/tenants?id=${tenantId}`, {
                     method: 'DELETE', headers: authHeaders
@@ -44,7 +44,7 @@ export default function AllTenantsPage() {
             return
         }
 
-        const msg = action === 'block' ? 'Block this coaching center?' : action === 'unblock' ? 'Unblock this coaching center?' : `Mark as PAID (${plan || 'BASIC'})?`
+        const msg = action === 'block' ? 'Block this school?' : action === 'unblock' ? 'Unblock this school?' : `Mark as PAID (${plan || 'BASIC'})?`
         if (!window.confirm(msg)) return
         try {
             const res = await fetch('/api/super-admin/tenants', {
@@ -90,14 +90,14 @@ export default function AllTenantsPage() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">🏫 All Coaching Centers</h1>
-                    <p className="page-subtitle">Manage all registered coaching centers</p>
+                    <h1 className="page-title">🏫 All schools</h1>
+                    <p className="page-subtitle">Manage all registered schools</p>
                 </div>
             </div>
 
             <div className="card" style={{ padding: 0 }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontWeight: '700', fontSize: '16px' }}>Total: {filtered.length} coaching center{filtered.length !== 1 ? 's' : ''}</h3>
+                    <h3 style={{ fontWeight: '700', fontSize: '16px' }}>Total: {filtered.length} school{filtered.length !== 1 ? 's' : ''}</h3>
                     <input className="input" placeholder="Search by name, email, phone..." style={{ width: '280px', padding: '8px 12px' }} value={search} onChange={e => setSearch(e.target.value)} />
                 </div>
                 {loading && !tenants.length ? (
@@ -107,7 +107,7 @@ export default function AllTenantsPage() {
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Coaching Center</th>
+                                    <th>school</th>
                                     <th>Contact</th>
                                     <th>Plan</th>
                                     <th>Students</th>
@@ -178,7 +178,7 @@ export default function AllTenantsPage() {
                                         </tr>
                                     )
                                 })}
-                                {filtered.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>No coaching centers found.</td></tr>}
+                                {filtered.length === 0 && <tr><td colSpan={9} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>No schools found.</td></tr>}
                             </tbody>
                         </table>
                     </div>
@@ -190,7 +190,7 @@ export default function AllTenantsPage() {
                 <div className="modal-overlay" onClick={() => setEditingTenant(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3 style={{ fontWeight: '700' }}>✏️ Edit Coaching Center</h3>
+                            <h3 style={{ fontWeight: '700' }}>✏️ Edit school</h3>
                             <button onClick={() => setEditingTenant(null)} className="btn-close">✕</button>
                         </div>
                         <form onSubmit={handleUpdate}>

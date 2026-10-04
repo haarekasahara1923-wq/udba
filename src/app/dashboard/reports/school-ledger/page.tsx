@@ -1,5 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { downloadCSV, generateAndPrintPDF } from '@/lib/reportExport'
@@ -15,11 +16,12 @@ interface LedgerEntry {
     source: string
 }
 
-export default function SchoolLedgerPage() {
+function SchoolLedgerContent() {
     const { token, tenant } = useAuth()
     const [entries, setEntries] = useState<LedgerEntry[]>([])
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState('ledger')
+    const searchParams = useSearchParams()
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'pnl' ? 'pnl' : 'ledger')
 
     useEffect(() => {
         if (!token) return
@@ -282,5 +284,13 @@ export default function SchoolLedgerPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+export default function SchoolLedgerPage() {
+    return (
+        <Suspense fallback={<div className="spinner" style={{ margin: '40px auto' }} />}>
+            <SchoolLedgerContent />
+        </Suspense>
     )
 }

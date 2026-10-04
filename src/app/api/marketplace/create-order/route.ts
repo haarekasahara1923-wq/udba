@@ -58,10 +58,10 @@ export async function POST(req: Request) {
         // Verify affiliate
         let validAffiliateId = null
         if (affiliateTenantId) {
-            const coaching = await prisma.tenant.findUnique({
+            const school = await prisma.tenant.findUnique({
                 where: { id: affiliateTenantId }
             })
-            if (coaching) validAffiliateId = coaching.id
+            if (school) validAffiliateId = school.id
         }
 
         const commissionAmount = validAffiliateId ? (totalAmount * 0.20) : 0

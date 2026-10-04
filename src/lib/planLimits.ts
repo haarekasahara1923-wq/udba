@@ -2,7 +2,7 @@
 // PLAN LIMITS & FEATURE GATING CONFIGURATION
 // =============================================
 // This is the single source of truth for all plan-based restrictions.
-// Basic → Limited features (starter coaching centers)
+// Basic → Limited features (starter schools)
 // Pro → Advanced features (growing institutes)
 // Elite → Everything unlimited (large chains)
 

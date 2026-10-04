@@ -21,7 +21,7 @@ export default function AffiliateDashboard() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            const res = await fetch('/api/coaching/affiliate', { headers: authHeaders })
+            const res = await fetch('/api/school/affiliate', { headers: authHeaders })
             const json = await res.json()
             if (!json.error) {
                 setData(json.details)
@@ -38,7 +38,7 @@ export default function AffiliateDashboard() {
 
     const handleUpdateBank = async () => {
         try {
-            const res = await fetch('/api/coaching/affiliate/bank', {
+            const res = await fetch('/api/school/affiliate/bank', {
                 method: 'POST', headers: authHeaders, body: JSON.stringify(bankData)
             })
             if (res.ok) alert('Bank details updated successfully!')
@@ -53,7 +53,7 @@ export default function AffiliateDashboard() {
             alert('Please save your UPI ID or Bank Details first.'); return
         }
         try {
-            const res = await fetch('/api/coaching/affiliate/withdraw', {
+            const res = await fetch('/api/school/affiliate/withdraw', {
                 method: 'POST', headers: authHeaders, body: JSON.stringify({ amount: amountOptions.amount })
             })
             if (res.ok) { alert('Withdrawal requested successfully!'); setAmountOptions({ amount: 0 }); fetchData() }
@@ -68,7 +68,7 @@ export default function AffiliateDashboard() {
         if (data.availableBalance < cost) { alert('Insufficient balance.'); return }
         if (!window.confirm(`Pay ₹${cost} for 1 month of ${targetPlan} plan?`)) return
         try {
-            const res = await fetch('/api/coaching/affiliate/pay-subscription', {
+            const res = await fetch('/api/school/affiliate/pay-subscription', {
                 method: 'POST', headers: authHeaders, body: JSON.stringify({ plan: targetPlan, cost })
             })
             if (res.ok) { alert('Subscription successfully activated!'); fetchData() }

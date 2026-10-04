@@ -61,7 +61,7 @@ const superAdminNav = [
             { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview' },
             { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools' },
             { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins' },
-            { href: '/dashboard/super-admin/subscriptions', icon: '💎', label: 'System Config' },
+
             { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation' },
         ]
     },
@@ -221,7 +221,7 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
             '/dashboard/reports/school-ledger?tab=pnl': 'Profit & Loss Account',
             '/dashboard/super-admin': 'Platform Overview',
             '/dashboard/super-admin/tenants': 'Schools',
-            '/dashboard/super-admin/subscriptions': 'System Config',
+
             '/dashboard/super-admin/tc': 'TC Generation',
         }
         return map[pathname] || 'Dashboard'

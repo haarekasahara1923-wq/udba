@@ -33,9 +33,9 @@ export default function SuperAdminPage() {
 
     const handleAction = async (tenantId: string, action: string, plan?: string) => {
         const confirmation = action === 'block'
-            ? window.confirm('Are you sure you want to BLOCK this coaching center?')
+            ? window.confirm('Are you sure you want to BLOCK this school?')
             : action === 'mark_paid'
-                ? window.confirm('Mark this coaching subscription as PAID for 1 month?')
+                ? window.confirm('Mark this school subscription as PAID for 1 month?')
                 : true
         if (!confirmation) return
         try {
@@ -73,7 +73,7 @@ export default function SuperAdminPage() {
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                 {[
-                    { label: 'Total Coaching Centers', value: stats.totalTenants || 0, icon: '🏫', color: '#6366f1' },
+                    { label: 'Total schools', value: stats.totalTenants || 0, icon: '🏫', color: '#6366f1' },
                     { label: 'Active Tenants', value: stats.activeTenants || 0, icon: '✅', color: '#10b981' },
                     { label: 'Total Students', value: stats.totalStudents || 0, icon: '👨‍🎓', color: '#f59e0b' },
                     { label: 'Gyankosh Revenue', value: `₹${(stats.totalGyankoshRevenue || 0).toLocaleString('en-IN')}`, icon: '💰', color: '#ec4899' },
@@ -108,7 +108,7 @@ export default function SuperAdminPage() {
             {/* Tenants Table */}
             <div className="card" style={{ padding: 0 }}>
                 <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontWeight: '700', fontSize: '16px' }}>🏫 All Coaching Centers ({filteredTenants.length})</h3>
+                    <h3 style={{ fontWeight: '700', fontSize: '16px' }}>🏫 All schools ({filteredTenants.length})</h3>
                     <input className="input" placeholder="Search by name or email..." style={{ width: '250px', padding: '8px 12px' }} value={search} onChange={e => setSearch(e.target.value)} />
                 </div>
                 {loading ? (
@@ -118,7 +118,7 @@ export default function SuperAdminPage() {
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Coaching Center</th>
+                                    <th>school</th>
                                     <th>Plan</th>
                                     <th>Students</th>
                                     <th>Affiliate Earnings</th>

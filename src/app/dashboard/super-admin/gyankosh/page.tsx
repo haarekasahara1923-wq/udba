@@ -228,7 +228,7 @@ export default function AdminGyankosh() {
                     <div className="table-container">
                         <table>
                             <thead>
-                                <tr><th>Coaching</th><th>Amount</th><th>Status</th><th>Requested</th><th>Actions</th></tr>
+                                <tr><th>School</th><th>Amount</th><th>Status</th><th>Requested</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                 {withdrawals.map(w => (
