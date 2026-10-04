@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function AdminTeacherLedger() {
     const [ledgers, setLedgers] = useState<any[]>([])
@@ -16,11 +17,15 @@ export default function AdminTeacherLedger() {
     
     const [selectedFilterTeacher, setSelectedFilterTeacher] = useState('')
 
+    const { token } = useAuth()
+
     const fetchLedgers = () => {
+        if (!token) return
         setLoading(true)
+        const headers = { Authorization: `Bearer ${token}` }
         Promise.all([
-            fetch('/api/teachers/ledger').then(r => r.json()),
-            fetch('/api/teachers').then(r => r.json()) // assuming this returns all teachers
+            fetch('/api/teachers/ledger', { headers }).then(r => r.json()),
+            fetch('/api/teachers', { headers }).then(r => r.json()) // assuming this returns all teachers
         ]).then(([ld, td]) => {
             setLedgers(ld.data || [])
             setTeachers(td.data || [])
@@ -30,14 +35,14 @@ export default function AdminTeacherLedger() {
 
     useEffect(() => {
         fetchLedgers()
-    }, [])
+    }, [token])
 
     const handleGenerate = async () => {
         if(!teacherId || !month || !year) return alert('Fill all required fields')
         setProcessing('generate')
         const res = await fetch('/api/teachers/ledger', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ teacherId, month: Number(month), year: Number(year), deductions: Number(deductions) })
         })
         const data = await res.json()
@@ -55,7 +60,7 @@ export default function AdminTeacherLedger() {
         setProcessing(id)
         const res = await fetch('/api/teachers/ledger', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ id, status: 'PAID' })
         })
         const data = await res.json()

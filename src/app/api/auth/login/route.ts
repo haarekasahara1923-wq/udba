@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         const whereClause: any = { isActive: true }
         const searchId = email.trim()
         const lowerId = searchId.toLowerCase()
-        
+
         // Let user log in with email or phone
         whereClause.OR = [
             { email: lowerId },
@@ -42,11 +42,9 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // We skip strict tenantId matching here because email/phone is globally unique.
-        // The user's actual tenantId is retrieved from the found user record.
-        // if (resolvedTenantId) {
-        //     whereClause.tenantId = resolvedTenantId
-        // }
+        if (resolvedTenantId) {
+            whereClause.tenantId = resolvedTenantId
+        }
 
         const user = await prisma.user.findFirst({
             where: whereClause,

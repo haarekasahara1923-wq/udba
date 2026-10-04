@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function AdminTeacherTimetable() {
     const [timetables, setTimetables] = useState<any[]>([])
@@ -8,11 +9,15 @@ export default function AdminTeacherTimetable() {
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState<string | null>(null)
 
+    const { token } = useAuth()
+
     const fetchTimetables = () => {
+        if (!token) return
         setLoading(true)
+        const headers = { Authorization: `Bearer ${token}` }
         Promise.all([
-            fetch('/api/teachers/timetable').then(r => r.json()),
-            fetch('/api/teachers').then(r => r.json())
+            fetch('/api/teachers/timetable', { headers }).then(r => r.json()),
+            fetch('/api/teachers', { headers }).then(r => r.json())
         ]).then(([ttData, tData]) => {
             setTimetables(ttData.data || [])
             setTeachers(tData.data || [])
@@ -22,13 +27,13 @@ export default function AdminTeacherTimetable() {
 
     useEffect(() => {
         fetchTimetables()
-    }, [])
+    }, [token])
 
     const handleAction = async (id: string, status: string) => {
         setProcessing(id)
         const res = await fetch('/api/teachers/timetable', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ id, status })
         })
         const data = await res.json()

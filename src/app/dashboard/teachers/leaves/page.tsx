@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function AdminTeacherLeaves() {
     const [leaves, setLeaves] = useState<any[]>([])
@@ -8,11 +9,15 @@ export default function AdminTeacherLeaves() {
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState<string | null>(null)
 
+    const { token } = useAuth()
+
     const fetchLeaves = () => {
+        if (!token) return
         setLoading(true)
+        const headers = { Authorization: `Bearer ${token}` }
         Promise.all([
-            fetch('/api/teachers/leaves').then(r => r.json()),
-            fetch('/api/teachers').then(r => r.json())
+            fetch('/api/teachers/leaves', { headers }).then(r => r.json()),
+            fetch('/api/teachers', { headers }).then(r => r.json())
         ]).then(([leaveData, tData]) => {
             setLeaves(leaveData.data || [])
             setTeachers(tData.data || [])
@@ -22,13 +27,13 @@ export default function AdminTeacherLeaves() {
 
     useEffect(() => {
         fetchLeaves()
-    }, [])
+    }, [token])
 
     const handleAction = async (leaveId: string, status: string) => {
         setProcessing(leaveId)
         const res = await fetch('/api/teachers/leaves', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ leaveId, status })
         })
         const data = await res.json()

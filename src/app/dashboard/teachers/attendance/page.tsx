@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function AdminTeacherAttendance() {
     const [attendances, setAttendances] = useState<any[]>([])
@@ -8,11 +9,15 @@ export default function AdminTeacherAttendance() {
     const [loading, setLoading] = useState(true)
     const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
+    const { token } = useAuth()
+
     const fetchAttendance = () => {
+        if (!token) return
         setLoading(true)
+        const headers = { Authorization: `Bearer ${token}` }
         Promise.all([
-            fetch(`/api/teachers/attendance?date=${date}`).then(r => r.json()),
-            fetch('/api/teachers').then(r => r.json())
+            fetch(`/api/teachers/attendance?date=${date}`, { headers }).then(r => r.json()),
+            fetch('/api/teachers', { headers }).then(r => r.json())
         ]).then(([attData, tData]) => {
             setAttendances(attData.data || [])
             setTeachers(tData.data || [])
@@ -22,7 +27,7 @@ export default function AdminTeacherAttendance() {
 
     useEffect(() => {
         fetchAttendance()
-    }, [date])
+    }, [date, token])
 
     const getStatusColor = (status: string) => {
         switch(status) {
