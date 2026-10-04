@@ -80,9 +80,9 @@ function PortalShell({ children }: { children: React.ReactNode }) {
     TEACHER: [
       { href: '/portal/staff', icon: '🏠', label: 'Home' },
       { href: '/portal/staff/attendance', icon: '✅', label: 'Attendance' },
-      { href: '/portal/staff/homework', icon: '📚', label: 'Homework' },
-      { href: '/portal/staff/exams', icon: '📝', label: 'Exams' },
-      { href: '/portal/staff/notices', icon: '📢', label: 'Notices' },
+      { href: '/portal/staff/leaves', icon: '📅', label: 'Leaves' },
+      { href: '/portal/staff/ledger', icon: '💰', label: 'Ledger' },
+      { href: '/portal/staff/timetable', icon: '📅', label: 'Schedule' },
       { href: '/portal/staff/profile', icon: '👤', label: 'Profile' },
     ],
     STAFF: [

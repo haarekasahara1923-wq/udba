@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link'
 
 interface Teacher {
     id: string
@@ -60,6 +61,25 @@ export default function TeachersPage() {
                     <p className="page-subtitle">{teachers.length} teachers • Monthly outflow: ₹{totalSalary.toLocaleString('en-IN')}</p>
                 </div>
                 <button onClick={() => setShowAdd(true)} className="btn btn-primary">➕ Add Teacher</button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px' }}>
+                <Link href="/dashboard/teachers/attendance" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', flex: 1, minWidth: '150px', textAlign: 'center', textDecoration: 'none', color: 'white', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ fontSize: '24px' }}>✅</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>Attendance Logs</div>
+                </Link>
+                <Link href="/dashboard/teachers/leaves" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', flex: 1, minWidth: '150px', textAlign: 'center', textDecoration: 'none', color: 'white', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ fontSize: '24px' }}>📅</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>Leave Requests</div>
+                </Link>
+                <Link href="/dashboard/teachers/timetable" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', flex: 1, minWidth: '150px', textAlign: 'center', textDecoration: 'none', color: 'white', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ fontSize: '24px' }}>⏰</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>Schedules</div>
+                </Link>
+                <Link href="/dashboard/teachers/ledger" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', flex: 1, minWidth: '150px', textAlign: 'center', textDecoration: 'none', color: 'white', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ fontSize: '24px' }}>💰</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px' }}>Payroll & Ledger</div>
+                </Link>
             </div>
 
             {toast && <div className="toast toast-success" style={{ position: 'relative', marginBottom: '16px', maxWidth: '100%' }}>✓ {toast}</div>}
