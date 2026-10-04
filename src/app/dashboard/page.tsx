@@ -2,18 +2,25 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function AdminDashboard() {
   const { token, tenant } = useAuth()
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  const router = useRouter()
+
   useEffect(() => {
     if (!token) return
+    if (user?.role === 'ADMIN_SPORTS') {
+        router.push('/dashboard/sports')
+        return
+    }
     fetch('/api/dashboard', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => { if (d.success) setStats(d.data.overview); setLoading(false) })
-  }, [token])
+  }, [token, user, router])
 
   const fmt = (n: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
 

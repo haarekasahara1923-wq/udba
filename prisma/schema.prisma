@@ -66,6 +66,8 @@ model Tenant {
   users                                  User[]
   vehicles                               Vehicle[]
   vehicleLocations                       VehicleLocation[]
+  sports                                 Sport[]
+  studentSports                          StudentSport[]
 }
 
 model Affiliate {
@@ -299,6 +301,7 @@ model Student {
   vehicle             Vehicle?             @relation(fields: [vehicleId], references: [id])
   transportLogs       TransportLog[]
   parentLinks         ParentProfile[]      @relation("ParentChildren")
+  studentSports       StudentSport[]
 
   @@index([tenantId])
   @@index([tenantId, fullName])
@@ -999,4 +1002,39 @@ enum TimeTableStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Sport {
+  id        String         @id @default(cuid())
+  tenantId  String
+  name      String
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  students  StudentSport[]
+
+  @@index([tenantId])
+}
+
+model StudentSport {
+  id        String             @id @default(cuid())
+  tenantId  String
+  studentId String
+  sportId   String
+  status    StudentSportStatus @default(ACTIVE)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sport   Sport   @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sportId])
+  @@index([tenantId])
+}
+
+enum StudentSportStatus {
+  ACTIVE
+  BLOCKED
 }
