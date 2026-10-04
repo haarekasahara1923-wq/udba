@@ -169,23 +169,27 @@ export default function AddStudentPage() {
                                 <option value="English">English</option>
                             </select>
                         </Field>
-                        <Field label="Subject Group">
-                            <select 
-                                className="input" 
-                                value={form.subjectGroup} 
-                                onChange={e => setForm({ ...form, subjectGroup: e.target.value })}
-                                disabled={(() => {
-                                    const course = courses.find(c => c.id === form.courseId)
-                                    return !(course?.name === 'Class 11' || course?.name === 'Class 12')
-                                })()}
-                            >
-                                <option value="">Select Subject Group</option>
-                                <option value="Science Bio">Science Bio</option>
-                                <option value="Science Maths">Science Maths</option>
-                                <option value="Arts">Arts</option>
-                                <option value="Commerce">Commerce</option>
-                            </select>
-                        </Field>
+                        {(() => {
+                            const course = courses.find(c => c.id === form.courseId)
+                            const isHigherSecondary = course?.name === 'Class 11' || course?.name === 'Class 12'
+                            if (!isHigherSecondary) return null
+                            
+                            return (
+                                <Field label="Subject Group">
+                                    <select 
+                                        className="input" 
+                                        value={form.subjectGroup} 
+                                        onChange={e => setForm({ ...form, subjectGroup: e.target.value })}
+                                    >
+                                        <option value="">Select Subject Group</option>
+                                        <option value="PCM">PCM</option>
+                                        <option value="PCB">PCB</option>
+                                        <option value="Arts">Arts</option>
+                                        <option value="Commerce">Commerce</option>
+                                    </select>
+                                </Field>
+                            )
+                        })()}
                     </div>
                     <div style={{ marginTop: '16px' }}>
                         <Field label="Address">
