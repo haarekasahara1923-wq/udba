@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 
 export default function ProfilePage() {
-    const { tenant, user, token, fetchTenant } = useAuth()
+    const { tenant, user, token } = useAuth()
     const [form, setForm] = useState({
         name: tenant?.name || '',
         phone: tenant?.phone || '',
@@ -41,8 +41,16 @@ export default function ProfilePage() {
             const data = await res.json()
             if (data.success) {
                 setSaved(true)
-                if (fetchTenant) fetchTenant()
-                setTimeout(() => setSaved(false), 3000)
+                
+                // Update local storage so Context has the new data on reload
+                if (tenant) {
+                    localStorage.setItem('udba_tenant', JSON.stringify({ ...tenant, ...form }))
+                }
+                
+                setTimeout(() => {
+                    setSaved(false)
+                    window.location.reload()
+                }, 1000)
             } else {
                 alert(data.error || 'Failed to update')
             }
