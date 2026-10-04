@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
                 status: a.status,
                 totalReferred: a.referrals.length,
                 referrals: a.referrals.map(r => {
-                    const latestSub = r.tenant.subscriptions[0];
+                    const latestSub = r.tenant.subscriptions;
                     return {
                         id: r.id,
                         tenantName: r.tenant.name,

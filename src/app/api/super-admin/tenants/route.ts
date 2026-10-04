@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         const totalCommissionPaid = orders.reduce((s, o) => s + o.commissionAmount, 0)
 
         const formatted = tenants.map(t => {
-            const sub = t.subscriptions[0]
+            const sub = t.subscriptions
             const tenantOrders = orders.filter(o => o.affiliateTenantId === t.id)
             const affiliateEarnings = tenantOrders.reduce((s, o) => s + o.commissionAmount, 0)
             return {
