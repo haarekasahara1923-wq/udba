@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Insufficient affiliate balance' }, { status: 400 })
         }
 
-        const currentSub = tenant.subscriptions[0]
+        const currentSub = tenant.subscriptions?.[0]
 
         await prisma.tenant.update({
             where: { id: user.tenantId },
