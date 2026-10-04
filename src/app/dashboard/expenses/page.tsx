@@ -57,6 +57,8 @@ export default function ExpensesPage() {
             setForm({ category: 'Rent', amount: '', date: new Date().toISOString().split('T')[0], description: '', paidTo: '' })
             fetchExpenses()
             setTimeout(() => setToast(''), 3000)
+        } else {
+            alert(data.error || 'Failed to save expense')
         }
     }
 
@@ -198,6 +200,8 @@ export default function ExpensesPage() {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}><div className="spinner" style={{ margin: '0 auto' }} /></td></tr>
+                            ) : expenses.length === 0 ? (
+                                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No expense records found. Click 'Add Expense' to create one.</td></tr>
                             ) : expenses.map(e => (
                                 <tr key={e.id}>
                                     <td>
