@@ -3,17 +3,21 @@ import { useState, useEffect } from 'react'
 
 export default function AdminTeacherAttendance() {
     const [attendances, setAttendances] = useState<any[]>([])
+    const [teachers, setTeachers] = useState<any[]>([])
+    const [selectedTeacher, setSelectedTeacher] = useState('')
     const [loading, setLoading] = useState(true)
     const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
     const fetchAttendance = () => {
         setLoading(true)
-        fetch(`/api/teachers/attendance?date=${date}`)
-            .then(r => r.json())
-            .then(d => {
-                setAttendances(d.data || [])
-                setLoading(false)
-            })
+        Promise.all([
+            fetch(`/api/teachers/attendance?date=${date}`).then(r => r.json()),
+            fetch('/api/teachers').then(r => r.json())
+        ]).then(([attData, tData]) => {
+            setAttendances(attData.data || [])
+            setTeachers(tData.data || [])
+            setLoading(false)
+        })
     }
 
     useEffect(() => {
@@ -32,9 +36,15 @@ export default function AdminTeacherAttendance() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Teachers Attendance Log</h1>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 16px', color: 'white' }} />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 16px', color: 'white' }}>
+                        <option value="">All Teachers</option>
+                        {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 16px', color: 'white' }} />
+                </div>
             </div>
 
             {loading ? (
@@ -55,7 +65,7 @@ export default function AdminTeacherAttendance() {
                             </tr>
                         </thead>
                         <tbody>
-                            {attendances.map((a: any) => (
+                            {attendances.filter(a => !selectedTeacher || a.teacher?.id === selectedTeacher).map((a: any) => (
                                 <tr key={a.id} style={{ borderBottom: '1px solid #334155' }}>
                                     <td style={{ padding: '16px', color: 'white', fontSize: '14px', fontWeight: '500' }}>{a.teacher?.name}</td>
                                     <td style={{ padding: '16px' }}>

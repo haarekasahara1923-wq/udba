@@ -3,17 +3,21 @@ import { useState, useEffect } from 'react'
 
 export default function AdminTeacherTimetable() {
     const [timetables, setTimetables] = useState<any[]>([])
+    const [teachers, setTeachers] = useState<any[]>([])
+    const [selectedTeacher, setSelectedTeacher] = useState('')
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState<string | null>(null)
 
     const fetchTimetables = () => {
         setLoading(true)
-        fetch('/api/teachers/timetable')
-            .then(r => r.json())
-            .then(d => {
-                setTimetables(d.data || [])
-                setLoading(false)
-            })
+        Promise.all([
+            fetch('/api/teachers/timetable').then(r => r.json()),
+            fetch('/api/teachers').then(r => r.json())
+        ]).then(([ttData, tData]) => {
+            setTimetables(ttData.data || [])
+            setTeachers(tData.data || [])
+            setLoading(false)
+        })
     }
 
     useEffect(() => {
@@ -40,7 +44,13 @@ export default function AdminTeacherTimetable() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Timetable Approvals</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Timetable Approvals</h1>
+                <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 16px', color: 'white' }}>
+                    <option value="">All Teachers</option>
+                    {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+            </div>
 
             {loading ? (
                 <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>Loading schedules...</div>
@@ -50,7 +60,7 @@ export default function AdminTeacherTimetable() {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                    {timetables.map((t: any) => (
+                    {timetables.filter(t => !selectedTeacher || t.teacher?.id === selectedTeacher).map((t: any) => (
                         <div key={t.id} style={{ background: '#1e293b', border: '1px solid #334155', borderLeft: `4px solid ${t.status === 'APPROVED' ? '#10b981' : t.status === 'REJECTED' ? '#ef4444' : '#f59e0b'}`, borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>

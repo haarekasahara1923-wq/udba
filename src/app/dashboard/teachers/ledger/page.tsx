@@ -13,6 +13,8 @@ export default function AdminTeacherLedger() {
     const [month, setMonth] = useState(new Date().getMonth() + 1)
     const [year, setYear] = useState(new Date().getFullYear())
     const [deductions, setDeductions] = useState(0)
+    
+    const [selectedFilterTeacher, setSelectedFilterTeacher] = useState('')
 
     const fetchLedgers = () => {
         setLoading(true)
@@ -71,8 +73,14 @@ export default function AdminTeacherLedger() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Payroll & Ledger</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Payroll & Ledger</h1>
+                    <select value={selectedFilterTeacher} onChange={e => setSelectedFilterTeacher(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '8px 12px', color: 'white' }}>
+                        <option value="">All Teachers</option>
+                        {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                </div>
                 <button onClick={() => setShowForm(!showForm)} style={{ background: '#6366f1', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                     {showForm ? 'Cancel' : '+ Generate Salary'}
                 </button>
@@ -128,7 +136,7 @@ export default function AdminTeacherLedger() {
                             </tr>
                         </thead>
                         <tbody>
-                            {ledgers.map((l: any) => (
+                            {ledgers.filter(l => !selectedFilterTeacher || l.teacher?.id === selectedFilterTeacher).map((l: any) => (
                                 <tr key={l.id} style={{ borderBottom: '1px solid #334155' }}>
                                     <td style={{ padding: '16px', color: 'white', fontSize: '14px', fontWeight: '500' }}>{l.teacher?.name}</td>
                                     <td style={{ padding: '16px', color: '#e2e8f0', fontSize: '14px' }}>{getMonthName(l.month)} {l.year}</td>

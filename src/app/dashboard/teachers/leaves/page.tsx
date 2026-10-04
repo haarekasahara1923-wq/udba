@@ -3,17 +3,21 @@ import { useState, useEffect } from 'react'
 
 export default function AdminTeacherLeaves() {
     const [leaves, setLeaves] = useState<any[]>([])
+    const [teachers, setTeachers] = useState<any[]>([])
+    const [selectedTeacher, setSelectedTeacher] = useState('')
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState<string | null>(null)
 
     const fetchLeaves = () => {
         setLoading(true)
-        fetch('/api/teachers/leaves')
-            .then(r => r.json())
-            .then(d => {
-                setLeaves(d.data || [])
-                setLoading(false)
-            })
+        Promise.all([
+            fetch('/api/teachers/leaves').then(r => r.json()),
+            fetch('/api/teachers').then(r => r.json())
+        ]).then(([leaveData, tData]) => {
+            setLeaves(leaveData.data || [])
+            setTeachers(tData.data || [])
+            setLoading(false)
+        })
     }
 
     useEffect(() => {
@@ -38,7 +42,13 @@ export default function AdminTeacherLeaves() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Leave Applications</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>Leave Applications</h1>
+                <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 16px', color: 'white' }}>
+                    <option value="">All Teachers</option>
+                    {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+            </div>
 
             {loading ? (
                 <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>Loading leaves...</div>
@@ -48,7 +58,7 @@ export default function AdminTeacherLeaves() {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                    {leaves.map((l: any) => (
+                    {leaves.filter(l => !selectedTeacher || l.teacher?.id === selectedTeacher).map((l: any) => (
                         <div key={l.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
