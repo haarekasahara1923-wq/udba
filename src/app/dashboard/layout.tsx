@@ -84,6 +84,7 @@ const adminOperationNav = [
             { href: '/dashboard/reports/school-ledger', icon: '📓', label: 'School Ledger' },
             { href: '/dashboard/reports/school-ledger?tab=pnl', icon: '📈', label: 'P&L Account' },
             { href: '/dashboard/payments', icon: '💳', label: 'Payments' },
+            { href: '/dashboard/expenses', icon: '📉', label: 'Expenses' },
         ]
     },
     {
