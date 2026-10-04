@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
         if (user!.role === 'TEACHER') {
             const teacherProfile = await prisma.teacher.findUnique({
-                where: { userId: user!.id }
+                where: { userId: user!.userId }
             })
             if (!teacherProfile) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 })
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         const now = new Date()
 
         const teacherProfile = await prisma.teacher.findUnique({
-            where: { userId: user!.id }
+            where: { userId: user!.userId }
         })
 
         if (!teacherProfile) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 })
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
                 date: now,
                 inTime: now,
                 status: status || 'PRESENT',
-                markedBy: user!.id,
+                markedBy: user!.userId,
                 notes
             }
         })

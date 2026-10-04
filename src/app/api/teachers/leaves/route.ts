@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     try {
         if (user!.role === 'TEACHER') {
             const teacherProfile = await prisma.teacher.findUnique({
-                where: { userId: user!.id }
+                where: { userId: user!.userId }
             })
             if (!teacherProfile) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 })
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         const { startDate, endDate, reason } = body
 
         const teacherProfile = await prisma.teacher.findUnique({
-            where: { userId: user!.id }
+            where: { userId: user!.userId }
         })
 
         if (!teacherProfile) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 })
