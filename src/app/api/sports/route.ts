@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyAuth } from '@/lib/auth'
+import { requireAuth } from '@/app/api/middleware'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
-        const user = await verifyAuth(req)
-        if (!user || !user.tenantId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        const { error, user } = requireAuth(req)
+        if (error) return error
         
-        if (user.role !== 'SUPER_ADMIN' && user.role !== 'COACHING_ADMIN' && user.role !== 'ADMIN_SPORTS') {
+        if (user!.role !== 'SUPER_ADMIN' && user!.role !== 'COACHING_ADMIN' && user!.role !== 'ADMIN_SPORTS') {
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
         }
 
         const sports = await prisma.sport.findMany({
-            where: { tenantId: user.tenantId, isActive: true },
+            where: { tenantId: user!.tenantId, isActive: true },
             orderBy: { name: 'asc' }
         })
 
@@ -22,12 +22,12 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const user = await verifyAuth(req)
-        if (!user || !user.tenantId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        const { error, user } = requireAuth(req)
+        if (error) return error
         
-        if (user.role !== 'SUPER_ADMIN' && user.role !== 'COACHING_ADMIN' && user.role !== 'ADMIN_SPORTS') {
+        if (user!.role !== 'SUPER_ADMIN' && user!.role !== 'COACHING_ADMIN' && user!.role !== 'ADMIN_SPORTS') {
             return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
         }
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
         const sport = await prisma.sport.create({
             data: {
-                tenantId: user.tenantId,
+                tenantId: user!.tenantId,
                 name
             }
         })

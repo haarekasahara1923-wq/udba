@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyAuth } from '@/lib/auth'
+import { requireAuth } from '@/app/api/middleware'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
-        const user = await verifyAuth(req)
-        if (!user || !user.tenantId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        const { error, user } = requireAuth(req)
+        if (error) return error
         
         const url = new URL(req.url)
         const sportId = url.searchParams.get('sportId')
         if (!sportId) return NextResponse.json({ success: false, error: 'Sport ID is required' }, { status: 400 })
 
         const students = await prisma.studentSport.findMany({
-            where: { tenantId: user.tenantId, sportId },
+            where: { tenantId: user!.tenantId, sportId },
             include: {
                 student: {
                     select: {
@@ -31,17 +31,16 @@ export async function GET(req: Request) {
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const user = await verifyAuth(req)
-        if (!user || !user.tenantId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        const { error, user } = requireAuth(req)
+        if (error) return error
         
         const { sportId, studentIds } = await req.json()
         if (!sportId || !studentIds || !Array.isArray(studentIds)) {
             return NextResponse.json({ success: false, error: 'Invalid data' }, { status: 400 })
         }
 
-        // Add each student if not already present
         const results = await Promise.all(studentIds.map(async (studentId) => {
             return prisma.studentSport.upsert({
                 where: {
@@ -49,7 +48,7 @@ export async function POST(req: Request) {
                 },
                 update: { status: 'ACTIVE' },
                 create: {
-                    tenantId: user.tenantId,
+                    tenantId: user!.tenantId,
                     studentId,
                     sportId,
                     status: 'ACTIVE'
@@ -63,16 +62,16 @@ export async function POST(req: Request) {
     }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
     try {
-        const user = await verifyAuth(req)
-        if (!user || !user.tenantId) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+        const { error, user } = requireAuth(req)
+        if (error) return error
         
         const { id, status } = await req.json()
         if (!id || !status) return NextResponse.json({ success: false, error: 'Invalid data' }, { status: 400 })
 
         const updated = await prisma.studentSport.update({
-            where: { id, tenantId: user.tenantId },
+            where: { id, tenantId: user!.tenantId },
             data: { status }
         })
 
