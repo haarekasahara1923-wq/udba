@@ -81,7 +81,12 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json()
-        const { fullName, phone, courseId, batchId, fatherName, motherName, parentPhone, email, address, gender, dob, admissionDate, feePlan, totalFee, notes, aadhaarNo, penId, aparId, samagraId } = body
+        const { 
+            fullName, phone, courseId, batchId, fatherName, motherName, parentPhone, email, address, 
+            gender, dob, admissionDate, feePlan, totalFee, notes, aadhaarNo, penId, aparId, samagraId,
+            scholarNo, caste, scholarshipScheme, dobInWords, medium, firstAdmissionClass, firstAdmissionDate,
+            bankName, bankAccountNo, ifscCode, photo
+        } = body
 
         if (!fullName || !phone || !courseId || !batchId) {
             return NextResponse.json({ error: 'Required fields missing' }, { status: 400 })
@@ -120,6 +125,17 @@ export async function POST(req: NextRequest) {
                 penId: penId || '',
                 aparId: aparId || '',
                 samagraId: samagraId || '',
+                scholarNo: scholarNo || '',
+                caste: caste || '',
+                scholarshipScheme: scholarshipScheme || '',
+                dobInWords: dobInWords || '',
+                medium: medium || '',
+                firstAdmissionClass: firstAdmissionClass || '',
+                firstAdmissionDate: firstAdmissionDate ? new Date(firstAdmissionDate) : null,
+                bankName: bankName || '',
+                bankAccountNo: bankAccountNo || '',
+                ifscCode: ifscCode || '',
+                photo: photo || '',
             }
         })
 
@@ -155,7 +171,11 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json()
-        const { id, fullName, phone, courseId, batchId, status, fatherName, parentPhone, email, totalFee, admissionDate, notes } = body
+        const { 
+            id, fullName, phone, courseId, batchId, status, fatherName, parentPhone, email, totalFee, admissionDate, notes,
+            scholarNo, caste, scholarshipScheme, dobInWords, medium, firstAdmissionClass, firstAdmissionDate,
+            bankName, bankAccountNo, ifscCode, photo
+        } = body
 
         if (!id) return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
 
@@ -173,6 +193,17 @@ export async function PATCH(req: NextRequest) {
                 totalFee: totalFee !== undefined ? parseFloat(totalFee) : undefined,
                 admissionDate: admissionDate ? new Date(admissionDate) : undefined,
                 notes,
+                scholarNo,
+                caste,
+                scholarshipScheme,
+                dobInWords,
+                medium,
+                firstAdmissionClass,
+                firstAdmissionDate: firstAdmissionDate ? new Date(firstAdmissionDate) : undefined,
+                bankName,
+                bankAccountNo,
+                ifscCode,
+                photo
             }
         })
 

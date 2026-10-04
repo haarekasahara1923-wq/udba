@@ -21,12 +21,26 @@ export default function AddStudentPage() {
     const [metadataLoading, setMetadataLoading] = useState(true)
 
     const [form, setForm] = useState({
-        fullName: '', fatherName: '', motherName: '', phone: '', parentPhone: '',
-        email: '', address: '', gender: 'MALE', dob: '', courseId: '', batchId: '',
+        scholarNo: '', fullName: '', fatherName: '', motherName: '', phone: '', parentPhone: '',
+        email: '', address: '', gender: 'MALE', dob: '', dobInWords: '', courseId: '', batchId: '',
         admissionDate: new Date().toISOString().split('T')[0],
+        medium: 'Hindi', caste: '', scholarshipScheme: '',
+        firstAdmissionClass: '', firstAdmissionDate: '',
         feePlan: 'Annual', feeWaiver: '', totalFee: '', notes: '',
-        aadhaarNo: '', penId: '', aparId: '', samagraId: ''
+        aadhaarNo: '', penId: '', aparId: '', samagraId: '',
+        bankName: '', bankAccountNo: '', ifscCode: '', photo: ''
     })
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setForm({ ...form, photo: reader.result as string })
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
 
     useEffect(() => {
         if (!token) return
@@ -85,7 +99,29 @@ export default function AddStudentPage() {
                 {/* Personal Info */}
                 <div className="card" style={{ marginBottom: '20px' }}>
                     <h3 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: 'var(--primary-light)' }}>👤 Personal Information</h3>
+                    
+                    <div style={{ marginBottom: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        {form.photo ? (
+                            <img src={form.photo} alt="Student" style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📷</div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                                📸 Camera
+                                <input type="file" accept="image/*" capture="environment" hidden onChange={handlePhotoUpload} />
+                            </label>
+                            <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                                🖼️ Gallery
+                                <input type="file" accept="image/*" hidden onChange={handlePhotoUpload} />
+                            </label>
+                        </div>
+                    </div>
+
                     <div className="grid-cols-2">
+                        <Field label="Scholar No. *">
+                            <input className="input" placeholder="e.g. 1001" value={form.scholarNo} onChange={e => setForm({ ...form, scholarNo: e.target.value })} required />
+                        </Field>
                         <Field label="Full Name *">
                             <input className="input" placeholder="Arjun Sharma" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} required />
                         </Field>
@@ -114,6 +150,18 @@ export default function AddStudentPage() {
                         <Field label="Date of Birth">
                             <input className="input" type="date" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} />
                         </Field>
+                        <Field label="Date of Birth (in words)">
+                            <input className="input" placeholder="e.g. First January Two Thousand Ten" value={form.dobInWords} onChange={e => setForm({ ...form, dobInWords: e.target.value })} />
+                        </Field>
+                        <Field label="Caste">
+                            <input className="input" placeholder="General/OBC/SC/ST" value={form.caste} onChange={e => setForm({ ...form, caste: e.target.value })} />
+                        </Field>
+                        <Field label="Medium">
+                            <select className="input" value={form.medium} onChange={e => setForm({ ...form, medium: e.target.value })}>
+                                <option value="Hindi">Hindi</option>
+                                <option value="English">English</option>
+                            </select>
+                        </Field>
                     </div>
                     <div style={{ marginTop: '16px' }}>
                         <Field label="Address">
@@ -137,6 +185,15 @@ export default function AddStudentPage() {
                         </Field>
                         <Field label="Samagra ID No.">
                             <input className="input" placeholder="Samagra ID" value={form.samagraId} onChange={e => setForm({ ...form, samagraId: e.target.value })} />
+                        </Field>
+                        <Field label="Bank Name">
+                            <input className="input" placeholder="State Bank of India" value={form.bankName} onChange={e => setForm({ ...form, bankName: e.target.value })} />
+                        </Field>
+                        <Field label="Bank Account No.">
+                            <input className="input" placeholder="Account Number" value={form.bankAccountNo} onChange={e => setForm({ ...form, bankAccountNo: e.target.value })} />
+                        </Field>
+                        <Field label="IFSC Code">
+                            <input className="input" placeholder="IFSC Code" value={form.ifscCode} onChange={e => setForm({ ...form, ifscCode: e.target.value })} />
                         </Field>
                     </div>
                 </div>
@@ -178,8 +235,28 @@ export default function AddStudentPage() {
                                 {filteredBatches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
                         </Field>
-                        <Field label="Admission Date">
+                        <Field label="First Admission Class">
+                            <input className="input" placeholder="e.g. Class 1" value={form.firstAdmissionClass} onChange={e => setForm({ ...form, firstAdmissionClass: e.target.value })} />
+                        </Field>
+                        <Field label="First Admission Date">
+                            <input className="input" type="date" value={form.firstAdmissionDate} onChange={e => setForm({ ...form, firstAdmissionDate: e.target.value })} />
+                        </Field>
+                        <Field label="Current Admission Date">
                             <input className="input" type="date" value={form.admissionDate} onChange={e => setForm({ ...form, admissionDate: e.target.value })} />
+                        </Field>
+                        <Field label="Scholarship Scheme">
+                            <input className="input" placeholder="e.g. RT, Post Matric" value={form.scholarshipScheme} onChange={e => {
+                                const scheme = e.target.value;
+                                let newWaiver = form.feeWaiver;
+                                let newTotalFee = form.totalFee;
+                                if (scheme.toUpperCase() === 'RT') {
+                                    const selectedCourse = courses.find(c => c.id === form.courseId);
+                                    const baseFee = selectedCourse ? selectedCourse.fees : 0;
+                                    newWaiver = baseFee.toString();
+                                    newTotalFee = '0';
+                                }
+                                setForm({ ...form, scholarshipScheme: scheme, feeWaiver: newWaiver, totalFee: newTotalFee.toString() });
+                            }} />
                         </Field>
                         <Field label="Fee Plan">
                             <select className="input" value={form.feePlan} onChange={e => setForm({ ...form, feePlan: e.target.value })}>
