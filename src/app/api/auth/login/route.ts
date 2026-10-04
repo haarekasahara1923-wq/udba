@@ -42,9 +42,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        if (resolvedTenantId) {
-            whereClause.tenantId = resolvedTenantId
-        }
+        // We skip strict tenantId matching here because email/phone is globally unique.
+        // The user's actual tenantId is retrieved from the found user record.
+        // if (resolvedTenantId) {
+        //     whereClause.tenantId = resolvedTenantId
+        // }
 
         const user = await prisma.user.findFirst({
             where: whereClause,
