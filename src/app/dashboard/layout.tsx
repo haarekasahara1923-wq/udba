@@ -186,11 +186,10 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
     )
 }
 
-function DashboardHeader({ onMenuClick }: { onMenuClick: () => void }) {
+function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => void, onOpenAiModal: () => void }) {
     const pathname = usePathname()
     const { tenant } = useAuth()
-    const [aiModalOpen, setAiModalOpen] = useState(false)
-    const [qrModalOpen, setQrModalOpen] = useState(false)
+        const [qrModalOpen, setQrModalOpen] = useState(false)
 
     const getPageTitle = () => {
         const map: Record<string, string> = {
@@ -232,7 +231,7 @@ function DashboardHeader({ onMenuClick }: { onMenuClick: () => void }) {
 
             <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end', padding: '0 16px' }}>
                 <button
-                    onClick={() => setAiModalOpen(true)}
+                    onClick={onOpenAiModal}
                     className="btn btn-primary ai-btn"
                     style={{ background: 'linear-gradient(135deg, #1a5c38 0%, #0f3d26 100%)', border: 'none', gap: '6px', padding: '8px 16px', fontSize: '14px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap' }}
                 >
@@ -308,13 +307,13 @@ function DashboardHeader({ onMenuClick }: { onMenuClick: () => void }) {
                 </Link>
             </div>
 
-            <AIGeneratorModal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} />
-        </header>
+            </header>
     )
 }
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [aiModalOpen, setAiModalOpen] = useState(false)
     const { user, isLoading } = useAuth()
     const router = useRouter()
     const pathname = usePathname()
@@ -361,7 +360,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     return (
         <div>
             <DashboardSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-            <DashboardHeader onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+            <DashboardHeader onMenuClick={() => setSidebarOpen(!sidebarOpen)} onOpenAiModal={() => setAiModalOpen(true)} />
             <main className="main-content" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
                 <div className="page-content fade-in" style={{ paddingBottom: '80px' }}>
                     {children}
@@ -430,6 +429,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
                     <span style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.3px' }}>Logout</span>
                 </button>
             </nav>
+            <AIGeneratorModal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} />
         </div>
     )
 }

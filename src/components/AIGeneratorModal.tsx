@@ -141,8 +141,8 @@ export default function AIGeneratorModal({ isOpen, onClose }: AIGeneratorModalPr
     }
 
     return (
-        <div style={overlayStyle}>
-            <div style={modalStyle}>
+        <div style={overlayStyle} onClick={onClose}>
+            <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
                 <div style={headerStyle}>
                     <h2 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '24px' }}>✨</span> AI Assistant
