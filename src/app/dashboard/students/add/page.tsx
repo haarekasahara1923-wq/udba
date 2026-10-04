@@ -25,7 +25,7 @@ export default function AddStudentPage() {
         email: '', address: '', gender: 'MALE', dob: '', dobInWords: '', courseId: '', batchId: '',
         admissionDate: new Date().toISOString().split('T')[0],
         medium: 'Hindi', caste: '', scholarshipScheme: '',
-        firstAdmissionClass: '', firstAdmissionDate: '',
+        firstAdmissionClass: '', firstAdmissionDate: '', subjectGroup: '',
         feePlan: 'Annual', feeWaiver: '', totalFee: '', notes: '',
         aadhaarNo: '', penId: '', aparId: '', samagraId: '',
         bankName: '', bankAccountNo: '', ifscCode: '', photo: ''
@@ -167,6 +167,23 @@ export default function AddStudentPage() {
                             <select className="input" value={form.medium} onChange={e => setForm({ ...form, medium: e.target.value })}>
                                 <option value="Hindi">Hindi</option>
                                 <option value="English">English</option>
+                            </select>
+                        </Field>
+                        <Field label="Subject Group">
+                            <select 
+                                className="input" 
+                                value={form.subjectGroup} 
+                                onChange={e => setForm({ ...form, subjectGroup: e.target.value })}
+                                disabled={(() => {
+                                    const course = courses.find(c => c.id === form.courseId)
+                                    return !(course?.name === 'Class 11' || course?.name === 'Class 12')
+                                })()}
+                            >
+                                <option value="">Select Subject Group</option>
+                                <option value="Science Bio">Science Bio</option>
+                                <option value="Science Maths">Science Maths</option>
+                                <option value="Arts">Arts</option>
+                                <option value="Commerce">Commerce</option>
                             </select>
                         </Field>
                     </div>

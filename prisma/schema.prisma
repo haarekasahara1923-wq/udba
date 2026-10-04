@@ -311,6 +311,7 @@ model Student {
   bankName             String?
   bankAccountNo        String?
   ifscCode             String?
+  subjectGroup         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
