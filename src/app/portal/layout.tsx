@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import BirthdayModal from '@/components/BirthdayModal'
 
 function PortalShell({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout, token } = useAuth()
@@ -142,6 +143,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
           </Link>
         ))}
       </nav>
+      <BirthdayModal />
     </div>
   )
 }
