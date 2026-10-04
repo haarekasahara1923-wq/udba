@@ -3,21 +3,53 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 
 export default function ProfilePage() {
-    const { tenant, user } = useAuth()
+    const { tenant, user, token, fetchTenant } = useAuth()
     const [form, setForm] = useState({
         name: tenant?.name || '',
         phone: tenant?.phone || '',
         email: tenant?.email || '',
         address: tenant?.address || '',
         themeColor: tenant?.themeColor || '#6366f1',
+        logo: tenant?.logo || ''
     })
     const [saved, setSaved] = useState(false)
+    const [saving, setSaving] = useState(false)
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setForm({ ...form, logo: reader.result as string })
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
-        // In production, call API to save
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+        setSaving(true)
+        try {
+            const res = await fetch('/api/tenant', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(form)
+            })
+            const data = await res.json()
+            if (data.success) {
+                setSaved(true)
+                if (fetchTenant) fetchTenant()
+                setTimeout(() => setSaved(false), 3000)
+            } else {
+                alert(data.error || 'Failed to update')
+            }
+        } catch (err) {
+            alert('Error updating profile')
+        }
+        setSaving(false)
     }
 
     return (
@@ -36,6 +68,19 @@ export default function ProfilePage() {
                     <div className="card" style={{ marginBottom: '20px' }}>
                         <h3 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: 'var(--primary-light)' }}>🏫 Institute Details</h3>
                         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                {form.logo ? (
+                                    <img src={form.logo} alt="Logo" style={{ width: '64px', height: '64px', borderRadius: '8px', objectFit: 'contain', background: 'var(--surface-2)' }} />
+                                ) : (
+                                    <div style={{ width: '64px', height: '64px', borderRadius: '8px', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🏢</div>
+                                )}
+                                <div>
+                                    <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '6px 12px', fontSize: '13px' }}>
+                                        Upload Logo
+                                        <input type="file" accept="image/*" hidden onChange={handleLogoUpload} />
+                                    </label>
+                                </div>
+                            </div>
                             <div>
                                 <label className="label">Coaching Name</label>
                                 <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
@@ -59,7 +104,7 @@ export default function ProfilePage() {
                                     <input className="input" style={{ flex: 1 }} value={form.themeColor} onChange={e => setForm({ ...form, themeColor: e.target.value })} />
                                 </div>
                             </div>
-                            <button type="submit" className="btn btn-primary">💾 Save Changes</button>
+                            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : '💾 Save Changes'}</button>
                         </form>
                     </div>
                 </div>

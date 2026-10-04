@@ -154,7 +154,14 @@ export default function AddStudentPage() {
                             <input className="input" placeholder="e.g. First January Two Thousand Ten" value={form.dobInWords} onChange={e => setForm({ ...form, dobInWords: e.target.value })} />
                         </Field>
                         <Field label="Caste">
-                            <input className="input" placeholder="General/OBC/SC/ST" value={form.caste} onChange={e => setForm({ ...form, caste: e.target.value })} />
+                            <select className="input" value={form.caste} onChange={e => setForm({ ...form, caste: e.target.value })}>
+                                <option value="">Select Caste</option>
+                                <option value="General">General</option>
+                                <option value="OBC">OBC</option>
+                                <option value="SC">SC</option>
+                                <option value="ST">ST</option>
+                                <option value="OTHER">OTHER</option>
+                            </select>
                         </Field>
                         <Field label="Medium">
                             <select className="input" value={form.medium} onChange={e => setForm({ ...form, medium: e.target.value })}>
