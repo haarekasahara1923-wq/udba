@@ -11,15 +11,20 @@ export async function POST(req: NextRequest) {
         }
 
         const whereClause: any = { isActive: true }
+        const searchId = email.trim()
+        const lowerId = searchId.toLowerCase()
+        
         // Let user log in with email or phone
         whereClause.OR = [
-            { email: email.toLowerCase() },
-            { phone: email } // 'email' field holds the input (can be phone too)
+            { email: lowerId },
+            { email: `${lowerId}@udba.local` },
+            { phone: searchId }
         ]
 
-        if (role) {
-            whereClause.role = role
-        }
+        // Allow login from any role tab, the backend will return the correct role
+        // if (role) {
+        //     whereClause.role = role
+        // }
 
         // For non-admin roles: use provided tenantId, or fall back to env school slug
         let resolvedTenantId = tenantId
