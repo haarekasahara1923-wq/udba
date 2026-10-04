@@ -24,7 +24,7 @@ export default function AddStudentPage() {
         fullName: '', fatherName: '', motherName: '', phone: '', parentPhone: '',
         email: '', address: '', gender: 'MALE', dob: '', courseId: '', batchId: '',
         admissionDate: new Date().toISOString().split('T')[0],
-        feePlan: 'Annual', totalFee: '', notes: '',
+        feePlan: 'Annual', feeWaiver: '', totalFee: '', notes: '',
         aadhaarNo: '', penId: '', aparId: '', samagraId: ''
     })
 
@@ -156,6 +156,7 @@ export default function AddStudentPage() {
                                         ...form, 
                                         courseId, 
                                         batchId: '', 
+                                        feeWaiver: '',
                                         totalFee: selectedCourse ? selectedCourse.fees.toString() : '' 
                                     });
                                 }} 
@@ -188,7 +189,22 @@ export default function AddStudentPage() {
                                 <option>Custom</option>
                             </select>
                         </Field>
-                        <Field label="Total Course Fee (₹)">
+                        <Field label="Fee Waiver (₹)">
+                            <input 
+                                className="input" 
+                                type="number" 
+                                placeholder="0" 
+                                value={form.feeWaiver} 
+                                onChange={e => {
+                                    const waiver = e.target.value;
+                                    const selectedCourse = courses.find(c => c.id === form.courseId);
+                                    const baseFee = selectedCourse ? selectedCourse.fees : (parseFloat(form.totalFee) || 0);
+                                    const newTotalFee = baseFee - (parseFloat(waiver) || 0);
+                                    setForm({ ...form, feeWaiver: waiver, totalFee: Math.max(0, newTotalFee).toString() });
+                                }} 
+                            />
+                        </Field>
+                        <Field label="Final Total Fee (₹)">
                             <input className="input" type="number" placeholder="45000" value={form.totalFee} onChange={e => setForm({ ...form, totalFee: e.target.value })} />
                         </Field>
                     </div>
