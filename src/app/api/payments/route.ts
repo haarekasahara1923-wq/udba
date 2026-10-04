@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json()
-        const { studentId, feeId, amount, mode, reference, receivedBy, notes } = body
+        const { studentId, feeId, amount, mode, reference, receivedBy, notes, date } = body
 
         if (!studentId || !amount) {
             return NextResponse.json({ error: 'Student ID and amount are required' }, { status: 400 })
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
                     reference: reference || '',
                     receivedBy: receivedBy || '',
                     notes: notes || '',
+                    ...(date ? { createdAt: new Date(date) } : {})
                 }
             })
 
@@ -91,7 +92,7 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json()
-        const { id, amount, mode, reference, notes } = body
+        const { id, amount, mode, reference, notes, date } = body
 
         if (!id) return NextResponse.json({ error: 'Payment ID is required' }, { status: 400 })
 
@@ -110,6 +111,7 @@ export async function PATCH(req: NextRequest) {
                     mode: mode as any,
                     reference,
                     notes,
+                    ...(date ? { createdAt: new Date(date) } : {})
                 }
             })
 

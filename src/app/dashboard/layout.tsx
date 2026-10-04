@@ -33,6 +33,7 @@ const navItems = [
         group: 'FINANCE', items: [
             { href: '/dashboard/fees', icon: '💰', label: 'Fee Management' },
             { href: '/dashboard/reports/fee-ledger', icon: '📒', label: 'Fee Ledger' },
+            { href: '/dashboard/reports/school-ledger', icon: '📓', label: 'School Ledger' },
             { href: '/dashboard/payments', icon: '💳', label: 'Payments' },
             { href: '/dashboard/expenses', icon: '📉', label: 'Expenses' },
         ]
@@ -79,6 +80,7 @@ const adminOperationNav = [
         group: 'FINANCE', items: [
             { href: '/dashboard/fees', icon: '💰', label: 'Fee Management' },
             { href: '/dashboard/reports/fee-ledger', icon: '📒', label: 'Fee Ledger' },
+            { href: '/dashboard/reports/school-ledger', icon: '📓', label: 'School Ledger' },
             { href: '/dashboard/payments', icon: '💳', label: 'Payments' },
         ]
     },
@@ -212,6 +214,7 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
             '/dashboard/transport': 'Transport',
             '/dashboard/profile': 'School Profile',
             '/dashboard/reports': 'Reports',
+            '/dashboard/reports/school-ledger': 'School Ledger',
             '/dashboard/super-admin': 'Platform Overview',
             '/dashboard/super-admin/tenants': 'Schools',
             '/dashboard/super-admin/subscriptions': 'System Config',

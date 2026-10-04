@@ -37,7 +37,7 @@ export default function PaymentsPage() {
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
     const [showAdd, setShowAdd] = useState(false)
-    const [form, setForm] = useState({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '' })
+    const [form, setForm] = useState({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '', date: new Date().toISOString().split('T')[0] })
     const [saving, setSaving] = useState(false)
     const [toast, setToast] = useState('')
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
@@ -81,7 +81,7 @@ export default function PaymentsPage() {
                 setToast(isEditing ? 'Payment updated successfully!' : 'Payment recorded successfully!')
                 setShowAdd(false)
                 setIsEditing(false)
-                setForm({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '' })
+                setForm({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '', date: new Date().toISOString().split('T')[0] })
                 fetchData()
                 setTimeout(() => setToast(''), 3000)
             } else {
@@ -121,7 +121,8 @@ export default function PaymentsPage() {
             amount: p.amount.toString(),
             mode: p.mode,
             reference: p.reference,
-            notes: p.notes
+            notes: p.notes,
+            date: new Date(p.createdAt).toISOString().split('T')[0]
         })
         setShowAdd(true)
     }
@@ -133,7 +134,7 @@ export default function PaymentsPage() {
                     <h1 className="page-title">💳 Fee Payments</h1>
                     <p className="page-subtitle">Total collected: {formatCurrency(totalCollection)}</p>
                 </div>
-                <button onClick={() => { setIsEditing(false); setForm({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '' }); setShowAdd(true); }} className="btn btn-primary">➕ Record Payment</button>
+                <button onClick={() => { setIsEditing(false); setForm({ studentId: '', amount: '', mode: 'CASH', reference: '', notes: '', date: new Date().toISOString().split('T')[0] }); setShowAdd(true); }} className="btn btn-primary">➕ Record Payment</button>
             </div>
 
             {toast && <div className="toast toast-success" style={{ position: 'relative', marginBottom: '16px', maxWidth: '100%' }}>✓ {toast}</div>}
@@ -231,9 +232,15 @@ export default function PaymentsPage() {
                                         </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="label">Reference / Transaction ID</label>
-                                    <input className="input" placeholder="UPI123456 / NEFT789012" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+                                <div className="grid-cols-2">
+                                    <div>
+                                        <label className="label">Date</label>
+                                        <input className="input" type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                                    </div>
+                                    <div>
+                                        <label className="label">Reference / Transaction ID</label>
+                                        <input className="input" placeholder="UPI123456 / NEFT789012" value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })} />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="label">Notes</label>
