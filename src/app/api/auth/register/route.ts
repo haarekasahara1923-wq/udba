@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
                             tenantId: resolvedTenantId,
                             userId: user.id,
                             fullName: name,
-                            phone: resolvedPhone || null,
+                            phone: resolvedPhone || '',
                             courseId: dummyCourse.id,
                             batchId: dummyBatch.id,
                             status: 'ACTIVE',
@@ -140,9 +140,10 @@ export async function POST(req: NextRequest) {
                 await tx.teacher.create({
                     data: {
                         tenantId: resolvedTenantId,
+                        userId: user.id,
                         name,
                         email: resolvedEmail,
-                        phone: resolvedPhone || null,
+                        phone: resolvedPhone || '',
                     }
                 })
             } else if (userRole === 'DRIVER') {
