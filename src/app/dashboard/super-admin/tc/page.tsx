@@ -203,6 +203,7 @@ export default function TCGenerationPage() {
                                 <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', color: '#1e293b', textTransform: 'uppercase' }}>{tenant?.name || 'UNIVERSAL DAY BOARDING ACADEMY'}</h1>
                                 <p style={{ margin: '0 0 5px 0', fontSize: '14px' }}>{tenant?.address || 'School Address Not Provided'}</p>
                                 <p style={{ margin: 0, fontSize: '14px' }}>Phone: {tenant?.phone || 'N/A'} | Email: {tenant?.email || 'N/A'}</p>
+                                <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}><strong>School Code:</strong> {tenant?.schoolCode || '___'} &nbsp;&nbsp;&nbsp; <strong>DISE Code:</strong> {tenant?.diseCode || '___'}</p>
                             </div>
 
                             {studentData.photo ? (

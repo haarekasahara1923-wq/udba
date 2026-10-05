@@ -21,6 +21,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Admin accounts are created by the Super Admin. Please contact your school administration.' }, { status: 403 })
         }
 
+        // Restrict to max 2 schools/super admins globally
+        if (userRole === 'SUPER_ADMIN') {
+            const superAdminCount = await prisma.user.count({
+                where: { role: 'SUPER_ADMIN' }
+            });
+            if (superAdminCount >= 2) {
+                return NextResponse.json({ error: "Maximum limit of 2 schools (Super Admins) reached. It's not allowed to register more." }, { status: 403 })
+            }
+        }
+
         // Determine email / phone from identifier
         const isRealEmail = email.includes('@') && !email.includes('@udba.local')
         const resolvedEmail = isRealEmail ? email.toLowerCase() : `${phone || email}@udba.local`
@@ -41,32 +51,31 @@ export async function POST(req: NextRequest) {
 
         const hashedPassword = await hashPassword(password)
 
-        // Single-School UDBA: Auto-resolve UDBA tenant
+        // Auto-resolve tenant for non-super admins
         let targetTenantId = tenantId || process.env.NEXT_PUBLIC_SCHOOL_TENANT_ID
         let school = null
 
-        if (targetTenantId) {
-            school = await prisma.tenant.findUnique({ where: { id: targetTenantId } })
-        }
-
-        if (!school) {
-            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
-            school = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
-        }
-
-        // For SUPER_ADMIN: create or use the first tenant
-        if (!school && userRole === 'SUPER_ADMIN') {
-            school = await prisma.tenant.findFirst()
-            if (!school) {
-                school = await prisma.tenant.create({
-                    data: {
-                        name: 'Universal Day Boarding Academy',
-                        slug: 'udba',
-                        phone: '7879337770',
-                        address: 'Pinto Park, Gwalior (MP)',
-                    }
-                })
+        if (userRole !== 'SUPER_ADMIN') {
+            if (targetTenantId) {
+                school = await prisma.tenant.findUnique({ where: { id: targetTenantId } })
             }
+            if (!school) {
+                const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+                school = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            }
+        }
+
+        // For SUPER_ADMIN: create a new tenant (school) for them
+        if (!school && userRole === 'SUPER_ADMIN') {
+            const newSlug = `school-${Date.now()}`
+            school = await prisma.tenant.create({
+                data: {
+                    name: `${name}'s School`,
+                    slug: newSlug,
+                    phone: resolvedPhone || '',
+                    email: resolvedEmail,
+                }
+            })
         }
 
         if (!school) {
