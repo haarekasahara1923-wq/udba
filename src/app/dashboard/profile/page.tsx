@@ -10,7 +10,9 @@ export default function ProfilePage() {
         email: tenant?.email || '',
         address: tenant?.address || '',
         themeColor: tenant?.themeColor || '#6366f1',
-        logo: tenant?.logo || ''
+        logo: tenant?.logo || '',
+        schoolCode: tenant?.schoolCode || '',
+        diseCode: tenant?.diseCode || ''
     })
     const [saved, setSaved] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -102,6 +104,14 @@ export default function ProfilePage() {
                                 <input className="input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                             </div>
                             <div>
+                                <label className="label">School Code</label>
+                                <input className="input" type="text" value={form.schoolCode} onChange={e => setForm({ ...form, schoolCode: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="label">DISE Code</label>
+                                <input className="input" type="text" value={form.diseCode} onChange={e => setForm({ ...form, diseCode: e.target.value })} />
+                            </div>
+                            <div>
                                 <label className="label">Address</label>
                                 <textarea className="input" rows={3} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} style={{ resize: 'none' }} />
                             </div>
@@ -148,13 +158,30 @@ export default function ProfilePage() {
                         {/* Quick Info */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {[
-                                { label: 'Tenant ID', value: user?.tenantId?.slice(0, 12) + '...' || '' },
+                                { label: 'School ID', value: user?.tenantId?.slice(0, 12) + '...' || '' },
+                                { label: 'School Code', value: tenant?.schoolCode || 'Not Set' },
+                                { label: 'DISE Code', value: tenant?.diseCode || 'Not Set' },
                                 { label: 'Platform', value: 'UDBA v2.0' },
                                 { label: 'Region', value: 'India (Asia-South)' },
                             ].map(i => (
-                                <div key={i.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '8px' }}>
+                                <div key={i.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '8px', alignItems: 'center' }}>
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{i.label}</span>
-                                    <span style={{ fontSize: '12px', fontWeight: '600', fontFamily: 'monospace' }}>{i.value}</span>
+                                    <span style={{ fontSize: '12px', fontWeight: '600', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {i.value}
+                                        {i.value !== 'Not Set' && i.value !== 'UDBA v2.0' && i.value !== 'India (Asia-South)' && (
+                                            <button 
+                                                onClick={() => {
+                                                    let textToCopy = i.value;
+                                                    if (i.label === 'School ID' && user?.tenantId) textToCopy = user.tenantId;
+                                                    navigator.clipboard.writeText(textToCopy);
+                                                }} 
+                                                style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--primary-light)', padding: '2px', display: 'flex' }}
+                                                title={`Copy ${i.label}`}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                        )}
+                                    </span>
                                 </div>
                             ))}
                         </div>

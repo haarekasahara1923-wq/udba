@@ -136,6 +136,8 @@ export default function FeesPage() {
             subtitle: `Filter: ${activeTab.toUpperCase()} | Generated: ${new Date().toLocaleDateString('en-IN')}`,
             schoolName: tenant?.name || 'Universal Day Boarding Academy',
             schoolAddress: '📍 Pinto Park, Gwalior (MP)',
+            schoolCode: tenant?.schoolCode,
+            diseCode: tenant?.diseCode,
             stats: [
                 { label: 'Total Collected', value: formatCurrency(totalCollected), subtext: 'Received so far', color: '#10b981' },
                 { label: 'Total Outstanding', value: formatCurrency(totalDue), subtext: 'Pending balance', color: '#f59e0b' },

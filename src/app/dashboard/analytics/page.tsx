@@ -109,6 +109,8 @@ export default function AnalyticsPage() {
             subtitle: 'Institutional Performance, Financial Intelligence & Enrollment Analysis',
             schoolName: tenant?.name || 'Universal Day Boarding Academy',
             schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+            schoolCode: tenant?.schoolCode,
+            diseCode: tenant?.diseCode,
             stats: [
                 { label: 'Total Revenue', value: formatCurrency(data.overview.totalRevenue), subtext: 'All-time collection', color: '#10b981' },
                 { label: 'This Month Revenue', value: formatCurrency(data.overview.thisMonthRevenue), subtext: 'Current month intake', color: '#10b981' },

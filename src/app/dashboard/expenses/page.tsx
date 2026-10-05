@@ -90,6 +90,8 @@ export default function ExpensesPage() {
             subtitle: `Consolidated Expenditure Summary - Generated on ${new Date().toLocaleDateString('en-IN')}`,
             schoolName: tenant?.name || 'Universal Day Boarding Academy',
             schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+            schoolCode: tenant?.schoolCode,
+            diseCode: tenant?.diseCode,
             stats: [
                 { label: 'Total Expenses', value: formatCurrency(total), subtext: 'All-time expenditures', color: '#ef4444' },
                 { label: 'Total Entries', value: expenses.length, subtext: 'Recorded items', color: '#6366f1' },

@@ -46,6 +46,8 @@ export interface ReportPDFOptions {
     subtitle?: string
     schoolName?: string
     schoolAddress?: string
+    schoolCode?: string
+    diseCode?: string
     stats?: ReportPDFStat[]
     tables: ReportPDFTable[]
     notes?: string
@@ -57,6 +59,8 @@ export function generateAndPrintPDF(options: ReportPDFOptions) {
         subtitle = 'Confidential Management Report',
         schoolName = 'Universal Day Boarding Academy',
         schoolAddress = '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+        schoolCode = '',
+        diseCode = '',
         stats = [],
         tables = [],
         notes = '',
@@ -293,6 +297,7 @@ export function generateAndPrintPDF(options: ReportPDFOptions) {
         <div>
             <div class="school-title">🏫 ${schoolName}</div>
             <div class="school-subtitle">${schoolAddress}</div>
+            ${schoolCode || diseCode ? `<div class="school-subtitle" style="font-weight: 600;">${schoolCode ? `School Code: ${schoolCode}` : ''}${schoolCode && diseCode ? ' | ' : ''}${diseCode ? `DISE Code: ${diseCode}` : ''}</div>` : ''}
             <div class="report-main-title">${title}</div>
             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">${subtitle}</div>
         </div>

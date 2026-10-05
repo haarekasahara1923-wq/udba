@@ -84,6 +84,8 @@ function SchoolLedgerContent() {
                 subtitle: `Complete Financial Record - Generated on ${new Date().toLocaleDateString('en-IN')}`,
                 schoolName: tenant?.name || 'Universal Day Boarding Academy',
                 schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+                schoolCode: tenant?.schoolCode,
+                diseCode: tenant?.diseCode,
                 stats: [
                     { label: 'Total Credits', value: formatCurrency(totalIncome), subtext: 'All Income', color: '#10b981' },
                     { label: 'Total Debits', value: formatCurrency(totalExpense), subtext: 'All Expenses', color: '#ef4444' },
@@ -109,6 +111,8 @@ function SchoolLedgerContent() {
                 subtitle: `Financial Summary - Generated on ${new Date().toLocaleDateString('en-IN')}`,
                 schoolName: tenant?.name || 'Universal Day Boarding Academy',
                 schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+                schoolCode: tenant?.schoolCode,
+                diseCode: tenant?.diseCode,
                 stats: [
                     { label: 'Total Income', value: formatCurrency(totalIncome), subtext: 'Revenue', color: '#10b981' },
                     { label: 'Total Expense', value: formatCurrency(totalExpense), subtext: 'Expenditure', color: '#ef4444' },

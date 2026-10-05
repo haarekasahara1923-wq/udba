@@ -58,6 +58,8 @@ export default function ReportsPage() {
       subtitle: 'Comprehensive Fee Receipts & Financial Inflow Summary',
       schoolName: tenant?.name || 'Universal Day Boarding Academy',
       schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+      schoolCode: tenant?.schoolCode,
+      diseCode: tenant?.diseCode,
       stats: [
         { label: 'Total Collection', value: `₹${(data.totalCollection || 0).toLocaleString('en-IN')}`, subtext: 'Lifetime collection', color: '#10b981' },
         { label: 'This Month', value: `₹${(data.todayCollection || 0).toLocaleString('en-IN')}`, subtext: 'Current month receipts', color: '#f59e0b' },
@@ -110,6 +112,8 @@ export default function ReportsPage() {
       subtitle: `Official Attendance Roster - Generated on ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
       schoolName: tenant?.name || 'Universal Day Boarding Academy',
       schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+      schoolCode: tenant?.schoolCode,
+      diseCode: tenant?.diseCode,
       stats: [
         { label: 'Present Today', value: data.present || 0, subtext: 'Attended sessions', color: '#10b981' },
         { label: 'Absent Today', value: data.absent || 0, subtext: 'Marked absent', color: '#ef4444' },
@@ -168,6 +172,8 @@ export default function ReportsPage() {
       subtitle: 'Complete Institutional Enrollment & Accounts Profile',
       schoolName: tenant?.name || 'Universal Day Boarding Academy',
       schoolAddress: '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
+      schoolCode: tenant?.schoolCode,
+      diseCode: tenant?.diseCode,
       stats: [
         { label: 'Total Enrolled', value: data.students.length, subtext: 'Registered students', color: '#6366f1' },
         { label: 'Total Billed', value: `₹${totalFees.toLocaleString('en-IN')}`, subtext: 'Course fees', color: '#10b981' },

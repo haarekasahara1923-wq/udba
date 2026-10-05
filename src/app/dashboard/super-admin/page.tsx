@@ -138,6 +138,30 @@ export default function SuperAdminPage() {
                                                     <div>
                                                         <div style={{ fontWeight: '600', fontSize: '14px' }}>{t.name}</div>
                                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.email || t.slug}</div>
+                                                        <div style={{ display: 'flex', gap: '8px', fontSize: '11px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                                            <div style={{ background: 'var(--surface-2)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ color: 'var(--text-muted)' }}>ID:</span> <span style={{ fontFamily: 'monospace' }}>{t.id}</span>
+                                                                <button onClick={() => navigator.clipboard.writeText(t.id)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--primary-light)', padding: '0', display: 'flex' }} title="Copy ID">
+                                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                                </button>
+                                                            </div>
+                                                            <div style={{ background: 'var(--surface-2)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ color: 'var(--text-muted)' }}>Code:</span> <span style={{ fontFamily: 'monospace' }}>{t.schoolCode || 'N/A'}</span>
+                                                                {t.schoolCode && (
+                                                                    <button onClick={() => navigator.clipboard.writeText(t.schoolCode)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--primary-light)', padding: '0', display: 'flex' }} title="Copy Code">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <div style={{ background: 'var(--surface-2)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ color: 'var(--text-muted)' }}>DISE:</span> <span style={{ fontFamily: 'monospace' }}>{t.diseCode || 'N/A'}</span>
+                                                                {t.diseCode && (
+                                                                    <button onClick={() => navigator.clipboard.writeText(t.diseCode)} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'var(--primary-light)', padding: '0', display: 'flex' }} title="Copy DISE">
+                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>

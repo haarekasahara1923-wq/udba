@@ -13,7 +13,7 @@ export async function PATCH(req: NextRequest) {
 
     try {
         const body = await req.json()
-        const { name, phone, email, address, themeColor, logo } = body
+        const { name, phone, email, address, themeColor, logo, schoolCode, diseCode } = body
 
         const updatedTenant = await prisma.tenant.update({
             where: { id: user!.tenantId },
@@ -23,7 +23,9 @@ export async function PATCH(req: NextRequest) {
                 email,
                 address,
                 themeColor,
-                logo
+                logo,
+                schoolCode,
+                diseCode
             }
         })
 

@@ -60,6 +60,8 @@ export async function GET(req: NextRequest) {
                 upiId: t.upiId,
                 bankAccountNo: t.bankAccountNo,
                 ifscCode: t.ifscCode,
+                schoolCode: t.schoolCode,
+                diseCode: t.diseCode,
                 adminPassword: t.users[0]?.plainPassword || '—',
                 createdAt: t.createdAt,
             }
