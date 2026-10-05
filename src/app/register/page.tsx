@@ -4,14 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, ChevronDown } from 'lucide-react'
 
-const ADMIN_SUB_ROLES = [
-  { key: 'ADMIN_OPERATION', label: 'Admin Operation', icon: '⚙️' },
-  { key: 'ADMIN_LIBRARY', label: 'Admin Library', icon: '📚' },
-  { key: 'ADMIN_SPORTS', label: 'Admin Sports', icon: '🏆' },
-  { key: 'ADMIN_TRANSPORT', label: 'Admin Transport', icon: '🚌' },
-]
-
-// Roles available for self-registration (admins are created by super admin)
+// Roles available for self-registration
 const REGISTRABLE_ROLES = [
   { key: 'SUPER_ADMIN', label: 'Super Admin', icon: '👑' },
   { key: 'TEACHER', label: 'Teacher', icon: '👩‍🏫' },
@@ -22,27 +15,29 @@ const REGISTRABLE_ROLES = [
 export default function RegisterPage() {
   const router = useRouter()
   const [role, setRole] = useState('STUDENT')
-  const [name, setName] = useState('')
+  
+  // States
+  const [name, setName] = useState('') // Full Name or Director's Name
   const [identifier, setIdentifier] = useState('') // email or phone
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  
+  // Super Admin Specific States
+  const [schoolName, setSchoolName] = useState('')
+  const [address, setAddress] = useState('')
+  const [contactNo, setContactNo] = useState('')
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const [step, setStep] = useState(1)
-  const [schoolName, setSchoolName] = useState('')
-  const [schoolCode, setSchoolCode] = useState('')
-  const [diseCode, setDiseCode] = useState('')
 
-  const handleNextStep = () => {
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
-      return
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!schoolName || !address || !contactNo || !name) {
+      setError('Please fill all the details')
       return
     }
     setError('')
@@ -52,11 +47,6 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (role === 'SUPER_ADMIN' && step === 1) {
-        handleNextStep()
-        return
-    }
-
     setLoading(true)
     setError('')
 
@@ -81,7 +71,16 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, password, role, schoolName, schoolCode, diseCode }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          password, 
+          role, 
+          schoolName,
+          address,
+          contactNo
+        }),
       })
 
       const data = await res.json()
@@ -121,7 +120,6 @@ export default function RegisterPage() {
         </div>
 
         <div style={{ background: '#111a0e', border: '1px solid rgba(26,92,56,0.25)', borderRadius: '20px', padding: '28px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-          {/* Info banner for admin */}
           <div style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '10px', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
             ℹ️ <strong style={{ color: '#f97316' }}>Admin portals</strong> (Operation/Library/Sports/Transport) are created by the Super Admin. Use the Login page to access those.
           </div>
@@ -149,101 +147,168 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleRegister}>
-            {step === 1 ? (
-              <>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Full Name *</label>
-                  <input
-                    type="text" required value={name} onChange={e => setName(e.target.value)}
-                    placeholder="Enter full name"
-                    style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Email / Mobile No. *</label>
-                  <input
-                    type="text" required value={identifier} onChange={e => setIdentifier(e.target.value)}
-                    placeholder="name@example.com or 9876543210"
-                    style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Password *</label>
-                  <div style={{ position: 'relative' }}>
+          {role === 'SUPER_ADMIN' ? (
+            <form onSubmit={step === 1 ? handleNextStep : handleRegister}>
+              {step === 1 ? (
+                <>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>School Name *</label>
                     <input
-                      type={showPassword ? 'text' : 'password'} required value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                      style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                      type="text" required value={schoolName} onChange={e => setSchoolName(e.target.value)}
+                      placeholder="Enter school name"
+                      style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
-                </div>
-
-                <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Confirm Password *</label>
-                  <div style={{ position: 'relative' }}>
+                  
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Address *</label>
                     <input
-                      type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      placeholder="Re-enter your password"
-                      style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                      type="text" required value={address} onChange={e => setAddress(e.target.value)}
+                      placeholder="Enter school address"
+                      style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
                     />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#4ade80', cursor: 'pointer', fontWeight: 'bold' }}>← Back</button>
-                    <span style={{ color: 'white', fontWeight: 'bold' }}>Step 2: School Details</span>
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>School Name *</label>
-                  <input
-                    type="text" required value={schoolName} onChange={e => setSchoolName(e.target.value)}
-                    placeholder="Enter school name"
-                    style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                  />
-                </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>School Code</label>
-                  <input
-                    type="text" value={schoolCode} onChange={e => setSchoolCode(e.target.value)}
-                    placeholder="Optional"
-                    style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                  />
-                </div>
-                <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>DISE Code</label>
-                  <input
-                    type="text" value={diseCode} onChange={e => setDiseCode(e.target.value)}
-                    placeholder="Optional"
-                    style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
-                  />
-                </div>
-              </>
-            )}
+                  
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Contact No. *</label>
+                    <input
+                      type="text" required value={contactNo} onChange={e => setContactNo(e.target.value)}
+                      placeholder="Enter contact number"
+                      style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                    />
+                  </div>
 
-            {error && (
-              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px', marginBottom: '14px', fontSize: '13px', color: '#fca5a5' }}>⚠️ {error}</div>
-            )}
+                  <div style={{ marginBottom: '18px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Director's Name *</label>
+                    <input
+                      type="text" required value={name} onChange={e => setName(e.target.value)}
+                      placeholder="Enter director's name"
+                      style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button type="button" onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#4ade80', cursor: 'pointer', fontWeight: 'bold' }}>← Back</button>
+                      <span style={{ color: 'white', fontWeight: 'bold' }}>Step 2: Login Details</span>
+                  </div>
+                  
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Email ID / Mobile No. *</label>
+                    <input
+                      type="text" required value={identifier} onChange={e => setIdentifier(e.target.value)}
+                      placeholder="name@example.com or 9876543210"
+                      style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                    />
+                  </div>
 
-            <button type="submit" disabled={loading}
-              style={{ width: '100%', padding: '12px', background: loading ? '#1a5c38' : 'linear-gradient(135deg, #1a5c38, #0f3d26)', color: 'white', border: '1px solid rgba(45,138,87,0.4)', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(26,92,56,0.35)' }}>
-              {role === 'SUPER_ADMIN' && step === 1 ? 'Next Step ➡️' : (loading ? 'Creating Account...' : '✨ Create Account & Login')}
-            </button>
-          </form>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Password *</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'} required value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        placeholder="Minimum 6 characters"
+                        style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)}
+                        style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '18px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Confirm Password *</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter your password"
+                        style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                      />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {error && (
+                <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px', marginBottom: '14px', fontSize: '13px', color: '#fca5a5' }}>⚠️ {error}</div>
+              )}
+
+              <button type="submit" disabled={loading}
+                style={{ width: '100%', padding: '12px', background: loading ? '#1a5c38' : 'linear-gradient(135deg, #1a5c38, #0f3d26)', color: 'white', border: '1px solid rgba(45,138,87,0.4)', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(26,92,56,0.35)' }}>
+                {step === 1 ? 'Next Step ➡️' : (loading ? 'Creating Account...' : '✨ Create Account & Login')}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Full Name *</label>
+                <input
+                  type="text" required value={name} onChange={e => setName(e.target.value)}
+                  placeholder="Enter full name"
+                  style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Email / Mobile No. *</label>
+                <input
+                  type="text" required value={identifier} onChange={e => setIdentifier(e.target.value)}
+                  placeholder="name@example.com or 9876543210"
+                  style={{ width: '100%', padding: '10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Password *</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'} required value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Confirm Password *</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    style={{ width: '100%', padding: '10px 48px 10px 14px', background: '#172014', border: '1px solid rgba(26,92,56,0.3)', borderRadius: '10px', color: 'white', fontSize: '14px', outline: 'none' }}
+                  />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ position: 'absolute', right: '4px', top: 0, bottom: 0, width: '42px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px', marginBottom: '14px', fontSize: '13px', color: '#fca5a5' }}>⚠️ {error}</div>
+              )}
+
+              <button type="submit" disabled={loading}
+                style={{ width: '100%', padding: '12px', background: loading ? '#1a5c38' : 'linear-gradient(135deg, #1a5c38, #0f3d26)', color: 'white', border: '1px solid rgba(45,138,87,0.4)', borderRadius: '12px', fontSize: '14px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(26,92,56,0.35)' }}>
+                {loading ? 'Creating Account...' : '✨ Create Account & Login'}
+              </button>
+            </form>
+          )}
+
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>

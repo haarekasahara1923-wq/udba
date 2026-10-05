@@ -8,7 +8,7 @@ const ADMIN_ONLY_ROLES = ['ADMIN_OPERATION', 'ADMIN_LIBRARY', 'ADMIN_SPORTS', 'A
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
-        const { name, email, password, phone, role, tenantId, schoolName, schoolCode, diseCode } = body
+        const { name, email, password, phone, role, tenantId, schoolName, address, contactNo } = body
 
         if (!name || !email || !password) {
             return NextResponse.json({ error: 'Name, email/phone, and password are required' }, { status: 400 })
@@ -72,10 +72,9 @@ export async function POST(req: NextRequest) {
                 data: {
                     name: schoolName || `${name}'s School`,
                     slug: newSlug,
-                    phone: resolvedPhone || '',
+                    phone: contactNo || resolvedPhone || '',
                     email: resolvedEmail,
-                    schoolCode: schoolCode || '',
-                    diseCode: diseCode || ''
+                    address: address || ''
                 }
             })
         }

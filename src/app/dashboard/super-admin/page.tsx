@@ -64,8 +64,8 @@ export default function SuperAdminPage() {
             {/* New Bar for School IDs */}
             <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '16px', padding: '24px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
                 <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>Generated School ID</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{user?.tenantId || 'N/A'}</div>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>School Name & App ID</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.name} ({user?.tenantId || 'N/A'})</div>
                 </div>
                 <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
                     <div style={{ fontSize: '12px', opacity: 0.8 }}>School ID (Profile)</div>
