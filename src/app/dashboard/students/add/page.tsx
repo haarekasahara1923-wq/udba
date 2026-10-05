@@ -208,7 +208,7 @@ export default function AddStudentPage() {
 
         const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
         const url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(docHtml);
-        const filename = form.fullName ? \`Admission_Form_\${form.fullName.replace(/\\s+/g, '_')}.doc\` : 'Admission_Form.doc';
+        const filename = form.fullName ? `Admission_Form_${form.fullName.replace(/\s+/g, '_')}.doc` : 'Admission_Form.doc';
         const downloadLink = document.createElement("a");
 
         document.body.appendChild(downloadLink);
