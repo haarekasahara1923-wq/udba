@@ -61,7 +61,7 @@ const superAdminNav = [
             { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview' },
             { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools' },
             { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins' },
-
+            { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards' },
             { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation' },
         ]
     },
@@ -223,6 +223,7 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
             '/dashboard/super-admin/tenants': 'Schools',
 
             '/dashboard/super-admin/tc': 'TC Generation',
+            '/dashboard/super-admin/admit-cards': 'Admit Cards',
         }
         return map[pathname] || 'Dashboard'
     }

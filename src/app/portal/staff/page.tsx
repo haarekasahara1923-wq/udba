@@ -56,6 +56,7 @@ export default function StaffHome() {
     { href: '/portal/staff/leaves', icon: '📅', label: 'Apply Leave', color: '#6366f1' },
     { href: '/portal/staff/ledger', icon: '💰', label: 'My Salary', color: '#8b5cf6' },
     { href: '/portal/staff/timetable', icon: '⏰', label: 'Schedule', color: '#ec4899' },
+    { href: '/portal/staff/admit-cards', icon: '🎫', label: 'Admit Cards', color: '#f59e0b' },
   ]
 
   return (

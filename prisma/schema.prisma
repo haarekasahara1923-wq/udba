@@ -70,6 +70,8 @@ model Tenant {
   vehicleLocations                       VehicleLocation[]
   sports                                 Sport[]
   studentSports                          StudentSport[]
+  admitCards                             AdmitCard[]
+  admitCardStudents                      AdmitCardStudent[]
 }
 
 model Affiliate {
@@ -215,6 +217,7 @@ model Course {
   tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   exams            Exam[]
   students         Student[]
+  admitCards       AdmitCard[]
 
   @@index([tenantId])
 }
@@ -242,6 +245,7 @@ model Batch {
   mockTests   MockTest[]
   students    Student[]
   timeTables  TimeTable[]
+  admitCards  AdmitCard[]
 
   @@index([tenantId])
 }
@@ -304,6 +308,7 @@ model Student {
   transportLogs       TransportLog[]
   parentLinks         ParentProfile[]      @relation("ParentChildren")
   studentSports       StudentSport[]
+  admitCardStudents   AdmitCardStudent[]
 
   @@index([tenantId])
   @@index([tenantId, fullName])
@@ -1039,4 +1044,44 @@ model StudentSport {
 enum StudentSportStatus {
   ACTIVE
   BLOCKED
+}
+
+model AdmitCard {
+  id          String             @id @default(cuid())
+  tenantId    String
+  examName    String
+  courseId    String
+  batchId     String
+  startDate   DateTime
+  endDate     DateTime
+  isPublished Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course      Course             @relation(fields: [courseId], references: [id])
+  batch       Batch              @relation(fields: [batchId], references: [id])
+  students    AdmitCardStudent[]
+
+  @@index([tenantId])
+  @@index([courseId, batchId])
+}
+
+model AdmitCardStudent {
+  id            String    @id @default(cuid())
+  tenantId      String
+  admitCardId   String
+  studentId     String
+  isBlocked     Boolean   @default(false)
+  blockReason   String?
+  isApproved    Boolean   @default(false)
+  isPublished   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  admitCard     AdmitCard @relation(fields: [admitCardId], references: [id], onDelete: Cascade)
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([admitCardId, studentId])
+  @@index([tenantId])
+  @@index([studentId])
 }
