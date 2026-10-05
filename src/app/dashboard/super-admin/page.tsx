@@ -2,9 +2,10 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function SuperAdminPage() {
-    const { user, token } = useAuth()
+    const { user, token, tenant } = useAuth()
     const router = useRouter()
     const [tenants, setTenants] = useState<any[]>([])
     const [stats, setStats] = useState<any>({})
@@ -60,49 +61,42 @@ export default function SuperAdminPage() {
 
     return (
         <div>
-            <div className="page-header">
-                <div>
-                    <h1 className="page-title">👑 Super Admin Panel</h1>
-                    <p className="page-subtitle">Platform overview — Real-time data from DB</p>
+            {/* New Bar for School IDs */}
+            <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '16px', padding: '24px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>Generated School ID</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{user?.tenantId || 'N/A'}</div>
                 </div>
-                <div style={{ padding: '8px 16px', background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)', borderRadius: '10px', color: '#f9a8d4', fontSize: '13px', fontWeight: '700' }}>
-                    🔴 Super Admin Mode
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>School ID (Profile)</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.schoolCode || 'Not Set'}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+                    <div style={{ fontSize: '12px', opacity: 0.8 }}>DISE No.</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.diseCode || 'Not Set'}</div>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                {[
-                    { label: 'Total schools', value: stats.totalTenants || 0, icon: '🏫', color: '#6366f1' },
-                    { label: 'Active Tenants', value: stats.activeTenants || 0, icon: '✅', color: '#10b981' },
-                    { label: 'Total Students', value: stats.totalStudents || 0, icon: '👨‍🎓', color: '#f59e0b' },
-                    { label: 'Gyankosh Revenue', value: `₹${(stats.totalGyankoshRevenue || 0).toLocaleString('en-IN')}`, icon: '💰', color: '#ec4899' },
-                    { label: 'Commission Paid', value: `₹${(stats.totalCommissionPaid || 0).toLocaleString('en-IN')}`, icon: '🤝', color: '#06b6d4' },
-                ].map(s => (
-                    <div key={s.label} className="stat-card" style={{ '--card-accent': s.color } as React.CSSProperties}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div>
-                                <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>{s.label}</p>
-                                <p style={{ fontSize: '22px', fontWeight: '800', color: 'white' }}>{s.value}</p>
+            {/* Quick Buttons Grid */}
+            <div style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Quick Buttons</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+                    {[
+                        { href: '/dashboard', icon: '🏠', label: 'Dashboard', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                        { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+                        { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                        { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
+                    ].map(a => (
+                        <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>
+                            <div style={{ background: a.bg, border: `1px solid ${a.color}30`, borderRadius: '14px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px', cursor: 'pointer', transition: 'transform 0.15s' }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
+                                <div style={{ fontSize: '26px' }}>{a.icon}</div>
+                                <div style={{ fontSize: '12px', fontWeight: '600', color: a.color, lineHeight: '1.3' }}>{a.label}</div>
                             </div>
-                            <div style={{ fontSize: '28px' }}>{s.icon}</div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Plan Distribution */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                {['BASIC', 'PRO', 'ELITE'].map(plan => {
-                    const count = tenants.filter(t => t.plan === plan).length
-                    const pc = planColors[plan] || '#6366f1'
-                    return (
-                        <div key={plan} style={{ padding: '16px 24px', background: 'var(--surface)', border: `1px solid ${pc}30`, borderRadius: '12px', borderLeft: `4px solid ${pc}`, minWidth: '140px' }}>
-                            <div style={{ fontSize: '28px', fontWeight: '800', color: pc }}>{count}</div>
-                            <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>{plan}</div>
-                        </div>
-                    )
-                })}
+                        </Link>
+                    ))}
+                </div>
             </div>
 
             {/* Tenants Table */}
