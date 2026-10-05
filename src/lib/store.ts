@@ -10,6 +10,8 @@ export interface Tenant {
     address?: string
     phone?: string
     email?: string
+    schoolCode?: string
+    diseCode?: string
     isActive: boolean
     createdAt: Date
 }

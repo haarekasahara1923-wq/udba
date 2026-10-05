@@ -11,8 +11,10 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 )
 
 export default function AddStudentPage() {
-    const { token } = useAuth()
+    const { token, tenant } = useAuth()
     const router = useRouter()
+    const [showDocsModal, setShowDocsModal] = useState(false)
+    const [docs, setDocs] = useState({ aadhaarFront: '', aadhaarBack: '', samagra: '', apar: '', pen: '', bank: '' })
     const [courses, setCourses] = useState<{ id: string; name: string; fees: number; installmentCount: number }[]>([])
     const [batches, setBatches] = useState<{ id: string; name: string; courseId: string }[]>([])
     const [loading, setLoading] = useState(false)
@@ -39,6 +41,186 @@ export default function AddStudentPage() {
             }
             reader.readAsDataURL(file)
         }
+    }
+
+    const handleDocUpload = (key: keyof typeof docs, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setDocs({ ...docs, [key]: reader.result as string })
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const getFormHtml = () => {
+        const courseName = courses.find(c => c.id === form.courseId)?.name || ''
+        const batchName = batches.find(b => b.id === form.batchId)?.name || ''
+        
+        return `
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; color: #000; padding: 20px;">
+                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                    ${tenant?.logo ? `<img src="${tenant.logo}" style="height: 80px;" />` : ''}
+                    <h1 style="margin: 10px 0 5px 0;">${tenant?.name || 'School Name'}</h1>
+                    <p style="margin: 0; font-size: 14px;">${tenant?.address || ''} | Ph: ${tenant?.phone || ''} | Email: ${tenant?.email || ''}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>School Code:</strong> ${tenant?.schoolCode || '___'} &nbsp;&nbsp;&nbsp; <strong>DISE Code:</strong> ${tenant?.diseCode || '___'}</p>
+                </div>
+                
+                <h2 style="text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 18px; text-decoration: underline;">Student Admission Form</h2>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr>
+                        <td style="width: 75%; vertical-align: top;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr><td style="padding: 5px; width: 35%;"><strong>Scholar No:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.scholarNo}</td></tr>
+                                <tr><td style="padding: 5px;"><strong>Full Name:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.fullName}</td></tr>
+                                <tr><td style="padding: 5px;"><strong>Class & Section:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${courseName} - ${batchName}</td></tr>
+                                <tr><td style="padding: 5px;"><strong>Gender:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.gender}</td></tr>
+                            </table>
+                        </td>
+                        <td style="width: 25%; text-align: right; vertical-align: top;">
+                            <div style="width: 120px; height: 150px; border: 1px solid #000; display: inline-flex; align-items: center; justify-content: center; text-align: center; float: right;">
+                                ${form.photo ? `<img src="${form.photo}" style="width: 100%; height: 100%; object-fit: cover;" />` : 'Paste/Upload<br/>Passport Size<br/>Photo'}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                
+                <h3 style="background: #f0f0f0; padding: 5px; font-size: 14px; margin: 15px 0 10px 0; border: 1px solid #000;">1. Personal Details</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr>
+                        <td style="padding: 5px; width: 25%;"><strong>Father's Name:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.fatherName}</td>
+                        <td style="padding: 5px; width: 25%;"><strong>Mother's Name:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.motherName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Date of Birth:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.dob}</td>
+                        <td style="padding: 5px;"><strong>DOB (in words):</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.dobInWords}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Student Phone:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.phone}</td>
+                        <td style="padding: 5px;"><strong>Parent Phone:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.parentPhone}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Caste:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.caste}</td>
+                        <td style="padding: 5px;"><strong>Medium:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.medium}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Email:</strong></td><td colspan="3" style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.email}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Address:</strong></td><td colspan="3" style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.address}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="background: #f0f0f0; padding: 5px; font-size: 14px; margin: 15px 0 10px 0; border: 1px solid #000;">2. Government IDs</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr>
+                        <td style="padding: 5px; width: 25%;"><strong>Aadhaar No:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.aadhaarNo}</td>
+                        <td style="padding: 5px; width: 25%;"><strong>Samagra ID:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.samagraId}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>PEN ID No:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.penId}</td>
+                        <td style="padding: 5px;"><strong>APAR ID No:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.aparId}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="background: #f0f0f0; padding: 5px; font-size: 14px; margin: 15px 0 10px 0; border: 1px solid #000;">3. Academic Details</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr>
+                        <td style="padding: 5px; width: 25%;"><strong>First Adm. Class:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.firstAdmissionClass}</td>
+                        <td style="padding: 5px; width: 25%;"><strong>First Adm. Date:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.firstAdmissionDate}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Subject Group:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.subjectGroup}</td>
+                        <td style="padding: 5px;"><strong>Scholarship:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.scholarshipScheme}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px;"><strong>Current Adm. Date:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.admissionDate}</td>
+                        <td style="padding: 5px;"><strong>Fee Plan:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.feePlan}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="background: #f0f0f0; padding: 5px; font-size: 14px; margin: 15px 0 10px 0; border: 1px solid #000;">4. Bank Details</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr>
+                        <td style="padding: 5px; width: 25%;"><strong>Bank Name:</strong></td><td colspan="3" style="padding: 5px; border-bottom: 1px dashed #ccc;">${form.bankName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; width: 25%;"><strong>Account No:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.bankAccountNo}</td>
+                        <td style="padding: 5px; width: 25%;"><strong>IFSC Code:</strong></td><td style="padding: 5px; width: 25%; border-bottom: 1px dashed #ccc;">${form.ifscCode}</td>
+                    </tr>
+                </table>
+                
+                <div style="margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="text-align: center;">
+                        <div style="border-top: 1px solid #000; width: 200px; padding-top: 5px;">Parent / Guardian Signature</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="border-top: 1px solid #000; width: 200px; padding-top: 5px;">Authorized Signatory</div>
+                    </div>
+                </div>
+            </div>
+        `
+    }
+
+    const handleDownloadPDF = () => {
+        const html = getFormHtml()
+        const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Admission Form - ${form.fullName}</title>
+            <style>
+                @page { size: A4; margin: 15mm; }
+                body { margin: 0; padding: 0; }
+                table { page-break-inside: avoid; }
+            </style>
+        </head>
+        <body>
+            ${html}
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>
+        `
+        const printWindow = window.open('', '_blank')
+        if (printWindow) {
+            printWindow.document.open()
+            printWindow.document.write(fullHtml)
+            printWindow.document.close()
+        } else {
+            alert('Popup was blocked by your browser. Please allow popups for this site to download the PDF.')
+        }
+    }
+
+    const handleDownloadDOCX = () => {
+        const html = getFormHtml()
+        const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+        const postHtml = "</body></html>";
+        const docHtml = preHtml + html + postHtml;
+
+        const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
+        const url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(docHtml);
+        const filename = form.fullName ? \`Admission_Form_\${form.fullName.replace(/\\s+/g, '_')}.doc\` : 'Admission_Form.doc';
+        const downloadLink = document.createElement("a");
+
+        document.body.appendChild(downloadLink);
+        
+        if ((navigator as any).msSaveOrOpenBlob) {
+            (navigator as any).msSaveOrOpenBlob(blob, filename);
+        } else {
+            downloadLink.href = url;
+            downloadLink.download = filename;
+            downloadLink.click();
+        }
+        document.body.removeChild(downloadLink);
     }
 
 
@@ -322,13 +504,68 @@ export default function AddStudentPage() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                    <button type="button" onClick={() => router.back()} className="btn btn-secondary">Cancel</button>
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? <><div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} /> Saving...</> : '💾 Add Student'}
-                    </button>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button type="button" onClick={handleDownloadPDF} className="btn btn-secondary" style={{ background: '#0f3d26', color: 'white', border: 'none' }}>🖨️ PDF Form</button>
+                        <button type="button" onClick={handleDownloadDOCX} className="btn btn-secondary" style={{ background: '#1e40af', color: 'white', border: 'none' }}>📄 DOCX Form</button>
+                        <button type="button" onClick={() => setShowDocsModal(true)} className="btn btn-secondary" style={{ background: '#7e22ce', color: 'white', border: 'none' }}>🪪 Upload Govt IDs</button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="button" onClick={() => router.back()} className="btn btn-secondary">Cancel</button>
+                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                            {loading ? <><div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} /> Saving...</> : '💾 Add Student'}
+                        </button>
+                    </div>
                 </div>
             </form>
+
+            {/* Govt IDs Upload Modal */}
+            {showDocsModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="card" style={{ width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: '700' }}>🪪 Upload Govt IDs</h3>
+                            <button onClick={() => setShowDocsModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            {[
+                                { label: 'Aadhaar Card (Front)', key: 'aadhaarFront' },
+                                { label: 'Aadhaar Card (Back)', key: 'aadhaarBack' },
+                                { label: 'Samagra ID', key: 'samagra' },
+                                { label: 'APAR ID', key: 'apar' },
+                                { label: 'PEN ID', key: 'pen' },
+                                { label: 'Bank Passbook (1st Page)', key: 'bank' }
+                            ].map(item => (
+                                <div key={item.key} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{item.label}</div>
+                                    {docs[item.key as keyof typeof docs] ? (
+                                        <div style={{ position: 'relative' }}>
+                                            <img src={docs[item.key as keyof typeof docs]} alt={item.label} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                                            <button 
+                                                onClick={() => setDocs({...docs, [item.key]: ''})}
+                                                style={{ position: 'absolute', top: 4, right: 4, background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '10px' }}>✕</button>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                            <label className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>
+                                                📸 Cam
+                                                <input type="file" accept="image/*,application/pdf" capture="environment" hidden onChange={(e) => handleDocUpload(item.key as any, e)} />
+                                            </label>
+                                            <label className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>
+                                                🖼️ Gal
+                                                <input type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleDocUpload(item.key as any, e)} />
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ marginTop: '24px', textAlign: 'right' }}>
+                            <button className="btn btn-primary" onClick={() => setShowDocsModal(false)}>Done Uploading</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
