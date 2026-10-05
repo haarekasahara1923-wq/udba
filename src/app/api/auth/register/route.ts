@@ -8,7 +8,7 @@ const ADMIN_ONLY_ROLES = ['ADMIN_OPERATION', 'ADMIN_LIBRARY', 'ADMIN_SPORTS', 'A
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
-        const { name, email, password, phone, role, tenantId } = body
+        const { name, email, password, phone, role, tenantId, schoolName, schoolCode, diseCode } = body
 
         if (!name || !email || !password) {
             return NextResponse.json({ error: 'Name, email/phone, and password are required' }, { status: 400 })
@@ -70,10 +70,12 @@ export async function POST(req: NextRequest) {
             const newSlug = `school-${Date.now()}`
             school = await prisma.tenant.create({
                 data: {
-                    name: `${name}'s School`,
+                    name: schoolName || `${name}'s School`,
                     slug: newSlug,
                     phone: resolvedPhone || '',
                     email: resolvedEmail,
+                    schoolCode: schoolCode || '',
+                    diseCode: diseCode || ''
                 }
             })
         }
