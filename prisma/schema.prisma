@@ -72,6 +72,7 @@ model Tenant {
   studentSports                          StudentSport[]
   admitCards                             AdmitCard[]
   admitCardStudents                      AdmitCardStudent[]
+  transferCertificates                   TransferCertificate[]
 }
 
 model Affiliate {
@@ -309,6 +310,7 @@ model Student {
   parentLinks         ParentProfile[]      @relation("ParentChildren")
   studentSports       StudentSport[]
   admitCardStudents   AdmitCardStudent[]
+  transferCertificate TransferCertificate?
 
   @@index([tenantId])
   @@index([tenantId, fullName])
@@ -1084,4 +1086,18 @@ model AdmitCardStudent {
   @@unique([admitCardId, studentId])
   @@index([tenantId])
   @@index([studentId])
+}
+
+model TransferCertificate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  studentId   String   @unique
+  studentName String
+  fatherName  String
+  scholarNo   String
+  createdAt   DateTime @default(now())
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }

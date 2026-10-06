@@ -88,8 +88,21 @@ export async function POST(req: NextRequest) {
             bankName, bankAccountNo, ifscCode, photo, subjectGroup
         } = body
 
-        if (!fullName || !phone || !courseId || !batchId) {
-            return NextResponse.json({ error: 'Required fields missing' }, { status: 400 })
+        if (!fullName || !fatherName || !scholarNo || !phone || !courseId || !batchId) {
+            return NextResponse.json({ error: 'Required fields missing: Student Name, Father Name, and Scholar No. are mandatory.' }, { status: 400 })
+        }
+
+        const existingStudent = await prisma.student.findFirst({
+            where: {
+                tenantId: user!.tenantId,
+                fullName,
+                fatherName,
+                scholarNo
+            }
+        })
+
+        if (existingStudent) {
+            return NextResponse.json({ error: 'Student added previously' }, { status: 400 })
         }
 
         const course = await prisma.course.findUnique({

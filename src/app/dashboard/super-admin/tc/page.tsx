@@ -57,7 +57,30 @@ export default function TCGenerationPage() {
     }, [selectedStudentId, students])
 
     const downloadPDF = async () => {
-        if (!tcRef.current) return
+        if (!tcRef.current || !studentData) return
+
+        // Save TC to Backend first
+        try {
+            const res = await fetch('/api/super-admin/tc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    studentId: studentData.id,
+                    studentName: studentData.fullName,
+                    fatherName: studentData.fatherName || 'Unknown',
+                    scholarNo: studentData.scholarNo || studentData.studentId
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to generate TC');
+                return;
+            }
+        } catch (err) {
+            alert('Failed to connect to server');
+            return;
+        }
+
         try {
             const html2pdf = (await import('html2pdf.js')).default;
             const element = tcRef.current;
@@ -74,8 +97,31 @@ export default function TCGenerationPage() {
         }
     }
 
-    const downloadDocx = () => {
-        if (!tcRef.current) return
+    const downloadDocx = async () => {
+        if (!tcRef.current || !studentData) return
+
+        // Save TC to Backend first
+        try {
+            const res = await fetch('/api/super-admin/tc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    studentId: studentData.id,
+                    studentName: studentData.fullName,
+                    fatherName: studentData.fatherName || 'Unknown',
+                    scholarNo: studentData.scholarNo || studentData.studentId
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to generate TC');
+                return;
+            }
+        } catch (err) {
+            alert('Failed to connect to server');
+            return;
+        }
+
         const preHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'><title>Transfer Certificate</title>
         <style>
