@@ -444,20 +444,15 @@ export default function AddStudentPage() {
                                 </div>
                             )}
                         </Field>
-                        <Field label="Section *">
-                            <select className="input" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} required disabled={metadataLoading}>
+                        <Field label="Section (Optional)">
+                            <select className="input" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} disabled={metadataLoading}>
                                 <option value="">
                                     {metadataLoading ? '⌛ Loading sections...' : 
-                                     (form.courseId && filteredBatches.length === 0) ? '⚠️ Please create a section first' : 
+                                     (form.courseId && filteredBatches.length === 0) ? 'No sections available' : 
                                      'Select Section'}
                                 </option>
                                 {filteredBatches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
-                            {form.courseId && filteredBatches.length === 0 && !metadataLoading && (
-                                <div style={{ fontSize: '11px', color: 'red', marginTop: '4px' }}>
-                                    You must create a section for this class in Settings first.
-                                </div>
-                            )}
                         </Field>
                         <Field label="First Admission Class">
                             <input className="input" placeholder="e.g. Class 1" value={form.firstAdmissionClass} onChange={e => setForm({ ...form, firstAdmissionClass: e.target.value })} />

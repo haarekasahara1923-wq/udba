@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
             bankName, bankAccountNo, ifscCode, photo, subjectGroup
         } = body
 
-        if (!fullName || !fatherName || !scholarNo || !phone || !courseId || !batchId) {
-            return NextResponse.json({ error: 'Required fields missing: Student Name, Father Name, and Scholar No. are mandatory.' }, { status: 400 })
+        if (!fullName || !fatherName || !scholarNo || !phone || !courseId) {
+            return NextResponse.json({ error: 'Required fields missing: Student Name, Father Name, Phone, Class, and Scholar No. are mandatory.' }, { status: 400 })
         }
 
         const existingStudent = await prisma.student.findFirst({
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
             data: {
                 tenantId: user!.tenantId,
                 courseId,
-                batchId,
+                batchId: batchId || null,
                 studentId: `STU${String(currentCount + 1).padStart(3, '0')}`,
                 fullName,
                 fatherName: fatherName || '',
@@ -199,7 +199,7 @@ export async function PATCH(req: NextRequest) {
                 fullName,
                 phone,
                 courseId,
-                batchId,
+                batchId: batchId || null,
                 status: status as any,
                 fatherName,
                 parentPhone,
@@ -242,6 +242,14 @@ export async function DELETE(req: NextRequest) {
         if (payments > 0) {
             return NextResponse.json({ error: 'Cannot delete student with payment history. Block them instead.' }, { status: 400 })
         }
+
+        // Delete related records that don't have onDelete: Cascade
+        await prisma.fee.deleteMany({ where: { studentId: id } })
+        await prisma.attendance.deleteMany({ where: { studentId: id } })
+        await prisma.homeworkSubmission.deleteMany({ where: { studentId: id } })
+        await prisma.result.deleteMany({ where: { studentId: id } })
+        await prisma.transportLog.deleteMany({ where: { studentId: id } })
+        await prisma.studentSport.deleteMany({ where: { studentId: id } })
 
         await prisma.student.delete({
             where: { id, tenantId: user!.tenantId }
