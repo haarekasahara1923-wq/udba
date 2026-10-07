@@ -246,19 +246,24 @@ export default function AddStudentPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        const res = await fetch('/api/students', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify(form),
-        })
-        const data = await res.json()
-        setLoading(false)
-        if (data.success) {
-            setSuccess(true)
-            setToast('Student added successfully!')
-            setTimeout(() => router.push('/dashboard/students'), 1500)
-        } else {
-            setToast(data.error || 'Failed to add student')
+        try {
+            const res = await fetch('/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(form),
+            })
+            const data = await res.json()
+            setLoading(false)
+            if (data.success) {
+                setSuccess(true)
+                setToast('Student added successfully!')
+                setTimeout(() => router.push('/dashboard/students'), 1500)
+            } else {
+                setToast(data.error || 'Failed to add student')
+            }
+        } catch (error) {
+            setLoading(false)
+            setToast('Failed to add student. Please check your connection and try again.')
         }
     }
 
@@ -310,8 +315,8 @@ export default function AddStudentPage() {
                         <Field label="Phone Number *">
                             <input className="input" type="tel" placeholder="917879337770" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required />
                         </Field>
-                        <Field label="Father's Name">
-                            <input className="input" placeholder="Ramesh Sharma" value={form.fatherName} onChange={e => setForm({ ...form, fatherName: e.target.value })} />
+                        <Field label="Father's Name *">
+                            <input className="input" placeholder="Ramesh Sharma" value={form.fatherName} onChange={e => setForm({ ...form, fatherName: e.target.value })} required />
                         </Field>
                         <Field label="Mother's Name">
                             <input className="input" placeholder="Sunita Sharma" value={form.motherName} onChange={e => setForm({ ...form, motherName: e.target.value })} />
@@ -441,9 +446,18 @@ export default function AddStudentPage() {
                         </Field>
                         <Field label="Section *">
                             <select className="input" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} required disabled={metadataLoading}>
-                                <option value="">{metadataLoading ? '⌛ Loading sections...' : 'Select Section'}</option>
+                                <option value="">
+                                    {metadataLoading ? '⌛ Loading sections...' : 
+                                     (form.courseId && filteredBatches.length === 0) ? '⚠️ Please create a section first' : 
+                                     'Select Section'}
+                                </option>
                                 {filteredBatches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
+                            {form.courseId && filteredBatches.length === 0 && !metadataLoading && (
+                                <div style={{ fontSize: '11px', color: 'red', marginTop: '4px' }}>
+                                    You must create a section for this class in Settings first.
+                                </div>
+                            )}
                         </Field>
                         <Field label="First Admission Class">
                             <input className="input" placeholder="e.g. Class 1" value={form.firstAdmissionClass} onChange={e => setForm({ ...form, firstAdmissionClass: e.target.value })} />
