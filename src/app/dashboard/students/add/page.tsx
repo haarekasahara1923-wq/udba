@@ -27,14 +27,14 @@ function DocUploadButtons({
                 type="file"
                 accept="image/*,application/pdf"
                 capture="environment"
-                style={{ display: 'none' }}
+                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}
                 onChange={e => onUpload(docKey, e)}
             />
             <input
                 ref={galRef}
                 type="file"
                 accept="image/*,application/pdf"
-                style={{ display: 'none' }}
+                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}
                 onChange={e => onUpload(docKey, e)}
             />
             <button
@@ -357,14 +357,14 @@ export default function AddStudentPage() {
                                 type="file"
                                 accept="image/*"
                                 capture="environment"
-                                style={{ display: 'none' }}
+                                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}
                                 onChange={handlePhotoUpload}
                             />
                             <input
                                 ref={photoGalleryRef}
                                 type="file"
                                 accept="image/*"
-                                style={{ display: 'none' }}
+                                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', overflow: 'hidden' }}
                                 onChange={handlePhotoUpload}
                             />
                             <button
