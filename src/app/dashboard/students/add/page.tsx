@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +9,53 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
         {children}
     </div>
 )
+
+// Reliable camera/gallery upload for doc items — uses programmatic click to avoid mobile hit-area issues
+function DocUploadButtons({
+    docKey,
+    onUpload,
+}: {
+    docKey: string
+    onUpload: (key: string, e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
+    const camRef = useRef<HTMLInputElement>(null)
+    const galRef = useRef<HTMLInputElement>(null)
+    return (
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+            <input
+                ref={camRef}
+                type="file"
+                accept="image/*,application/pdf"
+                capture="environment"
+                style={{ display: 'none' }}
+                onChange={e => onUpload(docKey, e)}
+            />
+            <input
+                ref={galRef}
+                type="file"
+                accept="image/*,application/pdf"
+                style={{ display: 'none' }}
+                onChange={e => onUpload(docKey, e)}
+            />
+            <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ padding: '6px 10px', fontSize: '11px' }}
+                onClick={() => camRef.current?.click()}
+            >
+                📸 Cam
+            </button>
+            <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ padding: '6px 10px', fontSize: '11px' }}
+                onClick={() => galRef.current?.click()}
+            >
+                🖼️ Gal
+            </button>
+        </div>
+    )
+}
 
 export default function AddStudentPage() {
     const { token, tenant } = useAuth()
@@ -22,7 +69,9 @@ export default function AddStudentPage() {
     const [toast, setToast] = useState('')
     const [metadataLoading, setMetadataLoading] = useState(true)
 
-
+    // Refs for photo upload buttons — programmatic click is most reliable cross-device approach
+    const photoCameraRef = useRef<HTMLInputElement>(null)
+    const photoGalleryRef = useRef<HTMLInputElement>(null)
 
     const [form, setForm] = useState({
         scholarNo: '', fullName: '', fatherName: '', motherName: '', phone: '', parentPhone: '',
@@ -44,7 +93,7 @@ export default function AddStudentPage() {
         e.target.value = ''
     }
 
-    const handleDocUpload = (key: keyof typeof docs, e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleDocUpload = (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
         const reader = new FileReader()
@@ -302,27 +351,36 @@ export default function AddStudentPage() {
                             <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>📷</div>
                         )}
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            {/* Camera button — label wraps input for reliable Android touch */}
-                            <label className="btn btn-secondary" style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden', margin: 0 }}>
+                            {/* Hidden inputs — triggered programmatically for cross-device reliability */}
+                            <input
+                                ref={photoCameraRef}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                style={{ display: 'none' }}
+                                onChange={handlePhotoUpload}
+                            />
+                            <input
+                                ref={photoGalleryRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handlePhotoUpload}
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => photoCameraRef.current?.click()}
+                            >
                                 📸 Camera
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                                    onChange={handlePhotoUpload}
-                                />
-                            </label>
-                            {/* Gallery button — no capture attr so Android shows gallery picker */}
-                            <label className="btn btn-secondary" style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden', margin: 0 }}>
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => photoGalleryRef.current?.click()}
+                            >
                                 🖼️ Gallery
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                                    onChange={handlePhotoUpload}
-                                />
-                            </label>
+                            </button>
                         </div>
                     </div>
 
@@ -587,35 +645,10 @@ export default function AddStudentPage() {
                                                 style={{ position: 'absolute', top: 4, right: 4, background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '10px' }}>✕</button>
                                         </div>
                                     ) : (
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                            {/* Camera — label+input overlay for reliable Android camera access */}
-                                            <label
-                                                className="btn btn-secondary"
-                                                style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer', position: 'relative', overflow: 'hidden', margin: 0 }}
-                                            >
-                                                📸 Cam
-                                                <input
-                                                    type="file"
-                                                    accept="image/*,application/pdf"
-                                                    capture="environment"
-                                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                                                    onChange={e => handleDocUpload(item.key as keyof typeof docs, e)}
-                                                />
-                                            </label>
-                                            {/* Gallery — no capture attr so Android shows full file picker */}
-                                            <label
-                                                className="btn btn-secondary"
-                                                style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer', position: 'relative', overflow: 'hidden', margin: 0 }}
-                                            >
-                                                🖼️ Gal
-                                                <input
-                                                    type="file"
-                                                    accept="image/*,application/pdf"
-                                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                                                    onChange={e => handleDocUpload(item.key as keyof typeof docs, e)}
-                                                />
-                                            </label>
-                                        </div>
+                                        <DocUploadButtons
+                                            docKey={item.key as keyof typeof docs}
+                                            onUpload={handleDocUpload}
+                                        />
                                     )}
                                 </div>
                                 )
