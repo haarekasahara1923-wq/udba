@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
         const data = students.map(s => ({
             ...s,
             courseName: s.course.name,
-            batchName: s.batch.name,
+            batchName: s.batch?.name || 'N/A',
         }))
 
         // Total count for plan limit
