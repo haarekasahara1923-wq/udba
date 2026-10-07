@@ -18,28 +18,31 @@ function DocUploadButtons({
     docKey: string
     onUpload: (key: string, e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
+    const idSuffix = Math.random().toString(36).substring(7)
     return (
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-                <button type="button" className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', pointerEvents: 'none' }}>
+            <div>
+                <label htmlFor={`cam-${docKey}-${idSuffix}`} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer', margin: 0 }}>
                     📸 Cam
-                </button>
+                </label>
                 <input
+                    id={`cam-${docKey}-${idSuffix}`}
                     type="file"
                     accept="image/*,application/pdf"
                     capture="environment"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+                    style={{ position: 'absolute', opacity: 0, width: '0.1px', height: '0.1px', zIndex: -1 }}
                     onChange={e => onUpload(docKey, e)}
                 />
             </div>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-                <button type="button" className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', pointerEvents: 'none' }}>
+            <div>
+                <label htmlFor={`gal-${docKey}-${idSuffix}`} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer', margin: 0 }}>
                     🖼️ Gal
-                </button>
+                </label>
                 <input
+                    id={`gal-${docKey}-${idSuffix}`}
                     type="file"
                     accept="image/*,application/pdf"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+                    style={{ position: 'absolute', opacity: 0, width: '0.1px', height: '0.1px', zIndex: -1 }}
                     onChange={e => onUpload(docKey, e)}
                 />
             </div>
@@ -337,26 +340,28 @@ export default function AddStudentPage() {
                             <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>📷</div>
                         )}
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
-                                <button type="button" className="btn btn-secondary" style={{ pointerEvents: 'none' }}>
+                            <div>
+                                <label htmlFor="main-cam-upload" className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0 }}>
                                     📸 Camera
-                                </button>
+                                </label>
                                 <input
+                                    id="main-cam-upload"
                                     type="file"
                                     accept="image/*"
                                     capture="environment"
-                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+                                    style={{ position: 'absolute', opacity: 0, width: '0.1px', height: '0.1px', zIndex: -1 }}
                                     onChange={handlePhotoUpload}
                                 />
                             </div>
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
-                                <button type="button" className="btn btn-secondary" style={{ pointerEvents: 'none' }}>
+                            <div>
+                                <label htmlFor="main-gal-upload" className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0 }}>
                                     🖼️ Gallery
-                                </button>
+                                </label>
                                 <input
+                                    id="main-gal-upload"
                                     type="file"
                                     accept="image/*"
-                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+                                    style={{ position: 'absolute', opacity: 0, width: '0.1px', height: '0.1px', zIndex: -1 }}
                                     onChange={handlePhotoUpload}
                                 />
                             </div>
