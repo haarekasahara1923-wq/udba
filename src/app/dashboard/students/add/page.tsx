@@ -45,13 +45,15 @@ export default function AddStudentPage() {
 
     const handleDocUpload = (key: keyof typeof docs, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setDocs({ ...docs, [key]: reader.result as string })
-            }
-            reader.readAsDataURL(file)
+        if (!file) return
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const result = reader.result as string
+            setDocs(prev => ({ ...prev, [key]: result }))
         }
+        reader.readAsDataURL(file)
+        // Reset input so same file can be selected again
+        e.target.value = ''
     }
 
     const getFormHtml = () => {
@@ -247,10 +249,13 @@ export default function AddStudentPage() {
         e.preventDefault()
         setLoading(true)
         try {
+            // Serialize govt ID docs into idProof field as JSON
+            const hasAnyDoc = Object.values(docs).some(v => v !== '')
+            const idProof = hasAnyDoc ? JSON.stringify(docs) : ''
             const res = await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(form),
+                body: JSON.stringify({ ...form, idProof }),
             })
             const data = await res.json()
             setLoading(false)
@@ -296,11 +301,11 @@ export default function AddStudentPage() {
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
                                 📸 Camera
-                                <input type="file" accept="image/*" capture="environment" hidden onChange={handlePhotoUpload} />
+                                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                             </label>
                             <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
                                 🖼️ Gallery
-                                <input type="file" accept="image/*" hidden onChange={handlePhotoUpload} />
+                                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                             </label>
                         </div>
                     </div>
@@ -544,30 +549,42 @@ export default function AddStudentPage() {
                                 { label: 'APAR ID', key: 'apar' },
                                 { label: 'PEN ID', key: 'pen' },
                                 { label: 'Bank Passbook (1st Page)', key: 'bank' }
-                            ].map(item => (
+                            ].map(item => {
+                                const docValue = docs[item.key as keyof typeof docs]
+                                const isPdf = docValue?.startsWith('data:application/pdf')
+                                return (
                                 <div key={item.key} style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
                                     <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>{item.label}</div>
-                                    {docs[item.key as keyof typeof docs] ? (
+                                    {docValue ? (
                                         <div style={{ position: 'relative' }}>
-                                            <img src={docs[item.key as keyof typeof docs]} alt={item.label} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                                            {isPdf ? (
+                                                <div style={{ width: '100%', height: '100px', background: 'var(--surface-2)', borderRadius: '4px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                    <span style={{ fontSize: '28px' }}>📄</span>
+                                                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>PDF Uploaded</span>
+                                                </div>
+                                            ) : (
+                                                <img src={docValue} alt={item.label} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                                            )}
                                             <button 
-                                                onClick={() => setDocs({...docs, [item.key]: ''})}
+                                                type="button"
+                                                onClick={() => setDocs(prev => ({...prev, [item.key]: ''}))}
                                                 style={{ position: 'absolute', top: 4, right: 4, background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '10px' }}>✕</button>
                                         </div>
                                     ) : (
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                                             <label className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>
                                                 📸 Cam
-                                                <input type="file" accept="image/*,application/pdf" capture="environment" hidden onChange={(e) => handleDocUpload(item.key as any, e)} />
+                                                <input type="file" accept="image/*,application/pdf" capture="environment" style={{ display: 'none' }} onChange={(e) => handleDocUpload(item.key as any, e)} />
                                             </label>
                                             <label className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '11px', cursor: 'pointer' }}>
                                                 🖼️ Gal
-                                                <input type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleDocUpload(item.key as any, e)} />
+                                                <input type="file" accept="image/*,application/pdf" style={{ display: 'none' }} onChange={(e) => handleDocUpload(item.key as any, e)} />
                                             </label>
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                                )
+                            })}
                         </div>
                         <div style={{ marginTop: '24px', textAlign: 'right' }}>
                             <button className="btn btn-primary" onClick={() => setShowDocsModal(false)}>Done Uploading</button>

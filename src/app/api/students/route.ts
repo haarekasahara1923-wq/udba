@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
             fullName, phone, courseId, batchId, fatherName, motherName, parentPhone, email, address, 
             gender, dob, admissionDate, feePlan, totalFee, notes, aadhaarNo, penId, aparId, samagraId,
             scholarNo, caste, scholarshipScheme, dobInWords, medium, firstAdmissionClass, firstAdmissionDate,
-            bankName, bankAccountNo, ifscCode, photo, subjectGroup
+            bankName, bankAccountNo, ifscCode, photo, subjectGroup, idProof
         } = body
 
         if (!fullName || !fatherName || !scholarNo || !phone || !courseId) {
@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
                 ifscCode: ifscCode || '',
                 photo: photo || '',
                 subjectGroup: subjectGroup || '',
+                idProof: idProof || '',
             }
         })
 
