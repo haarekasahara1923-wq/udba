@@ -3,6 +3,38 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
+function dateToWords(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+
+    const dayWords = [
+        "", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth",
+        "Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth", "Eighteenth", "Nineteenth", "Twentieth",
+        "Twenty First", "Twenty Second", "Twenty Third", "Twenty Fourth", "Twenty Fifth", "Twenty Sixth", "Twenty Seventh", "Twenty Eighth", "Twenty Ninth", "Thirtieth",
+        "Thirty First"
+    ];
+    
+    const yearToWords = (y: number) => {
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+        
+        if (y >= 2000) {
+            const rem = y % 2000;
+            if (rem === 0) return 'Two Thousand';
+            if (rem < 20) return 'Two Thousand ' + ones[rem];
+            return 'Two Thousand ' + tens[Math.floor(rem / 10)] + (rem % 10 ? ' ' + ones[rem % 10] : '');
+        }
+        return y.toString();
+    };
+
+    const d = date.getDate();
+    const m = date.toLocaleString('default', { month: 'long' });
+    const y = date.getFullYear();
+
+    return `${dayWords[d]} ${m} ${yearToWords(y)}`;
+}
+
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div>
         <label className="label">{label}</label>
@@ -398,7 +430,10 @@ export default function AddStudentPage() {
                             </select>
                         </Field>
                         <Field label="Date of Birth">
-                            <input className="input" type="date" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} />
+                            <input className="input" type="date" value={form.dob} onChange={e => {
+                                const newDate = e.target.value;
+                                setForm({ ...form, dob: newDate, dobInWords: dateToWords(newDate) });
+                            }} />
                         </Field>
                         <Field label="Date of Birth (in words)">
                             <input className="input" placeholder="e.g. First January Two Thousand Ten" value={form.dobInWords} onChange={e => setForm({ ...form, dobInWords: e.target.value })} />

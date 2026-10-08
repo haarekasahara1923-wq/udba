@@ -28,6 +28,7 @@ export default function FeesPage() {
     const [feesLoading, setFeesLoading] = useState(false)
     const [paymentMode, setPaymentMode] = useState('CASH')
     const [processingPayment, setProcessingPayment] = useState<string | null>(null)
+    const [depositDate, setDepositDate] = useState(new Date().toISOString().split('T')[0])
 
     const fetchStudents = () => {
         fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } })
@@ -62,8 +63,74 @@ export default function FeesPage() {
         setFeesLoading(false)
     }
 
-    const handlePayInstallment = async (fee: any) => {
-        if (!confirm(`Mark ${formatCurrency(fee.amount)} as PAID via ${paymentMode}?`)) return
+    const generateFeeReceipt = (payment: any, student: Student, amount: number) => {
+        const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Fee Receipt - ${payment.receiptNo}</title>
+            <style>
+                @page { size: A4; margin: 15mm; }
+                body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #000; }
+                .receipt-box { border: 2px solid #000; padding: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-box">
+                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                    ${tenant?.logo ? `<img src="${tenant.logo}" style="height: 80px;" />` : ''}
+                    <h1 style="margin: 10px 0 5px 0; text-transform: uppercase;">${tenant?.name || 'School Name'}</h1>
+                    <p style="margin: 0; font-size: 14px;">${tenant?.address || ''} | Ph: ${tenant?.phone || ''} | Email: ${tenant?.email || ''}</p>
+                </div>
+                
+                <h2 style="text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 18px; text-decoration: underline;">FEE RECEIPT</h2>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div><strong>Receipt No:</strong> ${payment.receiptNo}</div>
+                    <div><strong>Date:</strong> ${new Date(payment.createdAt).toLocaleDateString('en-IN')}</div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr><td style="padding: 5px; width: 30%;"><strong>Student Name:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${student.fullName}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Course/Class:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${student.courseName}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Payment Mode:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">${payment.mode}</td></tr>
+                    <tr><td style="padding: 5px;"><strong>Amount Received:</strong></td><td style="padding: 5px; border-bottom: 1px dashed #ccc;">Rs. ${amount.toFixed(2)}</td></tr>
+                </table>
+                
+                <p style="margin-bottom: 40px;"><em>Received with thanks from ${student.fullName} the sum of Rupees ${amount.toFixed(2)} towards fee installment.</em></p>
+
+                <div style="margin-top: 50px; display: flex; justify-content: flex-end;">
+                    <div style="text-align: center;">
+                        <div style="border-top: 1px solid #000; width: 200px; padding-top: 5px;">Authorized Signatory</div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>
+        `;
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.open();
+            printWindow.document.write(fullHtml);
+            printWindow.document.close();
+        } else {
+            alert('Popup was blocked by your browser. Please allow popups to download the PDF.');
+        }
+    }
+
+    const handlePayInstallment = async (fee: any, val: number) => {
+        if (!fee) { alert('Please generate slots first!'); return; }
+        if (val <= 0) return alert('Enter valid amount')
+        if (!confirm(`Deposit ${formatCurrency(val)} via ${paymentMode}?`)) return
+        
         setProcessingPayment(fee.id)
         
         try {
@@ -71,17 +138,21 @@ export default function FeesPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
-                    studentId: fee.studentId,
+                    studentId: selectedStudentForFees!.id,
                     feeId: fee.id,
-                    amount: fee.amount,
+                    amount: val,
                     mode: paymentMode,
                     notes: `Installment Payment (${fee.notes || 'Monthly'})`,
+                    date: depositDate
                 })
             })
             const data = await res.json()
             if (data.success) {
-                setToast('Installment marked as paid!')
+                setToast('Fee deposited successfully!')
                 setTimeout(() => setToast(''), 3000)
+                
+                generateFeeReceipt(data.data, selectedStudentForFees!, val)
+
                 // Refresh modal data
                 openInstallments(selectedStudentForFees!)
                 // Refresh main list
@@ -358,57 +429,46 @@ export default function FeesPage() {
                                         </select>
                                     </div>
 
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>Deposit Date</div>
+                                        <input 
+                                            type="date"
+                                            className="input" 
+                                            style={{ width: 'auto', padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
+                                            value={depositDate} 
+                                            onChange={e => setDepositDate(e.target.value)}
+                                        />
+                                    </div>
+
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                                         {[0, 1, 2, 3, 4, 5].map(idx => {
                                             const fee = studentFees[idx]
                                             return (
                                                 <div key={idx} style={{ padding: '12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px' }}>
-                                                    <div style={{ fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-secondary)' }}>Slot {idx + 1}</div>
-                                                    <div style={{ position: 'relative' }}>
-                                                        <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}>₹</span>
-                                                        <input 
-                                                            type="number" 
-                                                            className="input" 
-                                                            style={{ paddingLeft: '24px', fontWeight: '700' }} 
-                                                            placeholder="0.00"
-                                                            defaultValue={fee?.amount || 0}
-                                                            onBlur={async (e) => {
-                                                                const val = parseFloat(e.target.value) || 0
-                                                                if (fee && val === fee.amount) return
-                                                                
-                                                                if (!fee) {
-                                                                    alert('Please generate slots first!')
-                                                                    return
-                                                                }
-
-                                                                setFeesLoading(true)
-                                                                try {
-                                                                    const res = await fetch('/api/fees', {
-                                                                        method: 'PATCH',
-                                                                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                                                        body: JSON.stringify({ id: fee.id, amount: val, mode: paymentMode })
-                                                                    })
-                                                                    const data = await res.json()
-                                                                    if (data.success) {
-                                                                        // Refresh data
-                                                                        const resStudents = await fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } })
-                                                                        const dataStudents = await resStudents.json()
-                                                                        if (dataStudents.success) {
-                                                                            setStudents(dataStudents.data)
-                                                                            const updatedStu = dataStudents.data.find((s: any) => s.id === selectedStudentForFees.id)
-                                                                            if (updatedStu) setSelectedStudentForFees(updatedStu)
-                                                                        }
-                                                                        const resFees = await fetch(`/api/fees?studentId=${selectedStudentForFees.id}`, { headers: { Authorization: `Bearer ${token}` } })
-                                                                        const dataFees = await resFees.json()
-                                                                        if (dataFees.success) setStudentFees(dataFees.data)
-                                                                        
-                                                                        setToast(`Slot ${idx + 1} updated!`)
-                                                                        setTimeout(() => setToast(''), 3000)
-                                                                    }
-                                                                } catch(err) { alert('Update failed') }
-                                                                setFeesLoading(false)
+                                                    <div style={{ fontSize: '12px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-secondary)' }}>Slot {idx + 1} {fee?.status === 'PAID' ? '✅' : ''}</div>
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                        <div style={{ position: 'relative', flex: 1 }}>
+                                                            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}>₹</span>
+                                                            <input 
+                                                                type="number" 
+                                                                id={`slot-amount-${idx}`}
+                                                                className="input" 
+                                                                style={{ paddingLeft: '24px', fontWeight: '700' }} 
+                                                                placeholder="0.00"
+                                                                defaultValue={fee?.amount || 0}
+                                                            />
+                                                        </div>
+                                                        <button 
+                                                            className="btn btn-primary"
+                                                            style={{ padding: '0 12px', fontSize: '12px', fontWeight: '700' }}
+                                                            onClick={() => {
+                                                                const valInput = document.getElementById(`slot-amount-${idx}`) as HTMLInputElement;
+                                                                if (valInput) handlePayInstallment(fee, parseFloat(valInput.value));
                                                             }}
-                                                        />
+                                                            disabled={!fee || processingPayment === fee.id || fee.status === 'PAID'}
+                                                        >
+                                                            {processingPayment === fee?.id ? '⏳' : 'Deposit'}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )

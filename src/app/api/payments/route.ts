@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
 
         // Use a transaction to ensure both payment is created and student's paidFee is updated
         const result = await prisma.$transaction(async (tx) => {
+            // Auto-generate receiptNo
+            const paymentCount = await tx.payment.count({ where: { tenantId: user!.tenantId } });
+            const receiptNo = `REC-${(paymentCount + 1).toString().padStart(6, '0')}`;
+
             const payment = await tx.payment.create({
                 data: {
                     tenantId: user!.tenantId,
@@ -50,6 +54,7 @@ export async function POST(req: NextRequest) {
                     reference: reference || '',
                     receivedBy: receivedBy || '',
                     notes: notes || '',
+                    receiptNo,
                     ...(date ? { createdAt: new Date(date) } : {})
                 }
             })
