@@ -62,9 +62,9 @@ export default function RegisterPage() {
       return
     }
 
-    // Determine if identifier is email or phone
+    // Send raw identifier to API - it handles email/phone resolution
     const isEmail = identifier.includes('@')
-    const email = isEmail ? identifier : `${identifier}@udba.local`
+    const email = identifier  // API will resolve this correctly
     const phone = isEmail ? undefined : identifier
 
     try {
