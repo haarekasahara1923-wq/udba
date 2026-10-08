@@ -436,6 +436,7 @@ export default function AddStudentPage() {
                                         <option value="PCB">PCB</option>
                                         <option value="Arts">Arts</option>
                                         <option value="Commerce">Commerce</option>
+                                        <option value="Agriculture">Agriculture</option>
                                     </select>
                                 </Field>
                             )

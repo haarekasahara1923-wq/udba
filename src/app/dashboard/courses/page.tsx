@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
 const CLASS_GROUPS = [
-    { label: 'Pre-Primary', options: ['Nursery', 'LKG', 'UKG'] },
-    { label: '1-4th Junior', options: ['Class 1', 'Class 2', 'Class 3', 'Class 4'] },
-    { label: '5-8th Middle', options: ['Class 5', 'Class 6', 'Class 7', 'Class 8'] },
-    { label: '9-10th Secondary', options: ['Class 9', 'Class 10'] },
-    { label: '11-12th Higher Secondary', options: ['Class 11', 'Class 12'] }
+    { label: 'Class Nursery to UKG - Pre Primary', options: ['Nursery', 'LKG', 'UKG'] },
+    { label: 'Class 1st To 5th - Primary', options: ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'] },
+    { label: 'Class 6th to 8th - Middle', options: ['Class 6', 'Class 7', 'Class 8'] },
+    { label: 'Class 9th to 10th - High School', options: ['Class 9', 'Class 10'] },
+    { label: 'Class 11th to 12th - Higher Secondary', options: ['Class 11', 'Class 12'] }
 ]
 
 const SECTION_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']

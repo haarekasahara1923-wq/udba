@@ -171,6 +171,7 @@ export default function TCGenerationPage() {
                             <option value="Science Maths">Science Maths</option>
                             <option value="Arts">Arts</option>
                             <option value="Commerce">Commerce</option>
+                            <option value="Agriculture">Agriculture</option>
                         </select>
                     </div>
                 )}
