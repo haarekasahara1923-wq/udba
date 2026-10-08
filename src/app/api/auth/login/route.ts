@@ -33,13 +33,16 @@ export async function POST(req: NextRequest) {
 
         if (role && ADMIN_ROLES.includes(role)) {
             resolvedTenantId = undefined
-        } else if (!resolvedTenantId && role) {
-            // Auto-resolve from env: find UDBA's tenant by slug
-            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG
-            if (schoolSlug) {
-                const school = await prisma.tenant.findUnique({ where: { slug: schoolSlug } })
-                if (school) resolvedTenantId = school.id
+        } else {
+            let school = null;
+            if (resolvedTenantId) {
+                school = await prisma.tenant.findUnique({ where: { id: resolvedTenantId } })
             }
+            if (!school) {
+                const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+                school = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            }
+            if (school) resolvedTenantId = school.id
         }
 
         if (resolvedTenantId) {
