@@ -39,6 +39,16 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  /* Native app feel for Android WebView */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: pan-y;
+}
+
+/* Prevent text selection on UI buttons and nav — native app feel */
+button, .nav-item, .btn, nav, .sidebar-logo {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Scrollbar */
@@ -207,8 +217,9 @@ select.input {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-logo {
@@ -583,10 +594,23 @@ tbody td {
 /* Responsive: hide/show helpers */
 @media (max-width: 768px) {
   .hide-mobile { display: none !important; }
-  .sidebar { transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
-  .header { left: 0; }
-  .main-content { margin-left: 0; }
+  /* Sidebar slides in from left on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1050 !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+    box-shadow: 4px 0 30px rgba(0,0,0,0.7);
+  }
+  /* Header always spans full width on mobile */
+  .header {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    padding: 0 12px !important;
+  }
+  .main-content { margin-left: 0 !important; }
   .page-content { padding: 16px; }
   .grid-cols-2 { grid-template-columns: 1fr; }
   .grid-cols-3 { grid-template-columns: 1fr; }
@@ -597,6 +621,16 @@ tbody td {
   .search-input-container { display: none !important; }
   .header-user-actions { display: none !important; }
   .header-actions { justify-content: flex-end !important; padding: 0 !important; }
+  /* Mobile menu button — always visible and properly sized */
+  #mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 22px;
+    padding: 8px;
+  }
 }
 
 @media (min-width: 769px) {
@@ -775,40 +809,34 @@ tbody td {
   height: 34px;
   font-size: 13px;
 }
-/* --- Mobile Responsiveness --- */
+/* Touch / tap target improvements for mobile */
 @media (max-width: 768px) {
-  .hide-mobile {
-    display: none !important;
-  }
-  .show-mobile {
-    display: block !important;
+  .nav-item {
+    padding: 12px 16px;
+    font-size: 14px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
-  /* Sidebar handling on mobile */
+  .nav-item:active {
+    background: rgba(26, 92, 56, 0.2);
+  }
+
+  /* Sidebar full-height overlay fix */
   .sidebar {
-    transform: translateX(-100%);
-    position: fixed;
-    z-index: 50;
-    transition: transform 0.3s ease;
+    height: 100vh;
+    height: 100dvh;
+    overscroll-behavior: contain;
   }
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  /* Header & Main Content */
-  .main-content {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-  
-  /* Dashboard Bottom Nav */
-  .dashboard-bottom-nav {
-    display: flex !important;
-  }
-  
+
   /* Portal Mobile overrides */
   .portal-sidebar {
     display: none;
+  }
+
+  /* Bottom nav visible on mobile */
+  .dashboard-bottom-nav {
+    display: flex !important;
   }
 }
 
@@ -818,11 +846,5 @@ tbody td {
   }
   .dashboard-bottom-nav {
     display: none !important;
-  }
-}
-@media (max-width: 768px) {
-  .header {
-    left: 0 !important;
-    width: 100% !important;
   }
 }

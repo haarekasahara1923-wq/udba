@@ -135,7 +135,7 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
 
     return (
         <>
-            {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1049 }} className="hide-desktop" />}
+            {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1049, touchAction: 'none' }} className="hide-desktop" />}
             <aside className={`sidebar ${open ? 'open' : ''}`}>
                 {/* Logo */}
                 <div className="sidebar-logo">
@@ -148,6 +148,12 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
                             {isSuperAdmin ? 'Super Admin' : 'Universal Day Boarding Academy'}
                         </div>
                     </div>
+                    {/* Close button inside sidebar for mobile */}
+                    <button onClick={onClose} className="hide-desktop" style={{
+                        marginLeft: 'auto', background: 'rgba(255,255,255,0.08)', border: '1px solid var(--border)',
+                        color: 'white', width: '32px', height: '32px', borderRadius: '8px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0
+                    }}>✕</button>
                 </div>
 
                 {/* Nav */}
@@ -161,6 +167,7 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
                                     href={item.href}
                                     className={`nav-item ${pathname === item.href ? 'active' : ''}`}
                                     onClick={onClose}
+                                    style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' } as React.CSSProperties}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                                         <span style={{ fontSize: '16px' }}>{item.icon}</span>
@@ -231,7 +238,30 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button onClick={onMenuClick} className="hide-desktop" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px', padding: '4px' }} id="mobile-menu-btn">
+                {/* Hamburger — always first, large tap target, always visible on mobile */}
+                <button
+                    onClick={onMenuClick}
+                    className="hide-desktop"
+                    style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid var(--border)',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '22px',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: '44px',
+                        minHeight: '44px',
+                        flexShrink: 0,
+                        WebkitTapHighlightColor: 'transparent',
+                        touchAction: 'manipulation',
+                    } as React.CSSProperties}
+                    id="mobile-menu-btn"
+                    aria-label="Open navigation menu"
+                >
                     ☰
                 </button>
                 <div className="header-title-container">
