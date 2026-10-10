@@ -7,6 +7,7 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 interface Student {
     id: string
     studentId: string
+    scholarNo: string
     fullName: string
     phone: string
     email: string
@@ -194,6 +195,7 @@ export default function StudentsPage() {
                         <table>
                             <thead>
                                 <tr>
+                                    <th style={{ color: '#f97316', whiteSpace: 'nowrap' }}>Scholar No.</th>
                                     <th>Student</th>
                                     <th>Class / Section</th>
                                     <th>Phone</th>
@@ -209,6 +211,17 @@ export default function StudentsPage() {
                                     const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
                                     return (
                                         <tr key={s.id}>
+                                            <td>
+                                                <div style={{
+                                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                                    background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)',
+                                                    color: '#f97316', fontWeight: '700', fontSize: '13px',
+                                                    borderRadius: '8px', padding: '4px 10px', whiteSpace: 'nowrap',
+                                                    letterSpacing: '0.5px',
+                                                }}>
+                                                    {s.scholarNo || '—'}
+                                                </div>
+                                            </td>
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                     <div className="avatar">
@@ -324,6 +337,7 @@ export default function StudentsPage() {
                             ) : (
                                 <div className="grid-cols-2">
                                     {[
+                                        ['🎓 Scholar No.', selectedStudent.scholarNo || 'N/A'],
                                         ['📱 Phone', selectedStudent.phone],
                                         ['👨 Father', selectedStudent.fatherName || 'N/A'],
                                         ['📧 Email', selectedStudent.email || 'N/A'],
