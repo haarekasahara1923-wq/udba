@@ -611,16 +611,18 @@ export default function AddStudentPage() {
                     <textarea className="input" placeholder="Any important notes about this student..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} style={{ resize: 'none' }} />
                 </div>
 
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button type="button" onClick={handleDownloadPDF} className="btn btn-secondary" style={{ background: '#0f3d26', color: 'white', border: 'none' }}>🖨️ PDF Form</button>
-                        <button type="button" onClick={handleDownloadDOCX} className="btn btn-secondary" style={{ background: '#1e40af', color: 'white', border: 'none' }}>📄 DOCX Form</button>
-                        <button type="button" onClick={() => setShowDocsModal(true)} className="btn btn-secondary" style={{ background: '#7e22ce', color: 'white', border: 'none' }}>🪪 Upload Govt IDs</button>
+                {/* Actions — mobile-friendly stacked layout */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Secondary actions — wrap on mobile */}
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <button type="button" onClick={handleDownloadPDF} className="btn btn-secondary" style={{ background: '#0f3d26', color: 'white', border: 'none', flex: '1 1 auto' }}>🖨️ PDF Form</button>
+                        <button type="button" onClick={handleDownloadDOCX} className="btn btn-secondary" style={{ background: '#1e40af', color: 'white', border: 'none', flex: '1 1 auto' }}>📄 DOCX Form</button>
+                        <button type="button" onClick={() => setShowDocsModal(true)} className="btn btn-secondary" style={{ background: '#7e22ce', color: 'white', border: 'none', flex: '1 1 auto' }}>🪪 Upload Govt IDs</button>
                     </div>
+                    {/* Primary actions — always full row, Add Student is prominent */}
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button type="button" onClick={() => router.back()} className="btn btn-secondary">Cancel</button>
-                        <button type="submit" className="btn btn-primary" disabled={loading}>
+                        <button type="button" onClick={() => router.back()} className="btn btn-secondary" style={{ minWidth: '90px' }}>Cancel</button>
+                        <button type="submit" className="btn btn-primary" disabled={loading} style={{ flex: 1, justifyContent: 'center', fontSize: '16px', padding: '12px', fontWeight: '700' }}>
                             {loading ? <><div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} /> Saving...</> : '💾 Add Student'}
                         </button>
                     </div>
