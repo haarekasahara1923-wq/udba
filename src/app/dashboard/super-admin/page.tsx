@@ -77,15 +77,43 @@ export default function SuperAdminPage() {
                 </div>
             </div>
 
-            {/* Quick Buttons Grid */}
+            {/* Quick Action Buttons — all sidebar options */}
             <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Quick Buttons</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>⚡ Quick Actions</div>
+                {/* Super Admin Section */}
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>SUPER ADMIN</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                     {[
-                        { href: '/dashboard', icon: '🏠', label: 'Dashboard', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                        { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
                         { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-                        { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                        { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                        { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
                         { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
+                    ].map(a => (
+                        <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>
+                            <div style={{ background: a.bg, border: `1px solid ${a.color}30`, borderRadius: '14px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px', cursor: 'pointer', transition: 'transform 0.15s' }}
+                                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}>
+                                <div style={{ fontSize: '26px' }}>{a.icon}</div>
+                                <div style={{ fontSize: '12px', fontWeight: '600', color: a.color, lineHeight: '1.3' }}>{a.label}</div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+                {/* Operations Section */}
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>SCHOOL OPERATIONS</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                    {[
+                        { href: '/dashboard/courses', icon: '🏫', label: 'Classes & Batches', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
+                        { href: '/dashboard/students', icon: '👨‍🎓', label: 'All Students', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                        { href: '/dashboard/students/add', icon: '➕', label: 'Add Student', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+                        { href: '/dashboard/attendance', icon: '✅', label: 'Attendance', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
+                        { href: '/dashboard/fees', icon: '💰', label: 'Fee Management', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                        { href: '/dashboard/reports/fee-ledger', icon: '📒', label: 'Fee Ledger', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+                        { href: '/dashboard/reports/school-ledger', icon: '📓', label: 'School Ledger', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
+                        { href: '/dashboard/payments', icon: '💳', label: 'Payments', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+                        { href: '/dashboard/expenses', icon: '📉', label: 'Expenses', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+                        { href: '/dashboard/teachers', icon: '👩‍🏫', label: 'Teachers & Staff', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
                     ].map(a => (
                         <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>
                             <div style={{ background: a.bg, border: `1px solid ${a.color}30`, borderRadius: '14px', padding: '16px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px', cursor: 'pointer', transition: 'transform 0.15s' }}

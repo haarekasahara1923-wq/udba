@@ -13,6 +13,10 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!token) return
+    if (user?.role === 'SUPER_ADMIN') {
+        router.push('/dashboard/super-admin')
+        return
+    }
     if (user?.role === 'ADMIN_SPORTS') {
         router.push('/dashboard/sports')
         return
