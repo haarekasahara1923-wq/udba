@@ -296,24 +296,61 @@ export default function AddStudentPage() {
     }
 
 
-    useEffect(() => {
-        if (!token) return
-        setMetadataLoading(true)
-        Promise.all([
-            fetch('/api/courses', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-            fetch('/api/batches', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-        ]).then(([c, b]) => {
-            if (c.success) setCourses(c.data)
-            if (b.success) setBatches(b.data)
-            setMetadataLoading(false)
-        }).catch(err => {
-            console.error('Failed to fetch metadata:', err)
-            setToast('Failed to load courses and batches. Please refresh.')
-            setMetadataLoading(false)
+    const CLASS_SORT_ORDER = [
+        'NURSERY', 'LKG', 'UKG',
+        'CLASS 1', 'CLASS 2', 'CLASS 3', 'CLASS 4', 'CLASS 5',
+        'CLASS 6', 'CLASS 7', 'CLASS 8', 'CLASS 9', 'CLASS 10',
+        'CLASS 11', 'CLASS 12'
+    ]
+
+    const sortCourses = (list: typeof courses) => {
+        return [...list].sort((a, b) => {
+            const aNorm = a.name.trim().toUpperCase()
+            const bNorm = b.name.trim().toUpperCase()
+            const aIdx = CLASS_SORT_ORDER.findIndex(o => aNorm.startsWith(o))
+            const bIdx = CLASS_SORT_ORDER.findIndex(o => bNorm.startsWith(o))
+            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx
+            if (aIdx !== -1) return -1
+            if (bIdx !== -1) return 1
+            return a.name.localeCompare(b.name, undefined, { numeric: true })
         })
+    }
+
+    const fetchMetadata = async (customToken?: string | null) => {
+        const activeToken = customToken || token || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+        if (!activeToken) {
+            setMetadataLoading(false)
+            return
+        }
+        setMetadataLoading(true)
+        try {
+            const [cRes, bRes] = await Promise.all([
+                fetch('/api/courses', { headers: { Authorization: `Bearer ${activeToken}` } }),
+                fetch('/api/batches', { headers: { Authorization: `Bearer ${activeToken}` } }),
+            ])
+            const c = await cRes.json()
+            const b = await bRes.json()
+            if (c && c.success && Array.isArray(c.data)) {
+                setCourses(sortCourses(c.data))
+            }
+            if (b && b.success && Array.isArray(b.data)) {
+                setBatches(b.data)
+            }
+        } catch (err) {
+            console.error('Failed to fetch metadata:', err)
+            setToast('Failed to load classes and sections. Please refresh.')
+        } finally {
+            setMetadataLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchMetadata()
     }, [token])
 
+    const sortedCourses = sortCourses(courses)
     const filteredBatches = batches.filter(b => !form.courseId || b.courseId === form.courseId)
+    const uniqueClassNames = Array.from(new Set(sortedCourses.map(c => c.name)))
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -517,36 +554,54 @@ export default function AddStudentPage() {
                     <h3 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: 'var(--primary-light)' }}>📚 Academic Details</h3>
                     <div className="grid-cols-2">
                         <Field label="Class *">
-                            <select 
-                                className="input" 
-                                value={form.courseId} 
-                                onChange={e => {
-                                    const courseId = e.target.value;
-                                    const selectedCourse = courses.find(c => c.id === courseId);
-                                    setForm({ 
-                                        ...form, 
-                                        courseId, 
-                                        batchId: '', 
-                                        feeWaiver: '',
-                                        totalFee: selectedCourse ? selectedCourse.fees.toString() : '' 
-                                    });
-                                }} 
-                                required 
-                                disabled={metadataLoading}
-                            >
-                                <option value="">{metadataLoading ? '⌛ Loading classes...' : 'Select Class'}</option>
-                                {courses.map(c => <option key={c.id} value={c.id}>{c.name} ({c.installmentCount} Installments)</option>)}
-                            </select>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <select 
+                                    className="input" 
+                                    value={form.courseId} 
+                                    onChange={e => {
+                                        const courseId = e.target.value;
+                                        const selectedCourse = courses.find(c => c.id === courseId);
+                                        setForm({ 
+                                            ...form, 
+                                            courseId, 
+                                            batchId: '', 
+                                            feeWaiver: '',
+                                            totalFee: selectedCourse ? selectedCourse.fees.toString() : '' 
+                                        });
+                                    }} 
+                                    required 
+                                    disabled={metadataLoading && courses.length === 0}
+                                    style={{ flex: 1 }}
+                                >
+                                    <option value="">{metadataLoading && courses.length === 0 ? '⌛ Loading classes...' : 'Select Class'}</option>
+                                    {sortedCourses.map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}{c.fees ? ` (₹${c.fees.toLocaleString('en-IN')})` : ''}{c.installmentCount > 1 ? ` — ${c.installmentCount} Inst.` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {courses.length === 0 && !metadataLoading && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => fetchMetadata()} 
+                                        className="btn btn-secondary" 
+                                        style={{ padding: '8px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
+                                        title="Reload classes"
+                                    >
+                                        🔄 Reload
+                                    </button>
+                                )}
+                            </div>
                             {form.courseId && courses.find(c => c.id === form.courseId) && (
-                                <div style={{ fontSize: '11px', color: 'var(--primary)', marginTop: '4px', fontWeight: 'bold' }}>
-                                    Fees will be split into {courses.find(c => c.id === form.courseId)?.installmentCount} installments automatically.
+                                <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '4px', fontWeight: 'bold' }}>
+                                    ✓ {courses.find(c => c.id === form.courseId)?.name} selected • Fees: ₹{courses.find(c => c.id === form.courseId)?.fees} ({courses.find(c => c.id === form.courseId)?.installmentCount} installments)
                                 </div>
                             )}
                         </Field>
                         <Field label="Section (Optional)">
-                            <select className="input" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} disabled={metadataLoading}>
+                            <select className="input" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} disabled={metadataLoading && batches.length === 0}>
                                 <option value="">
-                                    {metadataLoading ? '⌛ Loading sections...' : 
+                                    {metadataLoading && batches.length === 0 ? '⌛ Loading sections...' : 
                                      (form.courseId && filteredBatches.length === 0) ? 'No sections available' : 
                                      'Select Section'}
                                 </option>
@@ -554,7 +609,35 @@ export default function AddStudentPage() {
                             </select>
                         </Field>
                         <Field label="First Admission Class">
-                            <input className="input" placeholder="e.g. Class 1" value={form.firstAdmissionClass} onChange={e => setForm({ ...form, firstAdmissionClass: e.target.value })} />
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <select 
+                                    className="input" 
+                                    style={{ flex: 1, minWidth: '140px' }}
+                                    value={uniqueClassNames.includes(form.firstAdmissionClass) ? form.firstAdmissionClass : (form.firstAdmissionClass ? 'OTHER' : '')} 
+                                    onChange={e => {
+                                        if (e.target.value !== 'OTHER') {
+                                            setForm({ ...form, firstAdmissionClass: e.target.value })
+                                        } else {
+                                            setForm({ ...form, firstAdmissionClass: '' })
+                                        }
+                                    }}
+                                >
+                                    <option value="">Select First Admission Class</option>
+                                    {uniqueClassNames.map(name => (
+                                        <option key={`fac-${name}`} value={name}>{name}</option>
+                                    ))}
+                                    <option value="OTHER">Other / Previous School...</option>
+                                </select>
+                                {(!uniqueClassNames.includes(form.firstAdmissionClass) || form.firstAdmissionClass === '') && (
+                                    <input 
+                                        className="input" 
+                                        style={{ flex: 1, minWidth: '120px' }}
+                                        placeholder="Or type class..." 
+                                        value={form.firstAdmissionClass} 
+                                        onChange={e => setForm({ ...form, firstAdmissionClass: e.target.value })} 
+                                    />
+                                )}
+                            </div>
                         </Field>
                         <Field label="First Admission Date">
                             <input className="input" type="date" value={form.firstAdmissionDate} onChange={e => setForm({ ...form, firstAdmissionDate: e.target.value })} />

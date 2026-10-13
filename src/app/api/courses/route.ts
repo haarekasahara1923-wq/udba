@@ -7,10 +7,30 @@ export async function GET(req: NextRequest) {
     const { error, user } = requireAuth(req)
     if (error) return error
     try {
-        const data = await prisma.course.findMany({
-            where: { tenantId: user!.tenantId, isActive: true },
+        let tenantId = user!.tenantId
+        if (!tenantId) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const tenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (tenant) tenantId = tenant.id
+        }
+
+        let data = await prisma.course.findMany({
+            where: { tenantId, isActive: true },
             orderBy: { createdAt: 'desc' }
         })
+
+        // Fallback: If no courses found for this tenantId, check the primary school tenant
+        if (data.length === 0) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (primaryTenant && primaryTenant.id !== tenantId) {
+                data = await prisma.course.findMany({
+                    where: { tenantId: primaryTenant.id, isActive: true },
+                    orderBy: { createdAt: 'desc' }
+                })
+            }
+        }
+
         return NextResponse.json({ success: true, data })
     } catch (err) {
         console.error('Fetch courses error:', err)

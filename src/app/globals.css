@@ -194,7 +194,22 @@ button, .nav-item, .btn, nav, .sidebar-logo {
 
 select.input {
   cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+  background-color: var(--surface-2);
+  color: var(--text-primary);
 }
+
+select.input option {
+  background-color: #172014 !important;
+  color: #ffffff !important;
+}
+
+select.input optgroup {
+  background-color: #172014 !important;
+  color: #94a3b8 !important;
+}
+
 
 .label {
   display: block;

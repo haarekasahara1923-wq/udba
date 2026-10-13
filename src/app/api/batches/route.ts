@@ -7,17 +7,41 @@ export async function GET(req: NextRequest) {
     const { error, user } = requireAuth(req)
     if (error) return error
     try {
-        const batches = await prisma.batch.findMany({
-            where: { tenantId: user!.tenantId, isActive: true },
+        let tenantId = user!.tenantId
+        if (!tenantId) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const tenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (tenant) tenantId = tenant.id
+        }
+
+        let batches = await prisma.batch.findMany({
+            where: { tenantId, isActive: true },
             include: {
                 course: { select: { name: true } },
                 _count: { select: { students: true } }
             },
             orderBy: { createdAt: 'desc' }
         })
+
+        // Fallback: If no batches found, check primary school tenant
+        if (batches.length === 0) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (primaryTenant && primaryTenant.id !== tenantId) {
+                batches = await prisma.batch.findMany({
+                    where: { tenantId: primaryTenant.id, isActive: true },
+                    include: {
+                        course: { select: { name: true } },
+                        _count: { select: { students: true } }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                })
+            }
+        }
+
         const data = batches.map(b => ({
             ...b,
-            courseName: b.course.name,
+            courseName: b.course?.name || '',
             studentCount: b._count.students,
         }))
         return NextResponse.json({ success: true, data })
