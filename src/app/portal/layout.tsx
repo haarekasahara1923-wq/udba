@@ -70,6 +70,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
     ],
     PARENT: [
       { href: '/portal/parent', icon: '🏠', label: 'Home' },
+      { href: '/portal/parent/fees', icon: '💰', label: 'Fee Ledger' },
       { href: '/portal/parent/homework', icon: '📚', label: 'Homework' },
       { href: '/portal/parent/exams', icon: '📑', label: 'Marks' },
       { href: '/portal/parent/admit-cards', icon: '🎫', label: 'Admit Cards' },

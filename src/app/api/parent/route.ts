@@ -9,20 +9,48 @@ export async function GET(req: NextRequest) {
   const profile = await prisma.parentProfile.findUnique({
     where: { userId: user!.userId },
     include: {
-      tenant: { select: { name: true } },
+      tenant: { select: { name: true, logo: true, address: true, phone: true } },
       children: {
         include: {
-          course: { select: { name: true, subjects: true } },
-          batch: { select: { name: true } },
+          course: { select: { id: true, name: true, subjects: true, fees: true } },
+          batch: { select: { id: true, name: true } },
           attendances: { orderBy: { date: 'desc' }, take: 10 },
-          fees: { orderBy: { dueDate: 'desc' }, take: 5 },
+          fees: { orderBy: { dueDate: 'asc' }, include: { payments: true } },
+          payments: { orderBy: { createdAt: 'desc' } },
           examResults: { include: { exam: true }, orderBy: { createdAt: 'desc' } },
         },
       },
     },
   })
 
-  return NextResponse.json({ success: true, profile })
+  if (!profile) {
+    return NextResponse.json({ success: true, profile: null })
+  }
+
+  // Calculate accurate fee metrics for each linked child
+  const enrichedChildren = profile.children.map(child => {
+    const courseFee = child.course?.fees || 0
+    const totalFee = (child.totalFee && child.totalFee > 0) ? child.totalFee : courseFee
+    const paymentsSum = child.payments?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0
+    const paidFee = Math.max(child.paidFee || 0, paymentsSum)
+    const remainingFee = Math.max(0, totalFee - paidFee)
+
+    return {
+      ...child,
+      totalFee,
+      paidFee,
+      remainingFee,
+      pendingFeeAmount: remainingFee,
+    }
+  })
+
+  return NextResponse.json({
+    success: true,
+    profile: {
+      ...profile,
+      children: enrichedChildren,
+    },
+  })
 }
 
 export async function POST(req: NextRequest) {

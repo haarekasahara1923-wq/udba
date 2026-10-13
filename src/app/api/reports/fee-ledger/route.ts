@@ -22,8 +22,8 @@ export async function GET(req: NextRequest) {
   const { error, user } = requireAuth(req)
   if (error) return error
 
-  // Only super admin and school admin can access ledger
-  if (!['SUPER_ADMIN', 'COACHING_ADMIN', 'ADMIN_OPERATION'].includes(user!.role)) {
+  // Allow super admin, school admin, and parents (for linked children)
+  if (!['SUPER_ADMIN', 'COACHING_ADMIN', 'ADMIN_OPERATION', 'PARENT'].includes(user!.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -39,34 +39,53 @@ export async function GET(req: NextRequest) {
     // Build where clause
     const where: any = { tenantId: user!.tenantId }
 
-    if (courseId) where.courseId = courseId
-    if (batchId) where.batchId = batchId
+    if (user!.role === 'PARENT') {
+      const parentProfile = await prisma.parentProfile.findUnique({
+        where: { userId: user!.userId },
+        include: { children: { select: { id: true } } },
+      })
+      const allowedChildIds = parentProfile?.children.map(c => c.id) || []
+      if (allowedChildIds.length === 0) {
+        return NextResponse.json({ success: true, students: [], siblings: {}, summary: { totalStudents: 0, totalBilled: 0, totalCollected: 0, totalOutstanding: 0 } })
+      }
+      if (studentId) {
+        if (!allowedChildIds.includes(studentId)) {
+          return NextResponse.json({ error: 'Unauthorized to view this student ledger' }, { status: 403 })
+        }
+        where.id = studentId
+      } else {
+        where.id = { in: allowedChildIds }
+      }
+    } else {
+      if (courseId) where.courseId = courseId
+      if (batchId) where.batchId = batchId
 
-    if (studentId) {
-      where.id = studentId
-    } else if (search) {
-      // Search by name, phone, or receipt number
-      const receiptMatchIds = search.match(/^REC-/i)
-        ? await prisma.payment.findMany({
-            where: { tenantId: user!.tenantId, receiptNo: { contains: search, mode: 'insensitive' } },
-            select: { studentId: true },
-          }).then(r => r.map(x => x.studentId))
-        : []
+      if (studentId) {
+        where.id = studentId
+      } else if (search) {
+        // Search by name, phone, or receipt number
+        const receiptMatchIds = search.match(/^REC-/i)
+          ? await prisma.payment.findMany({
+              where: { tenantId: user!.tenantId, receiptNo: { contains: search, mode: 'insensitive' } },
+              select: { studentId: true },
+            }).then(r => r.map(x => x.studentId))
+          : []
 
-      where.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
-        { parentPhone: { contains: search } },
-        { studentId: { contains: search, mode: 'insensitive' } },
-        ...(receiptMatchIds.length > 0 ? [{ id: { in: receiptMatchIds } }] : []),
-      ]
+        where.OR = [
+          { fullName: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search } },
+          { parentPhone: { contains: search } },
+          { studentId: { contains: search, mode: 'insensitive' } },
+          ...(receiptMatchIds.length > 0 ? [{ id: { in: receiptMatchIds } }] : []),
+        ]
+      }
     }
 
     // Fetch students with fees & payments
     const students = await prisma.student.findMany({
       where,
       include: {
-        course: { select: { id: true, name: true } },
+        course: { select: { id: true, name: true, fees: true } },
         batch: { select: { id: true, name: true } },
         fees: {
           orderBy: { dueDate: 'asc' },
@@ -148,18 +167,19 @@ export async function GET(req: NextRequest) {
 
     // Build ledger entries for each student
     const enrichedStudents = students.map(student => {
-      let runningBalance = student.totalFee // starts as amount owed
+      const courseFee = (student as any).course?.fees || 0
+      const effectiveTotalFee = (student.totalFee && student.totalFee > 0) ? student.totalFee : courseFee
       const ledgerEntries: any[] = []
 
       // Opening debit entry
-      if (student.totalFee > 0) {
+      if (effectiveTotalFee > 0) {
         ledgerEntries.push({
           date: student.admissionDate,
           type: 'DEBIT',
           particulars: 'Annual Fee / Tuition Fee (Opening)',
-          debit: student.totalFee,
+          debit: effectiveTotalFee,
           credit: 0,
-          balance: student.totalFee,
+          balance: effectiveTotalFee,
           receiptNo: null,
           mode: null,
         })
@@ -221,7 +241,7 @@ export async function GET(req: NextRequest) {
       }
 
       const totalPaid = student.payments.reduce((sum, p) => sum + p.amount, 0)
-      const outstanding = student.totalFee - totalPaid
+      const outstanding = Math.max(0, effectiveTotalFee - totalPaid)
 
       return {
         id: student.id,
@@ -234,10 +254,10 @@ export async function GET(req: NextRequest) {
         section: student.batch?.name || 'N/A',
         courseId: student.courseId,
         batchId: student.batchId,
-        totalFee: student.totalFee,
+        totalFee: effectiveTotalFee,
         totalPaid,
         outstanding,
-        status: outstanding <= 0 ? 'CLEAR' : outstanding < student.totalFee ? 'PARTIAL' : 'PENDING',
+        status: outstanding <= 0 ? 'CLEAR' : outstanding < effectiveTotalFee ? 'PARTIAL' : 'PENDING',
         hasSiblings: !!(siblingsMap[student.id]),
         siblings: siblingsMap[student.id] || [],
         ledger: ledgerEntries,

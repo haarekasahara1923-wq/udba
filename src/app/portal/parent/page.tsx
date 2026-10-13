@@ -23,6 +23,10 @@ export default function ParentHome() {
   }, [token])
 
   const children = profile?.children || []
+  const totalRemainingFee = children.reduce((acc: number, c: any) => {
+    const rem = c.remainingFee !== undefined ? c.remainingFee : Math.max(0, (c.totalFee || 0) - (c.paidFee || 0))
+    return acc + rem
+  }, 0)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -32,35 +36,51 @@ export default function ParentHome() {
         <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Parent Portal</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
         <Link href="/portal/parent/children" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '26px', marginBottom: '6px' }}>👶</div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Children</div>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>{children.length}</div>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>👶</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Children</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>{children.length}</div>
+          </div>
+        </Link>
+        <Link href="/portal/parent/fees" style={{ textDecoration: 'none' }}>
+          <div style={{ background: '#1e293b', border: `1px solid ${totalRemainingFee > 0 ? 'rgba(245,158,11,0.5)' : '#334155'}`, borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>💰</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Fee Ledger</div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: totalRemainingFee > 0 ? '#f59e0b' : '#10b981', marginTop: '2px' }}>
+              ₹{totalRemainingFee.toLocaleString('en-IN')}
+            </div>
           </div>
         </Link>
         <Link href="/portal/parent/homework" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📚</div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Homework</div>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#8b5cf6', marginTop: '2px' }}>View</div>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📚</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Homework</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#8b5cf6', marginTop: '2px' }}>View</div>
           </div>
         </Link>
         <Link href="/portal/parent/exams" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📑</div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Test Marks</div>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📑</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Test Marks</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>
               {children.reduce((acc: number, c: any) => acc + (c.examResults?.length || 0), 0)}
             </div>
           </div>
         </Link>
         <Link href="/portal/parent/notices" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '26px', marginBottom: '6px' }}>📢</div>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: 'white' }}>Notices</div>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#6366f1', marginTop: '2px' }}>{notices.length}</div>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>📢</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Notices</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#6366f1', marginTop: '2px' }}>{notices.length}</div>
+          </div>
+        </Link>
+        <Link href="/portal/parent/admit-cards" style={{ textDecoration: 'none' }}>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🎫</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Admit Card</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#38bdf8', marginTop: '2px' }}>Download</div>
           </div>
         </Link>
       </div>
@@ -71,23 +91,52 @@ export default function ParentHome() {
           {children.map((child: any) => {
             const todayAttendances = child.attendances?.filter((a: any) => new Date(a.date).toDateString() === new Date().toDateString())
             const presentToday = todayAttendances?.find((a: any) => a.status === 'PRESENT')
-            const pendingFeeAmount = Math.max(0, child.totalFee - child.paidFee)
+            const totalFee = child.totalFee || 0
+            const paidFee = child.paidFee || 0
+            const remainingFee = child.remainingFee !== undefined ? child.remainingFee : Math.max(0, totalFee - paidFee)
             
             return (
-              <div key={child.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '16px', marginBottom: '10px' }}>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>{child.fullName}</div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>{child.course?.name} • {child.batch?.name}</div>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                  <div style={{ flex: 1, background: '#0f172a', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px' }}>{presentToday ? '✅' : '❓'}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Today's Att.</div>
+              <div key={child.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '16px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>{child.fullName}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{child.course?.name} • {child.batch?.name} {child.studentId ? `• ID: ${child.studentId}` : ''}</div>
                   </div>
-                  <div style={{ flex: 1, background: '#0f172a', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: '800', color: pendingFeeAmount > 0 ? '#f59e0b' : '#10b981' }}>
-                        ₹{pendingFeeAmount.toLocaleString('en-IN')}
+                  <div style={{ background: presentToday ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.15)', border: `1px solid ${presentToday ? 'rgba(16,185,129,0.3)' : 'rgba(148,163,184,0.3)'}`, borderRadius: '8px', padding: '4px 10px', fontSize: '11px', color: presentToday ? '#10b981' : '#94a3b8', fontWeight: 600 }}>
+                    {presentToday ? '✅ Present Today' : '❓ Att. Not Marked'}
+                  </div>
+                </div>
+
+                {/* Prominent Fee Summary Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '12px' }}>
+                  <div style={{ background: '#0f172a', borderRadius: '10px', padding: '10px 8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Total Fee</div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: '#e2e8f0', marginTop: '3px' }}>
+                      ₹{totalFee.toLocaleString('en-IN')}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Pending Fees</div>
                   </div>
+                  <div style={{ background: '#0f172a', borderRadius: '10px', padding: '10px 8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Paid Fee</div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: '#10b981', marginTop: '3px' }}>
+                      ₹{paidFee.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                  <div style={{ background: '#0f172a', borderRadius: '10px', padding: '10px 8px', textAlign: 'center', border: `1px solid ${remainingFee > 0 ? 'rgba(245,158,11,0.4)' : 'rgba(16,185,129,0.4)'}` }}>
+                    <div style={{ fontSize: '11px', color: remainingFee > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>Remaining Fee</div>
+                    <div style={{ fontSize: '14px', fontWeight: '800', color: remainingFee > 0 ? '#f59e0b' : '#10b981', marginTop: '3px' }}>
+                      ₹{remainingFee.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fee Status & View Ledger Button */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #334155' }}>
+                  <span style={{ fontSize: '11px', color: remainingFee > 0 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>
+                    {remainingFee > 0 ? `⚠️ ₹${remainingFee.toLocaleString('en-IN')} Balance Pending` : '✅ All Fees Paid'}
+                  </span>
+                  <Link href={`/portal/parent/fees?studentId=${child.id}`} style={{ fontSize: '12px', color: '#818cf8', textDecoration: 'none', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(99,102,241,0.15)', padding: '5px 12px', borderRadius: '6px' }}>
+                    📄 View Fee Ledger →
+                  </Link>
                 </div>
 
                 {child.examResults && child.examResults.length > 0 && (
