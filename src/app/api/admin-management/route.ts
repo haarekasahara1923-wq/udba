@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     data: {
       tenantId: user!.tenantId,
       name,
-      email: `${phone}@admin.udba.local`, // placeholder email since mobile-only
+      email: `${phone}@admin.UDA.local`, // placeholder email since mobile-only
       phone,
       password: hashedPassword,
       plainPassword: password,

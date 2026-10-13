@@ -14,7 +14,7 @@ export default function StudentAdmitCardsPage() {
 
   useEffect(() => {
     if (!token || !user) return
-    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('udba_tenant') : null
+    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('UDA_tenant') : null
     if (storedTenant) setTenant(JSON.parse(storedTenant))
 
     // Fetch student profile to get student record ID

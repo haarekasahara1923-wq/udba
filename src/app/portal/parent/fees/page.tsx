@@ -29,7 +29,7 @@ function ParentFeeLedgerContent() {
   // 1. Fetch parent profile & linked children
   useEffect(() => {
     if (!token) return
-    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('udba_tenant') : null
+    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('UDA_tenant') : null
     if (storedTenant) {
       try { setTenant(JSON.parse(storedTenant)) } catch {}
     }

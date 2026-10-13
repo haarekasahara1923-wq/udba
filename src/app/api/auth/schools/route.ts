@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 /**
- * UDBA Single-School:
- * Returns only the UDBA school. If NEXT_PUBLIC_SCHOOL_SLUG is set,
+ * UDA Single-School:
+ * Returns only the UDA school. If NEXT_PUBLIC_SCHOOL_SLUG is set,
  * filters to that specific school. Otherwise returns all active schools.
  */
 export async function GET(req: NextRequest) {

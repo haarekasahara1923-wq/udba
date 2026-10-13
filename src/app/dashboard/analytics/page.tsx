@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
             ...data.leadFunnel.map(l => [l.stage, l.count]),
         ]
 
-        downloadCSV(`udba-analytics-report-${timestamp}.csv`, csvRows)
+        downloadCSV(`UDA-analytics-report-${timestamp}.csv`, csvRows)
     }
 
     const handleExportPDF = () => {

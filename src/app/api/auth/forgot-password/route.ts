@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://udba.vercel.app'
         const resetUrl = `${appUrl}/reset-password?token=${resetToken}`
         const schoolName = 'Universal Day Boarding Academy'
-        const fromEmail = process.env.SMTP_USER || 'noreply@udba.ac.in'
+        const fromEmail = process.env.SMTP_USER || 'noreply@UDA.ac.in'
 
         // Send email via SMTP (Gmail)
         const transporter = createTransporter()
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
               </div>
               <h2 style="margin:0 0 12px;color:#1e293b;font-size:20px;font-weight:700;text-align:center;">Password Reset Request</h2>
               <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 24px;text-align:center;">
-                We received a request to reset the password for your UDBA account.<br>
+                We received a request to reset the password for your UDA account.<br>
                 Click the button below to set a new password.
               </p>
 

@@ -140,10 +140,10 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
                 {/* Logo */}
                 <div className="sidebar-logo">
                     <div className="sidebar-logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {isSuperAdmin ? '👑' : <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
+                        {isSuperAdmin ? '👑' : <img src="/logo.png" alt="UDA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
                     </div>
                     <div>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'white' }}>UDBA</div>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'white' }}>UDA</div>
                         <div style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {isSuperAdmin ? 'Super Admin' : 'Universal Day Boarding Academy'}
                         </div>
@@ -324,9 +324,9 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
                             alignItems: 'center', gap: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.7)', zIndex: 200
                         }}>
                             <div style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 'bold' }}>Download Android App</div>
-                            <img src="/downloads/UDBA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
+                            <img src="/downloads/UDA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
                             <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center' }}>Scan to install on Android</div>
-                            <a href="/downloads/UDBA-app-qrcode.png" download="UDBA-app-qrcode.png" style={{ 
+                            <a href="/downloads/UDA-app-qrcode.png" download="UDA-app-qrcode.png" style={{ 
                                 background: 'linear-gradient(135deg, #6366f1, #ec4899)', color: 'white', textDecoration: 'none',
                                 padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold',
                                 width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', border: 'none'
@@ -380,7 +380,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             <div style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
                     <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '3px', margin: '0 auto 16px' }} />
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading UDBA...</p>
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading UDA...</p>
                 </div>
             </div>
         )
@@ -475,7 +475,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 }
 
 export function FeatureGate({ feature, children }: { feature: keyof PlanFeatures, children: React.ReactNode }) {
-    // Feature gating disabled for UDBA
+    // Feature gating disabled for UDA
     return <>{children}</>
 }
 

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -115,7 +115,7 @@ export default function DriverDashboard() {
             <div key={s.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ color: 'white', fontWeight: '600', fontSize: '15px' }}>{s.fullName}</div>
-                <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>{s.batch?.name} • {s.course?.name}</div>
+                <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '4px' }}>{s.batch?.name} � {s.course?.name}</div>
               </div>
               <button 
                 onClick={() => toggleStatus(s.id, s.currentStatus)}

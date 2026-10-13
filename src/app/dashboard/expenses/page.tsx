@@ -81,7 +81,7 @@ export default function ExpensesPage() {
                 e.description || '-'
             ])
         })
-        downloadCSV(`udba-expenses-report-${timestamp}.csv`, rows)
+        downloadCSV(`UDA-expenses-report-${timestamp}.csv`, rows)
     }
 
     const handleExportPDF = () => {

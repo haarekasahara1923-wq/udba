@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useState, useEffect } from 'react'
 

@@ -51,7 +51,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid #6366f1', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <p style={{ color: '#94a3b8', fontSize: '14px' }}>Loading UDBA...</p>
+        <p style={{ color: '#94a3b8', fontSize: '14px' }}>Loading UDA...</p>
       </div>
     )
   }
@@ -107,10 +107,10 @@ function PortalShell({ children }: { children: React.ReactNode }) {
       <header style={{ background: '#1e293b', borderBottom: '1px solid #334155', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="UDA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>UDBA</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: 'white' }}>UDA</div>
             <div style={{ fontSize: '11px', color: '#94a3b8' }}>{role === 'STUDENT' ? 'Student Portal' : role === 'PARENT' ? 'Parent Portal' : role === 'DRIVER' ? 'Driver Portal' : 'Staff Portal'}</div>
           </div>
         </div>
@@ -124,8 +124,8 @@ function PortalShell({ children }: { children: React.ReactNode }) {
                 alignItems: 'center', gap: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.7)', zIndex: 200
               }}>
                 <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold', textAlign: 'center' }}>Download App</div>
-                <img src="/downloads/UDBA-app-qrcode.png" alt="QR Code" style={{ width: '120px', height: '120px', borderRadius: '8px', background: 'white', padding: '6px' }} />
-                <a href="/downloads/UDBA-app-qrcode.png" download="UDBA-app-qrcode.png" style={{ background: '#6366f1', color: 'white', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', width: '100%', textAlign: 'center', border: 'none' }}>⬇️ Download QR</a>
+                <img src="/downloads/UDA-app-qrcode.png" alt="QR Code" style={{ width: '120px', height: '120px', borderRadius: '8px', background: 'white', padding: '6px' }} />
+                <a href="/downloads/UDA-app-qrcode.png" download="UDA-app-qrcode.png" style={{ background: '#6366f1', color: 'white', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', width: '100%', textAlign: 'center', border: 'none' }}>⬇️ Download QR</a>
               </div>
             )}
           </div>

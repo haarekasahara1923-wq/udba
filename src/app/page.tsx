@@ -55,10 +55,10 @@ export default function LandingPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="UDA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: '800', color: 'white', lineHeight: 1.2 }}>UDBA</div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: 'white', lineHeight: 1.2 }}>UDA</div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', letterSpacing: '0.5px' }}>Universal Day Boarding Academy</div>
           </div>
         </div>
@@ -85,9 +85,9 @@ export default function LandingPage() {
                 alignItems: 'center', gap: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.7)', zIndex: 200
               }}>
                 <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold' }}>Download Android App</div>
-                <img src="/downloads/UDBA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
+                <img src="/downloads/UDA-app-qrcode.png" alt="App QR Code" style={{ width: '150px', height: '150px', borderRadius: '8px', background: 'white', padding: '8px' }} />
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>Scan to install on Android</div>
-                <a href="/downloads/UDBA-app-qrcode.png" download="UDBA-app-qrcode.png" style={{ 
+                <a href="/downloads/UDA-app-qrcode.png" download="UDA-app-qrcode.png" style={{ 
                   background: 'linear-gradient(135deg, #1a5c38, #f97316)', color: 'white', textDecoration: 'none',
                   padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold',
                   width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', border: 'none'
@@ -160,7 +160,7 @@ export default function LandingPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
               <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg,#1a5c38,#f97316)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🏫</div>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: '700' }}>UDBA Dashboard</div>
+                <div style={{ fontSize: '13px', fontWeight: '700' }}>UDA Dashboard</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Admin Panel • Live</div>
               </div>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '5px' }}>
@@ -206,7 +206,7 @@ export default function LandingPage() {
             <span style={{ fontSize: '13px', color: '#4ade80', fontWeight: '600' }}>All-in-One Platform</span>
           </div>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: '900', letterSpacing: '-0.5px' }}>
-            UDBA ke liye sabkuch{' '}
+            UDA ke liye sabkuch{' '}
             <span style={{ background: 'linear-gradient(135deg, #2d8a57, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ek platform par</span>
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '14px', fontSize: '15px' }}>12+ powerful modules to automate every aspect of school management</p>
@@ -267,9 +267,9 @@ export default function LandingPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '700', background: '#25d366', color: 'white', borderRadius: '12px', textDecoration: 'none', boxShadow: '0 8px 24px rgba(37,211,102,0.3)' }}>
               💬 WhatsApp: +91 7879337770
             </a>
-            <a href="mailto:info@udba.space"
+            <a href="mailto:info@UDA.space"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', background: 'rgba(255,255,255,0.06)', color: 'white', borderRadius: '12px', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.12)' }}>
-              📧 info@udba.space
+              📧 info@UDA.space
             </a>
           </div>
 
@@ -277,7 +277,7 @@ export default function LandingPage() {
             🔑 Portal Login →
           </Link>
           <p style={{ marginTop: '20px', fontSize: '13px', color: 'rgba(255,255,255,0.25)' }}>
-            📞 +91 7879337770 &nbsp;•&nbsp; 📧 info@udba.space
+            📞 +91 7879337770 &nbsp;•&nbsp; 📧 info@UDA.space
           </p>
         </div>
       </section>
@@ -286,16 +286,16 @@ export default function LandingPage() {
       <footer style={{ background: 'rgba(26,92,56,0.05)', borderTop: '1px solid rgba(26,92,56,0.15)', padding: '40px 32px', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            <img src="/logo.png" alt="UDBA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="UDA Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: '800', fontSize: '16px' }}>UDBA</div>
+            <div style={{ fontWeight: '800', fontSize: '16px' }}>UDA</div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>Universal Day Boarding Academy</div>
           </div>
         </div>
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.25)', lineHeight: '1.8' }}>
           © 2026 Universal Day Boarding Academy, Pinto Park, Gwalior (MP). All rights reserved.<br />
-          📞 +91 7879337770 &nbsp;•&nbsp; 📧 info@udba.space &nbsp;•&nbsp; Powered by Next.js
+          📞 +91 7879337770 &nbsp;•&nbsp; 📧 info@UDA.space &nbsp;•&nbsp; Powered by Next.js
         </p>
       </footer>
     </div>

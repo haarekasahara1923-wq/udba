@@ -15,7 +15,7 @@ export default function SuperAdminAffiliates() {
 
     const fetchData = async () => {
         try {
-            const token = localStorage.getItem('udba_token')
+            const token = localStorage.getItem('UDA_token')
             const res = await fetch('/api/super-admin/global-affiliates', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
@@ -31,7 +31,7 @@ export default function SuperAdminAffiliates() {
         if (!confirm('Run monthly aggregation? This will convert pending commissions into payouts.')) return
         setAggregating(true)
         try {
-            const token = localStorage.getItem('udba_token')
+            const token = localStorage.getItem('UDA_token')
             const now = new Date()
             const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
@@ -61,7 +61,7 @@ export default function SuperAdminAffiliates() {
             return
         }
         try {
-            const token = localStorage.getItem('udba_token')
+            const token = localStorage.getItem('UDA_token')
             const res = await fetch('/api/super-admin/global-affiliates/payout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

@@ -1,6 +1,6 @@
 {
-  "name": "UDBA — Universal Day Boarding Academy",
-  "short_name": "UDBA",
+  "name": "UDA — Universal Day Boarding Academy",
+  "short_name": "UDA",
   "description": "School Management System for Universal Day Boarding Academy, Gwalior",
   "start_url": "/dashboard",
   "display": "standalone",

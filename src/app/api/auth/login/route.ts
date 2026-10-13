@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
         // Let user log in with email or phone
         whereClause.OR = [
             { email: lowerId },
+            { email: `${lowerId}@uda.local` },
             { email: `${lowerId}@udba.local` },
             { phone: searchId }
         ]

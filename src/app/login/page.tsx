@@ -50,7 +50,7 @@ function LoginForm() {
     setLoading(false)
 
     if (result.success) {
-      const storedUser = localStorage.getItem('udba_user')
+      const storedUser = localStorage.getItem('UDA_user')
       if (storedUser) redirectByRole(JSON.parse(storedUser).role)
       else router.push('/dashboard')
     } else {

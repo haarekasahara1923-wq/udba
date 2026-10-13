@@ -52,7 +52,7 @@ export default function SubscriptionPage() {
                     key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                     amount: data.amount,
                     currency: data.currency,
-                    name: 'UDBA',
+                    name: 'UDA',
                     description: `Upgrade to ${planName} Plan`,
                     order_id: data.orderId,
                     handler: async function (response: any) {
@@ -111,7 +111,7 @@ export default function SubscriptionPage() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">⭐ Subscription Plans</h1>
-                    <p className="page-subtitle">Manage your UDBA subscription</p>
+                    <p className="page-subtitle">Manage your UDA subscription</p>
                 </div>
             </div>
 

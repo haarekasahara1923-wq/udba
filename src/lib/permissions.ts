@@ -1,5 +1,5 @@
 /**
- * Role-based permission utility for UDBA admin portals
+ * Role-based permission utility for UDA admin portals
  *
  * Permission levels:
  * - SUPER_ADMIN / COACHING_ADMIN: Full CRUD access

@@ -83,7 +83,7 @@ export default function FeeLedgerPage() {
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `UDBA_Fee_Ledger_${new Date().toISOString().slice(0, 10)}.csv`
+    a.download = `UDA_Fee_Ledger_${new Date().toISOString().slice(0, 10)}.csv`
     a.click()
   }
 
@@ -554,7 +554,7 @@ function buildPrintHTML(students: any[], summary: any) {
 
   return `<!DOCTYPE html><html><head>
     <meta charset="utf-8"/>
-    <title>Fee Ledger — UDBA</title>
+    <title>Fee Ledger — UDA</title>
     <style>
       body { font-family: Arial, sans-serif; margin: 0; padding: 24px; color: #1e293b; }
       @media print { body { padding: 0; } .no-print { display: none; } }
@@ -573,6 +573,6 @@ function buildPrintHTML(students: any[], summary: any) {
       <span>Outstanding: <strong style="color:#dc2626;">₹${summary.totalOutstanding?.toLocaleString('en-IN')}</strong></span>
     </div>` : ''}
     ${studentRows}
-    <p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:24px;">This is a computer generated document. — UDBA, Gwalior</p>
+    <p style="text-align:center;color:#9ca3af;font-size:11px;margin-top:24px;">This is a computer generated document. — UDA, Gwalior</p>
   </body></html>`
 }

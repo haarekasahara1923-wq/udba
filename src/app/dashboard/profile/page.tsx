@@ -46,7 +46,7 @@ export default function ProfilePage() {
                 
                 // Update local storage so Context has the new data on reload
                 if (tenant) {
-                    localStorage.setItem('udba_tenant', JSON.stringify({ ...tenant, ...form }))
+                    localStorage.setItem('UDA_tenant', JSON.stringify({ ...tenant, ...form }))
                 }
                 
                 setTimeout(() => {
@@ -161,14 +161,14 @@ export default function ProfilePage() {
                                 { label: 'School ID', value: user?.tenantId?.slice(0, 12) + '...' || '' },
                                 { label: 'School Code', value: tenant?.schoolCode || 'Not Set' },
                                 { label: 'DISE Code', value: tenant?.diseCode || 'Not Set' },
-                                { label: 'Platform', value: 'UDBA v2.0' },
+                                { label: 'Platform', value: 'UDA v3.0' },
                                 { label: 'Region', value: 'India (Asia-South)' },
                             ].map(i => (
                                 <div key={i.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-2)', borderRadius: '8px', alignItems: 'center' }}>
                                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{i.label}</span>
                                     <span style={{ fontSize: '12px', fontWeight: '600', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         {i.value}
-                                        {i.value !== 'Not Set' && i.value !== 'UDBA v2.0' && i.value !== 'India (Asia-South)' && (
+                                        {i.value !== 'Not Set' && i.value !== 'UDA v3.0' && i.value !== 'India (Asia-South)' && (
                                             <button 
                                                 onClick={() => {
                                                     let textToCopy = i.value;

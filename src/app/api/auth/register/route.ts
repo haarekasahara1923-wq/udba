@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Determine email / phone from identifier
-        const isRealEmail = email.includes('@') && !email.includes('@udba.local')
-        const resolvedEmail = isRealEmail ? email.toLowerCase() : `${phone || email}@udba.local`
+        const isRealEmail = email.includes('@') && !email.toLowerCase().includes('@uda.local') && !email.toLowerCase().includes('@udba.local')
+        const resolvedEmail = isRealEmail ? email.toLowerCase() : `${phone || email}@uda.local`
         const resolvedPhone = phone || (isRealEmail ? undefined : email)
 
         // Check if user already exists
@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
             where: {
                 OR: [
                     { email: resolvedEmail },
-                    ...(resolvedPhone ? [{ phone: resolvedPhone }] : []),
+                    ...(resolvedPhone ? [
+                        { phone: resolvedPhone },
+                        { email: `${resolvedPhone}@udba.local` },
+                        { email: `${resolvedPhone}@uda.local` }
+                    ] : []),
                 ]
             }
         })

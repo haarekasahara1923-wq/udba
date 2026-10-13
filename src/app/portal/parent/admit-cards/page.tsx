@@ -15,7 +15,7 @@ export default function ParentAdmitCardsPage() {
 
   useEffect(() => {
     if (!token) return
-    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('udba_tenant') : null
+    const storedTenant = typeof window !== 'undefined' ? localStorage.getItem('UDA_tenant') : null
     if (storedTenant) setTenant(JSON.parse(storedTenant))
     // Fetch children via parent profile
     fetch('/api/parent', { headers: h }).then(r => r.json()).then(async d => {

@@ -91,10 +91,10 @@ export default function RegisterPage() {
         return
       }
 
-      localStorage.setItem('udba_token', data.accessToken)
-      localStorage.setItem('udba_user', JSON.stringify(data.user))
-      localStorage.setItem('udba_tenant', JSON.stringify(data.tenant))
-      localStorage.setItem('udba_refresh', data.refreshToken)
+      localStorage.setItem('UDA_token', data.accessToken)
+      localStorage.setItem('UDA_user', JSON.stringify(data.user))
+      localStorage.setItem('UDA_tenant', JSON.stringify(data.tenant))
+      localStorage.setItem('UDA_refresh', data.refreshToken)
 
       if (role === 'STUDENT') router.push('/portal/student')
       else if (role === 'PARENT') router.push('/portal/parent')
@@ -115,7 +115,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #1a5c38, #f97316)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', margin: '0 auto 14px', boxShadow: '0 8px 30px rgba(26,92,56,0.4)' }}>🏫</div>
-          <h1 style={{ fontSize: '22px', fontWeight: '900', color: 'white' }}>Create UDBA Account</h1>
+          <h1 style={{ fontSize: '22px', fontWeight: '900', color: 'white' }}>Create UDA Account</h1>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', marginTop: '4px' }}>Universal Day Boarding Academy, Gwalior</p>
         </div>
 

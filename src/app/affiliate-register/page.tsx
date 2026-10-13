@@ -40,11 +40,11 @@ export default function AffiliateRegisterPage() {
             }
 
             // Store auth data
-            localStorage.setItem('udba_token', data.accessToken)
-            localStorage.setItem('udba_user', JSON.stringify(data.user))
-            localStorage.setItem('udba_refresh', data.refreshToken)
-            localStorage.removeItem('udba_tenant')
-            localStorage.removeItem('udba_subscription')
+            localStorage.setItem('UDA_token', data.accessToken)
+            localStorage.setItem('UDA_user', JSON.stringify(data.user))
+            localStorage.setItem('UDA_refresh', data.refreshToken)
+            localStorage.removeItem('UDA_tenant')
+            localStorage.removeItem('UDA_subscription')
 
             setSuccess(true)
             setTimeout(() => window.location.href = '/dashboard/global-affiliate', 1500)
@@ -59,7 +59,7 @@ export default function AffiliateRegisterPage() {
             <div style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-                    <h2 style={{ fontSize: '28px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Welcome to UDBA Global Affiliate!</h2>
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', color: 'white', marginBottom: '8px' }}>Welcome to UDA Global Affiliate!</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>Account created successfully. Redirecting to your dashboard...</p>
                     <div className="spinner" style={{ margin: '20px auto' }} />
                 </div>

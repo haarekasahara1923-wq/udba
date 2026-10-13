@@ -196,7 +196,7 @@ export default function FeesPage() {
                 s.status
             ])
         })
-        downloadCSV(`udba-fees-${activeTab}-${timestamp}.csv`, rows)
+        downloadCSV(`UDA-fees-${activeTab}-${timestamp}.csv`, rows)
     }
 
     const handleExportPDF = () => {

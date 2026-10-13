@@ -51,10 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const storedToken = localStorage.getItem('udba_token')
-        const storedUser = localStorage.getItem('udba_user')
-        const storedTenant = localStorage.getItem('udba_tenant')
-        const storedSub = localStorage.getItem('udba_subscription')
+        const storedToken = localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')
+        const storedUser = localStorage.getItem('UDA_user') || localStorage.getItem('udba_user')
+        const storedTenant = localStorage.getItem('UDA_tenant') || localStorage.getItem('udba_tenant')
+        const storedSub = localStorage.getItem('UDA_subscription') || localStorage.getItem('udba_subscription')
 
         if (storedToken && storedUser) {
             setToken(storedToken)
@@ -83,11 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setTenant(data.tenant)
             setSubscription(data.subscription)
 
-            localStorage.setItem('udba_token', data.accessToken)
-            localStorage.setItem('udba_user', JSON.stringify(data.user))
-            localStorage.setItem('udba_tenant', JSON.stringify(data.tenant))
-            localStorage.setItem('udba_subscription', JSON.stringify(data.subscription))
-            localStorage.setItem('udba_refresh', data.refreshToken)
+            localStorage.setItem('UDA_token', data.accessToken)
+            localStorage.setItem('UDA_user', JSON.stringify(data.user))
+            localStorage.setItem('UDA_tenant', JSON.stringify(data.tenant))
+            localStorage.setItem('UDA_subscription', JSON.stringify(data.subscription))
+            localStorage.setItem('UDA_refresh', data.refreshToken)
 
             return { success: true }
         } catch {
@@ -100,11 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenant(null)
         setSubscription(null)
         setToken(null)
-        localStorage.removeItem('udba_token')
-        localStorage.removeItem('udba_user')
-        localStorage.removeItem('udba_tenant')
-        localStorage.removeItem('udba_subscription')
-        localStorage.removeItem('udba_refresh')
+        localStorage.removeItem('UDA_token')
+        localStorage.removeItem('UDA_user')
+        localStorage.removeItem('UDA_tenant')
+        localStorage.removeItem('UDA_subscription')
+        localStorage.removeItem('UDA_refresh')
         window.location.href = '/login'
     }
 

@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
         }
 
-        const systemContent = `You are an expert AI Assistant for Universal Day Boarding Academy (UDBA). 
+        const systemContent = `You are an expert AI Assistant for Universal Day Boarding Academy (UDA). 
 Your task is to generate high-quality educational content based on the user's request. 
 The requested content type is: ${contentType}. 
 You MUST format your ONLY response in pure, clean HTML code, ready to be rendered in a webpage without ANY markdown syntax or \`\`\`html wrapping.

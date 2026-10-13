@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -39,7 +39,7 @@ export default function ExamsPage() {
 
     const filteredBatches = batches.filter(b => b.courseId === form.courseId)
 
-    // Step 1 → Step 2: load students
+    // Step 1 ? Step 2: load students
     const handleLoadStudents = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!form.courseId || !form.batchId) {
@@ -81,7 +81,7 @@ export default function ExamsPage() {
         const data = await res.json()
         setSaving(false)
         if (data.success) {
-            setToast({ msg: '✅ Marks published successfully! Parents can now see them.', type: 'success' })
+            setToast({ msg: '? Marks published successfully! Parents can now see them.', type: 'success' })
             // reset
             setStep(1)
             setStudents([])
@@ -97,8 +97,8 @@ export default function ExamsPage() {
             {/* Header */}
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">📑 Monthly Tests & Marks</h1>
-                    <p className="page-subtitle">Teacher fills marks → Parents see them instantly on their portal</p>
+                    <h1 className="page-title">?? Monthly Tests & Marks</h1>
+                    <p className="page-subtitle">Teacher fills marks ? Parents see them instantly on their portal</p>
                 </div>
             </div>
 
@@ -139,11 +139,11 @@ export default function ExamsPage() {
                 ))}
             </div>
 
-            {/* ── STEP 1: Test Details ── */}
+            {/* -- STEP 1: Test Details -- */}
             {step === 1 && (
                 <form onSubmit={handleLoadStudents} className="card" style={{ maxWidth: '680px' }}>
                     <h3 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: 'var(--primary-light)' }}>
-                        📝 Test Information
+                        ?? Test Information
                     </h3>
                     <div className="grid-cols-2">
                         <div>
@@ -218,13 +218,13 @@ export default function ExamsPage() {
                         <button type="submit" className="btn btn-primary" disabled={loadingStudents}>
                             {loadingStudents
                                 ? <><div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} /> Loading Students...</>
-                                : '➡️ Next: Load Students'}
+                                : '?? Next: Load Students'}
                         </button>
                     </div>
                 </form>
             )}
 
-            {/* ── STEP 2: Enter Marks ── */}
+            {/* -- STEP 2: Enter Marks -- */}
             {step === 2 && (
                 <form onSubmit={handlePublish}>
                     {/* Summary card */}
@@ -235,14 +235,14 @@ export default function ExamsPage() {
                         <div><span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Max Marks</span><div style={{ fontWeight: 700 }}>{form.maxMarks}</div></div>
                         <div><span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Students</span><div style={{ fontWeight: 700 }}>{students.length}</div></div>
                         <button type="button" onClick={() => setStep(1)} className="btn btn-secondary" style={{ marginLeft: 'auto', fontSize: '12px' }}>
-                            ← Edit Details
+                            ? Edit Details
                         </button>
                     </div>
 
                     {/* Marks table */}
                     <div className="card" style={{ padding: 0 }}>
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ fontWeight: 700, fontSize: '15px' }}>✏️ Enter Marks for Each Student</h3>
+                            <h3 style={{ fontWeight: 700, fontSize: '15px' }}>?? Enter Marks for Each Student</h3>
                             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{students.length} students</span>
                         </div>
                         <div className="table-container">
@@ -290,12 +290,12 @@ export default function ExamsPage() {
                         {/* Publish button */}
                         <div style={{ padding: '20px', borderTop: '1px solid var(--border)', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                             <button type="button" onClick={() => setStep(1)} className="btn btn-secondary">
-                                ← Back
+                                ? Back
                             </button>
                             <button type="submit" className="btn btn-primary" disabled={saving} style={{ minWidth: '160px', justifyContent: 'center' }}>
                                 {saving
                                     ? <><div className="spinner" style={{ width: '16px', height: '16px', borderWidth: '2px' }} /> Publishing...</>
-                                    : '🚀 Publish Marks'}
+                                    : '?? Publish Marks'}
                             </button>
                         </div>
                     </div>

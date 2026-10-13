@@ -29,11 +29,11 @@ export default function AffiliateLoginPage() {
             }
 
             // Store auth data
-            localStorage.setItem('udba_token', data.accessToken)
-            localStorage.setItem('udba_user', JSON.stringify(data.user))
-            localStorage.setItem('udba_refresh', data.refreshToken)
-            localStorage.removeItem('udba_tenant')
-            localStorage.removeItem('udba_subscription')
+            localStorage.setItem('UDA_token', data.accessToken)
+            localStorage.setItem('UDA_user', JSON.stringify(data.user))
+            localStorage.setItem('UDA_refresh', data.refreshToken)
+            localStorage.removeItem('UDA_tenant')
+            localStorage.removeItem('UDA_subscription')
 
             window.location.href = '/dashboard/global-affiliate'
         } catch {
@@ -50,7 +50,7 @@ export default function AffiliateLoginPage() {
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', margin: '0 auto 16px' }}>💰</div>
                     <h1 style={{ fontSize: '28px', fontWeight: '800', color: 'white' }}>Affiliate Login</h1>
-                    <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '14px' }}>Welcome back to UDBA Partner Program</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '6px', fontSize: '14px' }}>Welcome back to UDA Partner Program</p>
                 </div>
 
                 <div className="card" style={{ borderRadius: '20px', padding: '32px' }}>
@@ -126,7 +126,7 @@ export default function AffiliateLoginPage() {
                 </div>
 
                 <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                    <Link href="/" style={{ color: 'var(--text-secondary)' }}>← Back to UDBA Home</Link>
+                    <Link href="/" style={{ color: 'var(--text-secondary)' }}>← Back to UDA Home</Link>
                 </p>
             </div>
         </div>

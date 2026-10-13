@@ -1,5 +1,5 @@
 /**
- * Report Export Utilities for UDBA
+ * Report Export Utilities for UDA
  * Supports CSV export (with UTF-8 BOM for Excel) and printable PDF generation with professional styling.
  */
 
@@ -304,7 +304,7 @@ export function generateAndPrintPDF(options: ReportPDFOptions) {
         <div class="header-meta">
             <div class="badge">Official Report</div>
             <div><strong>Generated:</strong> ${generatedDate}</div>
-            <div><strong>System:</strong> UDBA ERP Portal</div>
+            <div><strong>System:</strong> UDA ERP Portal</div>
         </div>
     </div>
 

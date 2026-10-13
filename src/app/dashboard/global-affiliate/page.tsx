@@ -11,7 +11,7 @@ export default function AffiliateDashboard() {
 
     const fetchData = async () => {
         try {
-            const token = localStorage.getItem('udba_token')
+            const token = localStorage.getItem('UDA_token')
             const res = await fetch('/api/global-affiliate/dashboard', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })

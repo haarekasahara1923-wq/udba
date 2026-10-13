@@ -114,7 +114,7 @@ async function sendWebPush(sub: any, title: string, body: string) {
     const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'uKq6K9m7Q...'
     
     webpush.setVapidDetails(
-        'mailto:info@udba.space',
+        'mailto:info@UDA.space',
         publicVapidKey,
         privateVapidKey
     )
