@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
         const data = students.map(s => ({
             ...s,
-            courseName: s.course.name,
+            courseName: s.course?.name || 'N/A',
             batchName: s.batch?.name || 'N/A',
         }))
 
