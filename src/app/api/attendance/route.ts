@@ -20,11 +20,24 @@ export async function GET(req: NextRequest) {
             where.date = { gte: startDate, lte: endDate }
         }
 
-        const attendances = await prisma.attendance.findMany({
+        let attendances = await prisma.attendance.findMany({
             where,
             include: { student: { select: { fullName: true } } },
             orderBy: { createdAt: 'desc' }
         })
+
+        if (attendances.length === 0) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (primaryTenant && primaryTenant.id !== user!.tenantId) {
+                const fallbackWhere = { ...where, tenantId: primaryTenant.id }
+                attendances = await prisma.attendance.findMany({
+                    where: fallbackWhere,
+                    include: { student: { select: { fullName: true } } },
+                    orderBy: { createdAt: 'desc' }
+                })
+            }
+        }
 
         const data = attendances.map(a => ({
             ...a,
@@ -50,13 +63,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid record format' }, { status: 400 })
         }
 
+        const studentIds = records.map((r: any) => r.studentId).filter(Boolean)
+        const studentsList = await prisma.student.findMany({
+            where: { id: { in: studentIds } },
+            select: { id: true, tenantId: true }
+        })
+        const studentTenantMap = new Map(studentsList.map(s => [s.id, s.tenantId]))
+
         const created = await prisma.$transaction(
             records.map((r: any) => 
                 prisma.attendance.create({
                     data: {
-                        tenantId: user!.tenantId,
+                        tenantId: studentTenantMap.get(r.studentId) || user!.tenantId,
                         studentId: r.studentId,
-                        batchId: r.batchId,
+                        batchId: r.batchId || null,
                         date: new Date(r.date),
                         status: (r.status || 'PRESENT') as any,
                         markedBy: user!.userId,

@@ -62,6 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setSubscription(null)
             setToken(null)
             setIsLoading(false)
+            try {
+                window.history.replaceState({}, document.title, window.location.pathname)
+            } catch (e) {}
             return
         }
 

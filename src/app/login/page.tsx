@@ -30,6 +30,7 @@ function LoginForm() {
       try {
         localStorage.clear()
         sessionStorage.clear()
+        window.history.replaceState({}, document.title, window.location.pathname)
       } catch (e) {}
       return
     }

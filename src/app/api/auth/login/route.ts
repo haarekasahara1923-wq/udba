@@ -50,12 +50,25 @@ export async function POST(req: NextRequest) {
             whereClause.tenantId = resolvedTenantId
         }
 
-        const user = await prisma.user.findFirst({
+        let user = await prisma.user.findFirst({
             where: whereClause,
             include: {
                 studentProfile: true
             }
         })
+
+        // If user not found with specific tenantId (e.g. teacher from demo or different tenant), search across all tenants
+        if (!user && whereClause.tenantId) {
+            const fallbackWhere = { ...whereClause }
+            delete fallbackWhere.tenantId
+            user = await prisma.user.findFirst({
+                where: fallbackWhere,
+                include: {
+                    studentProfile: true
+                }
+            })
+        }
+
         if (!user) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
         }
