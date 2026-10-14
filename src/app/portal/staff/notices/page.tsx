@@ -45,14 +45,22 @@ export default function StaffNotices() {
   }, [token])
 
   useEffect(() => {
-    if (!selectedBatch || !token) {
+    if (!token) return
+    // Load students when course or batch changes
+    if (selectedBatch) {
+      // If batch selected, filter by batch
+      fetch(`/api/students?batchId=${selectedBatch}`, { headers: h })
+        .then(r => r.json())
+        .then(d => setStudents(d.data || []))
+    } else if (selectedCourse) {
+      // If only course selected (no batches exist), filter by course
+      fetch(`/api/students?courseId=${selectedCourse}`, { headers: h })
+        .then(r => r.json())
+        .then(d => setStudents(d.data || []))
+    } else {
       setStudents([])
-      return
     }
-    fetch(`/api/students?batchId=${selectedBatch}`, { headers: h })
-      .then(r => r.json())
-      .then(d => setStudents(d.data || []))
-  }, [selectedBatch, token])
+  }, [selectedBatch, selectedCourse, token])
 
   const sendNotice = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,8 +69,8 @@ export default function StaffNotices() {
       return
     }
 
-    if (targetType === 'BATCH' && !selectedBatch) {
-      setMsg({ text: 'Please select a Class and Section', type: 'error' })
+    if (targetType === 'BATCH' && !selectedCourse) {
+      setMsg({ text: 'Please select a Class', type: 'error' })
       return
     }
 
@@ -85,7 +93,11 @@ export default function StaffNotices() {
       payload.targetStudentId = selectedStudent
     } else if (targetType === 'BATCH') {
       payload.targetType = 'BATCH'
-      payload.targetBatchId = selectedBatch
+      if (selectedBatch) {
+        payload.targetBatchId = selectedBatch
+      } else {
+        payload.targetCourseId = selectedCourse
+      }
     } else {
       payload.targetRole = 'PARENT'
     }
@@ -216,7 +228,7 @@ export default function StaffNotices() {
 
           {/* Class and Section selectors for BATCH or STUDENT */}
           {(targetType === 'BATCH' || targetType === 'STUDENT') && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: filteredBatches.length > 0 ? '1fr 1fr' : '1fr', gap: '8px' }}>
               <div>
                 <label style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px', display: 'block' }}>1. Select Class *</label>
                 <select
@@ -234,43 +246,49 @@ export default function StaffNotices() {
                 </select>
               </div>
 
-              <div>
-                <label style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px', display: 'block' }}>2. Select Section / Batch *</label>
-                <select
-                  value={selectedBatch}
-                  onChange={e => {
-                    setSelectedBatch(e.target.value)
-                    setSelectedStudent('')
-                  }}
-                  disabled={!selectedCourse}
-                  style={{ ...inputStyle, opacity: !selectedCourse ? 0.5 : 1 }}
-                  required
-                >
-                  <option value="">-- Choose Section --</option>
-                  {filteredBatches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-              </div>
+              {filteredBatches.length > 0 && (
+                <div>
+                  <label style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px', display: 'block' }}>2. Select Section / Batch</label>
+                  <select
+                    value={selectedBatch}
+                    onChange={e => {
+                      setSelectedBatch(e.target.value)
+                      setSelectedStudent('')
+                    }}
+                    disabled={!selectedCourse}
+                    style={{ ...inputStyle, opacity: !selectedCourse ? 0.5 : 1 }}
+                  >
+                    <option value="">-- All Sections --</option>
+                    {filteredBatches.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
           {/* Specific Student selector */}
           {targetType === 'STUDENT' && (
             <div>
-              <label style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px', display: 'block' }}>3. Select Student *</label>
+              <label style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '4px', display: 'block' }}>
+                {filteredBatches.length > 0 ? '3.' : '2.'} Select Student *
+              </label>
               <select
                 value={selectedStudent}
                 onChange={e => setSelectedStudent(e.target.value)}
-                disabled={!selectedBatch}
-                style={{ ...inputStyle, opacity: !selectedBatch ? 0.5 : 1 }}
+                disabled={!selectedCourse}
+                style={{ ...inputStyle, opacity: !selectedCourse ? 0.5 : 1 }}
                 required
               >
-                <option value="">-- Choose Student --</option>
+                <option value="">{!selectedCourse ? '-- Select Class First --' : students.length === 0 ? 'Loading students...' : '-- Choose Student --'}</option>
                 {students.map((s: any) => (
                   <option key={s.id} value={s.id}>
                     {s.fullName} {s.studentId ? `(${s.studentId})` : ''} {s.parentPhone ? `• Parent: ${s.parentPhone}` : ''}
                   </option>
                 ))}
               </select>
+              {selectedCourse && students.length === 0 && (
+                <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px' }}>⚠️ No students found in this class. Please check enrollment.</div>
+              )}
             </div>
           )}
 
