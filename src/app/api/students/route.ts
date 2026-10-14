@@ -12,7 +12,16 @@ export async function GET(req: NextRequest) {
             new URL(req.url).searchParams.entries()
         )
 
-        const where: any = { tenantId: user!.tenantId }
+        const where: any = {}
+        // Resolve tenantId with fallback to primary school tenant (same as /api/courses and /api/batches)
+        let tenantId = user!.tenantId
+        if (!tenantId) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const tenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (tenant) tenantId = tenant.id
+        }
+        where.tenantId = tenantId
+
         const resolvedCourseId = course || courseId
         const resolvedBatchId = batch || batchId
         if (resolvedCourseId) where.courseId = resolvedCourseId
@@ -26,7 +35,7 @@ export async function GET(req: NextRequest) {
             ]
         }
 
-        const students = await prisma.student.findMany({
+        let students = await prisma.student.findMany({
             where,
             include: {
                 course: { select: { name: true } },
@@ -34,6 +43,28 @@ export async function GET(req: NextRequest) {
             },
             orderBy: { createdAt: 'desc' }
         })
+
+        // Fallback: If no students found, check the primary school tenant
+        // (Same pattern as /api/courses and /api/batches)
+        if (students.length === 0 && tenantId) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (primaryTenant && primaryTenant.id !== tenantId) {
+                const fallbackWhere: any = { tenantId: primaryTenant.id }
+                if (resolvedCourseId) fallbackWhere.courseId = resolvedCourseId
+                if (resolvedBatchId) fallbackWhere.batchId = resolvedBatchId
+                if (status) fallbackWhere.status = status
+                if (search) fallbackWhere.OR = where.OR
+                students = await prisma.student.findMany({
+                    where: fallbackWhere,
+                    include: {
+                        course: { select: { name: true } },
+                        batch: { select: { name: true } }
+                    },
+                    orderBy: { createdAt: 'desc' }
+                })
+            }
+        }
 
         const data = students.map(s => ({
             ...s,
