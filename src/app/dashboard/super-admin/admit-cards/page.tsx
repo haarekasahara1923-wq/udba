@@ -9,16 +9,18 @@ export default function SuperAdminAdmitCardsPage() {
   const [selectedCard, setSelectedCard] = useState<any>(null)
   const [actionMsg, setActionMsg] = useState('')
 
-  const h = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+  const getHeaders = () => {
+    const currentToken = token || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+    return { 'Content-Type': 'application/json', ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}) }
+  }
 
   useEffect(() => {
-    if (!token) return
     loadAdmitCards()
   }, [token])
 
   const loadAdmitCards = async () => {
     setLoading(true)
-    const res = await fetch('/api/admit-cards', { headers: h })
+    const res = await fetch('/api/admit-cards', { headers: getHeaders() })
     const data = await res.json()
     setAdmitCards(data.admitCards || [])
     setLoading(false)
@@ -26,14 +28,14 @@ export default function SuperAdminAdmitCardsPage() {
 
   const approveStudent = async (acsId: string, cardId: string) => {
     const res = await fetch('/api/admit-cards', {
-      method: 'PATCH', headers: h,
+      method: 'PATCH', headers: getHeaders(),
       body: JSON.stringify({ action: 'approve_student', admitCardStudentId: acsId })
     })
     const data = await res.json()
     if (data.success) {
       setActionMsg('✅ Student approved! Teacher can now publish.')
       await loadAdmitCards()
-      const fresh = (await fetch('/api/admit-cards', { headers: h }).then(r => r.json())).admitCards
+      const fresh = (await fetch('/api/admit-cards', { headers: getHeaders() }).then(r => r.json())).admitCards
       const fc = (fresh || []).find((c: any) => c.id === cardId)
       if (fc) setSelectedCard(fc)
       setTimeout(() => setActionMsg(''), 3000)

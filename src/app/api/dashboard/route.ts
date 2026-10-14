@@ -7,7 +7,23 @@ export async function GET(req: NextRequest) {
     const { error, user } = requireAuth(req)
     if (error) return error
 
-    const tenantId = user!.tenantId
+    let tenantId = user!.tenantId
+    if (!tenantId) {
+        const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+        const tenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+        if (tenant) tenantId = tenant.id
+    }
+    // Fallback: If tenantId has 0 students (e.g. for Super Admin or admin whose tenantId isn't the primary school tenant), fallback to primary school tenant
+    if (tenantId) {
+        const studentCount = await prisma.student.count({ where: { tenantId } })
+        if (studentCount === 0) {
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            if (primaryTenant && primaryTenant.id !== tenantId) {
+                tenantId = primaryTenant.id
+            }
+        }
+    }
     const today = new Date()
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
     

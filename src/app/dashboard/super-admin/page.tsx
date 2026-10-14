@@ -1,28 +1,28 @@
 'use client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 
 export default function SuperAdminPage() {
-    const { user, token, tenant } = useAuth()
+    const { user, token, tenant, logout } = useAuth()
     const router = useRouter()
     const [tenants, setTenants] = useState<any[]>([])
     const [stats, setStats] = useState<any>({})
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
 
-    const authHeaders = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-
-    useEffect(() => {
-        if (user && user.role !== 'SUPER_ADMIN') router.push('/dashboard')
-        if (user && user.role === 'SUPER_ADMIN') fetchData()
-    }, [user, router])
+    // Use ref to always have the latest token in fetchData (avoids stale closure)
+    const tokenRef = useRef(token)
+    useEffect(() => { tokenRef.current = token }, [token])
 
     const fetchData = async () => {
+        const currentToken = tokenRef.current || token || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+        if (!currentToken) return
+        const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${currentToken}` }
         setLoading(true)
         try {
-            const res = await fetch('/api/super-admin/tenants', { headers: authHeaders })
+            const res = await fetch('/api/super-admin/tenants', { headers })
             const data = await res.json()
             if (!data.error) {
                 setTenants(data.tenants || [])
@@ -33,6 +33,9 @@ export default function SuperAdminPage() {
     }
 
     const handleAction = async (tenantId: string, action: string, plan?: string) => {
+        const currentToken = tokenRef.current || token || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+        if (!currentToken) return
+        const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${currentToken}` }
         const confirmation = action === 'block'
             ? window.confirm('Are you sure you want to BLOCK this school?')
             : action === 'mark_paid'
@@ -41,7 +44,7 @@ export default function SuperAdminPage() {
         if (!confirmation) return
         try {
             const res = await fetch('/api/super-admin/tenants', {
-                method: 'PUT', headers: authHeaders,
+                method: 'PUT', headers,
                 body: JSON.stringify({ tenantId, action, plan })
             })
             const data = await res.json()
@@ -50,7 +53,14 @@ export default function SuperAdminPage() {
         } catch (e) { console.error(e) }
     }
 
+    // Trigger fetchData whenever user AND token are both ready
+    useEffect(() => {
+        if (user && user.role !== 'SUPER_ADMIN') router.push('/dashboard')
+        if (user && user.role === 'SUPER_ADMIN') fetchData()
+    }, [user, token, router])
+
     if (!user || user.role !== 'SUPER_ADMIN') return null
+
 
     const filteredTenants = tenants.filter(t =>
         t.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -61,20 +71,41 @@ export default function SuperAdminPage() {
 
     return (
         <div>
-            {/* New Bar for School IDs */}
-            <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '16px', padding: '24px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+            {/* New Bar for School IDs + Logout */}
+            <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '16px', padding: '24px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '180px' }}>
                     <div style={{ fontSize: '12px', opacity: 0.8 }}>School Name & App ID</div>
                     <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.name} ({user?.tenantId || 'N/A'})</div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '160px' }}>
                     <div style={{ fontSize: '12px', opacity: 0.8 }}>School ID (Profile)</div>
                     <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.schoolCode || 'Not Set'}</div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '200px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '160px' }}>
                     <div style={{ fontSize: '12px', opacity: 0.8 }}>DISE No.</div>
                     <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.diseCode || 'Not Set'}</div>
                 </div>
+                <button
+                    onClick={logout}
+                    title="Logout from Super Admin"
+                    style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '14px 22px',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                        whiteSpace: 'nowrap',
+                    }}
+                >
+                    🚪 Logout
+                </button>
             </div>
 
             {/* Quick Action Buttons — all sidebar options */}

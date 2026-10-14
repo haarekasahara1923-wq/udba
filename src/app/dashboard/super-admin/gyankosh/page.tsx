@@ -21,16 +21,19 @@ export default function AdminGyankosh() {
         orderBumps: [] as any[]
     })
 
-    const authHeaders = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const getAuthHeaders = () => {
+        const currentToken = token || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+        return { 'Content-Type': 'application/json', ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}) }
+    }
 
-    useEffect(() => { fetchData() }, [])
+    useEffect(() => { fetchData() }, [token])
 
     const fetchData = async () => {
         setLoading(true)
         try {
             const [pRes, wRes] = await Promise.all([
-                fetch('/api/super-admin/gyankosh/products', { headers: authHeaders }),
-                fetch('/api/super-admin/gyankosh/withdrawals', { headers: authHeaders })
+                fetch('/api/super-admin/gyankosh/products', { headers: getAuthHeaders() }),
+                fetch('/api/super-admin/gyankosh/withdrawals', { headers: getAuthHeaders() })
             ])
             const pData = await pRes.json()
             const wData = await wRes.json()
@@ -59,7 +62,7 @@ export default function AdminGyankosh() {
             const body = editingId ? { ...formData, id: editingId, action: 'edit' } : formData
             const method = editingId ? 'PUT' : 'POST'
             const res = await fetch('/api/super-admin/gyankosh/products', {
-                method, headers: authHeaders, body: JSON.stringify(body)
+                method, headers: getAuthHeaders(), body: JSON.stringify(body)
             })
             if (res.ok) {
                 alert(editingId ? 'Product updated!' : 'Product created!')
@@ -75,7 +78,7 @@ export default function AdminGyankosh() {
     const handleToggleProduct = async (id: string, isActive: boolean) => {
         try {
             await fetch('/api/super-admin/gyankosh/products', {
-                method: 'PUT', headers: authHeaders,
+                method: 'PUT', headers: getAuthHeaders(),
                 body: JSON.stringify({ id, isActive, action: 'toggle' })
             })
             fetchData()
@@ -86,7 +89,7 @@ export default function AdminGyankosh() {
         if (!window.confirm(`Mark this withdrawal as ${status}?`)) return
         try {
             const res = await fetch('/api/super-admin/gyankosh/withdrawals', {
-                method: 'PUT', headers: authHeaders,
+                method: 'PUT', headers: getAuthHeaders(),
                 body: JSON.stringify({ id, status })
             })
             if (res.ok) { alert('Updated!'); fetchData() }

@@ -26,7 +26,17 @@ function LoginForm() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (user) redirectByRole(user.role)
+    if (typeof window !== 'undefined' && window.location.search.includes('logout=1')) {
+      try {
+        localStorage.clear()
+        sessionStorage.clear()
+      } catch (e) {}
+      return
+    }
+    const hasToken = typeof window !== 'undefined' && (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token'))
+    if (user && hasToken) {
+      redirectByRole(user.role)
+    }
   }, [user])
 
   const redirectByRole = (r: string) => {

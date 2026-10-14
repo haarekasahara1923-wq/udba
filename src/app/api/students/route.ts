@@ -15,10 +15,20 @@ export async function GET(req: NextRequest) {
         const where: any = {}
         // Resolve tenantId with fallback to primary school tenant (same as /api/courses and /api/batches)
         let tenantId = user!.tenantId
-        if (!tenantId) {
+        const queryTenantId = new URL(req.url).searchParams.get('tenantId')
+        if (user!.role === 'SUPER_ADMIN' && queryTenantId) {
+            tenantId = queryTenantId
+        } else if (!tenantId) {
             const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
             const tenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
             if (tenant) tenantId = tenant.id
+        } else if (user!.role === 'SUPER_ADMIN') {
+            const studentCount = await prisma.student.count({ where: { tenantId } })
+            if (studentCount === 0) {
+                const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+                const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+                if (primaryTenant) tenantId = primaryTenant.id
+            }
         }
         where.tenantId = tenantId
 

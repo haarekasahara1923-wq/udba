@@ -1,10 +1,10 @@
 'use client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 export default function AllTenantsPage() {
-    const { user, token } = useAuth()
+    const { user, token, logout } = useAuth()
     const router = useRouter()
     const [tenants, setTenants] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -13,29 +13,38 @@ export default function AllTenantsPage() {
     const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', address: '', upiId: '' })
     const [saving, setSaving] = useState(false)
 
-    const authHeaders = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const tokenRef = useRef(token)
+    useEffect(() => { tokenRef.current = token }, [token])
 
-    useEffect(() => {
-        if (user && user.role !== 'SUPER_ADMIN') router.push('/dashboard')
-        if (user && user.role === 'SUPER_ADMIN') fetchData()
-    }, [user, router])
+    const getAuthHeaders = () => {
+        const currentToken = token || tokenRef.current || (typeof window !== 'undefined' ? (localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')) : null)
+        return {
+            'Content-Type': 'application/json',
+            ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {})
+        }
+    }
 
     const fetchData = async () => {
         setLoading(true)
         try {
-            const res = await fetch('/api/super-admin/tenants', { headers: authHeaders })
+            const res = await fetch('/api/super-admin/tenants', { headers: getAuthHeaders() })
             const data = await res.json()
             if (!data.error) setTenants(data.tenants || [])
         } catch (e) { console.error(e) }
         setLoading(false)
     }
 
+    useEffect(() => {
+        if (user && user.role !== 'SUPER_ADMIN') router.push('/dashboard')
+        if (user && user.role === 'SUPER_ADMIN') fetchData()
+    }, [user, token, router])
+
     const handleAction = async (tenantId: string, action: string, plan?: string) => {
         if (action === 'delete') {
             if (!window.confirm('CRITICAL: Delete this school and ALL its data (students, payments, attendance)? This cannot be undone.')) return
             try {
                 const res = await fetch(`/api/super-admin/tenants?id=${tenantId}`, {
-                    method: 'DELETE', headers: authHeaders
+                    method: 'DELETE', headers: getAuthHeaders()
                 })
                 const data = await res.json()
                 if (data.success) { alert(data.message); fetchData() }
@@ -48,7 +57,7 @@ export default function AllTenantsPage() {
         if (!window.confirm(msg)) return
         try {
             const res = await fetch('/api/super-admin/tenants', {
-                method: 'PUT', headers: authHeaders,
+                method: 'PUT', headers: getAuthHeaders(),
                 body: JSON.stringify({ tenantId, action, plan })
             })
             const data = await res.json()
@@ -63,7 +72,7 @@ export default function AllTenantsPage() {
         try {
             const res = await fetch('/api/super-admin/tenants', {
                 method: 'PUT',
-                headers: authHeaders,
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ tenantId: editingTenant.id, action: 'edit', ...editForm })
             })
             const data = await res.json()
@@ -88,10 +97,35 @@ export default function AllTenantsPage() {
 
     return (
         <div>
-            <div className="page-header">
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                     <h1 className="page-title">🏫 All schools</h1>
                     <p className="page-subtitle">Manage all registered schools</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        onClick={fetchData}
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+                    >
+                        🔄 Refresh Data
+                    </button>
+                    <button
+                        onClick={logout}
+                        className="btn"
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 2px 8px rgba(239,68,68,0.35)',
+                        }}
+                    >
+                        🚪 Logout
+                    </button>
                 </div>
             </div>
 

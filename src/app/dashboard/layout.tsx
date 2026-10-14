@@ -189,7 +189,14 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{user?.role?.replace('_', ' ')}</div>
                             </div>
                         </div>
-                        <button onClick={logout} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', padding: '8px', fontSize: '13px' }}>
+                        <button
+                            onClick={() => {
+                                onClose()
+                                logout()
+                            }}
+                            className="btn btn-secondary"
+                            style={{ width: '100%', justifyContent: 'center', padding: '8px', fontSize: '13px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', fontWeight: 600 }}
+                        >
                             🚪 Logout
                         </button>
                     </div>
@@ -201,8 +208,8 @@ function DashboardSidebar({ open, onClose }: { open: boolean; onClose: () => voi
 
 function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => void, onOpenAiModal: () => void }) {
     const pathname = usePathname()
-    const { tenant } = useAuth()
-        const [qrModalOpen, setQrModalOpen] = useState(false)
+    const { tenant, logout } = useAuth()
+    const [qrModalOpen, setQrModalOpen] = useState(false)
 
     const getPageTitle = () => {
         const map: Record<string, string> = {
@@ -277,6 +284,25 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
                 >
                     ✨ <span className="hide-mobile">AI Assistant</span>
                 </button>
+                {/* Always-accessible mobile logout button */}
+                <button
+                    onClick={logout}
+                    className="show-mobile"
+                    title="Logout"
+                    style={{
+                        background: 'rgba(239,68,68,0.18)',
+                        border: '1px solid rgba(239,68,68,0.35)',
+                        color: '#ef4444',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                    }}
+                >
+                    🚪 Logout
+                </button>
                 {/* Global Student Search Bar */}
                 <div
                     className="search-input-container"
@@ -345,6 +371,26 @@ function DashboardHeader({ onMenuClick, onOpenAiModal }: { onMenuClick: () => vo
                         {tenant?.name?.charAt(0) || 'U'}
                     </div>
                 </Link>
+                <button
+                    onClick={logout}
+                    title="Logout"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        background: 'rgba(239,68,68,0.12)',
+                        border: '1px solid rgba(239,68,68,0.3)',
+                        color: '#ef4444',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                    }}
+                >
+                    🚪 <span>Logout</span>
+                </button>
             </div>
 
             </header>
@@ -360,9 +406,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!isLoading && !user) {
-            router.push('/login')
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+                window.location.href = '/login?logout=1'
+            }
         }
-    }, [user, isLoading, router, pathname])
+    }, [user, isLoading])
 
     useEffect(() => {
         if (sidebarOpen) {
@@ -388,7 +436,13 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
     if (!user) return null
 
-    const bottomNavItems = [
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN'
+    const bottomNavItems = isSuperAdmin ? [
+        { href: '/dashboard/super-admin', label: 'Platform', icon: '👑' },
+        { href: '/dashboard/super-admin/tenants', label: 'Schools', icon: '🏫' },
+        { href: '/dashboard/students', label: 'Students', icon: '👨‍🎓' },
+        { href: '/dashboard/fees', label: 'Fees', icon: '💰' },
+    ] : [
         { href: '/dashboard', label: 'Home', icon: '🏠' },
         { href: '/dashboard/students', label: 'Students', icon: '👨‍🎓' },
         { href: '/dashboard/fees', label: 'Fees', icon: '💰' },

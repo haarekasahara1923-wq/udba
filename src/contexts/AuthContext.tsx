@@ -51,16 +51,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
+        // If logout=1 is present in URL, explicitly purge everything and do not restore user
+        if (typeof window !== 'undefined' && window.location.search.includes('logout=1')) {
+            try {
+                localStorage.clear()
+                sessionStorage.clear()
+            } catch (e) {}
+            setUser(null)
+            setTenant(null)
+            setSubscription(null)
+            setToken(null)
+            setIsLoading(false)
+            return
+        }
+
         const storedToken = localStorage.getItem('UDA_token') || localStorage.getItem('udba_token')
         const storedUser = localStorage.getItem('UDA_user') || localStorage.getItem('udba_user')
         const storedTenant = localStorage.getItem('UDA_tenant') || localStorage.getItem('udba_tenant')
         const storedSub = localStorage.getItem('UDA_subscription') || localStorage.getItem('udba_subscription')
 
         if (storedToken && storedUser) {
-            setToken(storedToken)
-            setUser(JSON.parse(storedUser))
-            if (storedTenant) setTenant(JSON.parse(storedTenant))
-            if (storedSub) setSubscription(JSON.parse(storedSub))
+            try {
+                setToken(storedToken)
+                setUser(JSON.parse(storedUser))
+                if (storedTenant) setTenant(JSON.parse(storedTenant))
+                if (storedSub) setSubscription(JSON.parse(storedSub))
+            } catch (e) {
+                console.error('Error parsing stored user data:', e)
+                setUser(null)
+                setToken(null)
+            }
         }
         setIsLoading(false)
     }, [])
@@ -96,16 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const logout = () => {
+        try {
+            if (typeof window !== 'undefined') {
+                localStorage.clear()
+                sessionStorage.clear()
+            }
+        } catch (e) {
+            console.error('Logout error:', e)
+        }
         setUser(null)
         setTenant(null)
         setSubscription(null)
         setToken(null)
-        localStorage.removeItem('UDA_token')
-        localStorage.removeItem('UDA_user')
-        localStorage.removeItem('UDA_tenant')
-        localStorage.removeItem('UDA_subscription')
-        localStorage.removeItem('UDA_refresh')
-        window.location.href = '/login'
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login?logout=1'
+        }
     }
 
     return (
