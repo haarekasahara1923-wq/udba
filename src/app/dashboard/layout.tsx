@@ -59,6 +59,7 @@ const superAdminNav = [
     {
         group: 'SUPER ADMIN', items: [
             { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview' },
+            { href: '/dashboard/profile', icon: '🏢', label: 'School Profile' },
             { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools' },
             { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins' },
             { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards' },
@@ -94,6 +95,14 @@ const adminOperationNav = [
     },
 ]
 
+const settingsNav = [
+    {
+        group: 'SETTINGS', items: [
+            { href: '/dashboard/profile', icon: '🏢', label: 'School Profile' },
+        ]
+    },
+]
+
 const adminLibraryNav = [
     {
         group: 'LIBRARY', items: [
@@ -119,8 +128,8 @@ const adminTransportNav = [
 ]
 
 const getNavForRole = (role: string) => {
-    if (role === 'SUPER_ADMIN') return [...superAdminNav, ...adminOperationNav]
-    if (role === 'ADMIN_OPERATION') return adminOperationNav
+    if (role === 'SUPER_ADMIN') return [...superAdminNav, ...adminOperationNav, ...settingsNav]
+    if (role === 'ADMIN_OPERATION') return [...adminOperationNav, ...settingsNav]
     if (role === 'ADMIN_LIBRARY') return adminLibraryNav
     if (role === 'ADMIN_SPORTS') return adminSportsNav
     if (role === 'ADMIN_TRANSPORT') return adminTransportNav

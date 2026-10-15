@@ -48,6 +48,8 @@ export interface ReportPDFOptions {
     schoolAddress?: string
     schoolCode?: string
     diseCode?: string
+    logo?: string
+    website?: string
     stats?: ReportPDFStat[]
     tables: ReportPDFTable[]
     notes?: string
@@ -61,6 +63,8 @@ export function generateAndPrintPDF(options: ReportPDFOptions) {
         schoolAddress = '📍 Pinto Park, Gwalior (MP) • Ph: +91 7879337770',
         schoolCode = '',
         diseCode = '',
+        logo = '',
+        website = '',
         stats = [],
         tables = [],
         notes = '',
@@ -294,12 +298,15 @@ export function generateAndPrintPDF(options: ReportPDFOptions) {
 
     <!-- Printable Report Content -->
     <div class="report-header">
-        <div>
-            <div class="school-title">🏫 ${schoolName}</div>
-            <div class="school-subtitle">${schoolAddress}</div>
-            ${schoolCode || diseCode ? `<div class="school-subtitle" style="font-weight: 600;">${schoolCode ? `School Code: ${schoolCode}` : ''}${schoolCode && diseCode ? ' | ' : ''}${diseCode ? `DISE Code: ${diseCode}` : ''}</div>` : ''}
-            <div class="report-main-title">${title}</div>
-            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">${subtitle}</div>
+        <div style="display: flex; gap: 16px; align-items: center;">
+            ${logo ? `<img src="${logo}" style="width: 60px; height: 60px; object-fit: contain; border-radius: 8px;" />` : ''}
+            <div>
+                <div class="school-title">${schoolName}</div>
+                <div class="school-subtitle">${schoolAddress}${website ? ` • Web: ${website}` : ''}</div>
+                ${schoolCode || diseCode ? `<div class="school-subtitle" style="font-weight: 700; color: #1e293b;">${schoolCode ? `School ID: ${schoolCode}` : ''}${schoolCode && diseCode ? ' | ' : ''}${diseCode ? `UDISE No: ${diseCode}` : ''}</div>` : ''}
+                <div class="report-main-title">${title}</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">${subtitle}</div>
+            </div>
         </div>
         <div class="header-meta">
             <div class="badge">Official Report</div>

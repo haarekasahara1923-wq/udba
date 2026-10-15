@@ -128,7 +128,8 @@ export default function FeesPage() {
                 <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
                     ${tenant?.logo ? `<img src="${tenant.logo}" style="height: 80px;" />` : ''}
                     <h1 style="margin: 10px 0 5px 0; text-transform: uppercase;">${tenant?.name || 'School Name'}</h1>
-                    <p style="margin: 0; font-size: 14px;">${tenant?.address || ''} | Ph: ${tenant?.phone || ''} | Email: ${tenant?.email || ''}</p>
+                    <p style="margin: 0; font-size: 14px;">${tenant?.address || ''} | Ph: ${tenant?.phone || ''} | Email: ${tenant?.email || ''}${tenant?.website ? ` | Web: ${tenant.website}` : ''}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>School Code:</strong> ${tenant?.schoolCode || '___'} &nbsp;&nbsp;&nbsp; <strong>UDISE No:</strong> ${tenant?.diseCode || '___'}</p>
                 </div>
                 
                 <h2 style="text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 18px; text-decoration: underline;">FEE RECEIPT</h2>

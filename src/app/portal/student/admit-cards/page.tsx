@@ -112,12 +112,19 @@ function AdmitCardTemplate({ acs, tenant }: { acs: any, tenant: any }) {
       {/* School Header */}
       <div style={{ background: 'linear-gradient(135deg, #1a5c38, #0f3d26)', padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '20px' }}>
         {tenant?.logo && (
-          <img src={tenant.logo} alt="School Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '12px', background: 'white', padding: '4px' }} />
+          <img src={tenant.logo} alt="School Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '12px', background: 'white', padding: '4px', flexShrink: 0 }} />
         )}
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: '22px', fontWeight: '900', color: 'white', letterSpacing: '0.5px' }}>{tenant?.name || 'School Name'}</div>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginTop: '4px' }}>{tenant?.address || ''}</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>Phone: {tenant?.phone || ''} {tenant?.email ? `| Email: ${tenant.email}` : ''}</div>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>{tenant?.address || ''}</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
+            Phone: {tenant?.phone || 'N/A'} {tenant?.email ? `| Email: ${tenant.email}` : ''} {tenant?.website ? `| Web: ${tenant.website}` : ''}
+          </div>
+          {(tenant?.schoolCode || tenant?.diseCode) && (
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.95)', marginTop: '4px', fontWeight: '700' }}>
+              {tenant?.schoolCode ? `School ID: ${tenant.schoolCode}` : ''} {tenant?.schoolCode && tenant?.diseCode ? ' | ' : ''} {tenant?.diseCode ? `UDISE No: ${tenant.diseCode}` : ''}
+            </div>
+          )}
         </div>
       </div>
 

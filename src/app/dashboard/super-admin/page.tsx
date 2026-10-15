@@ -9,6 +9,7 @@ export default function SuperAdminPage() {
     const router = useRouter()
     const [tenants, setTenants] = useState<any[]>([])
     const [stats, setStats] = useState<any>({})
+    const [currentTenant, setCurrentTenant] = useState<any>(tenant)
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
 
@@ -22,11 +23,18 @@ export default function SuperAdminPage() {
         const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${currentToken}` }
         setLoading(true)
         try {
-            const res = await fetch('/api/super-admin/tenants', { headers })
-            const data = await res.json()
+            const [tenantsRes, tenantRes] = await Promise.all([
+                fetch('/api/super-admin/tenants', { headers }),
+                fetch('/api/tenant', { headers })
+            ])
+            const data = await tenantsRes.json()
             if (!data.error) {
                 setTenants(data.tenants || [])
                 setStats(data.stats || {})
+            }
+            const tData = await tenantRes.json()
+            if (tData.success && tData.tenant) {
+                setCurrentTenant(tData.tenant)
             }
         } catch (e) { console.error(e) }
         setLoading(false)
@@ -71,41 +79,126 @@ export default function SuperAdminPage() {
 
     return (
         <div>
-            {/* New Bar for School IDs + Logout */}
-            <div style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '16px', padding: '24px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '180px' }}>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>School Name & App ID</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.name} ({user?.tenantId || 'N/A'})</div>
+            {/* Top Violet Bar for School Name, School ID, UDISE No, Edit Profile & Logout */}
+            <div style={{ 
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', 
+                borderRadius: '16px', 
+                padding: '22px 24px', 
+                display: 'flex', 
+                gap: '16px', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', 
+                marginBottom: '24px',
+                boxShadow: '0 8px 30px rgba(99, 102, 241, 0.25)' 
+            }}>
+                {/* School Name & Logo (No code string below school name!) */}
+                <div style={{ 
+                    background: 'rgba(255,255,255,0.18)', 
+                    backdropFilter: 'blur(10px)',
+                    padding: '12px 18px', 
+                    borderRadius: '12px', 
+                    color: 'white', 
+                    flex: '1.4', 
+                    minWidth: '220px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px'
+                }}>
+                    {(currentTenant?.logo || tenant?.logo) ? (
+                        <img 
+                            src={currentTenant?.logo || tenant?.logo} 
+                            alt="Logo" 
+                            style={{ width: '44px', height: '44px', borderRadius: '8px', objectFit: 'contain', background: 'white', padding: '3px', flexShrink: 0 }} 
+                        />
+                    ) : (
+                        <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>
+                            🏫
+                        </div>
+                    )}
+                    <div style={{ overflow: 'hidden' }}>
+                        <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.85, fontWeight: '700' }}>School Institute</div>
+                        <div style={{ fontSize: '18px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {currentTenant?.name || tenant?.name || 'School Name'}
+                        </div>
+                    </div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '160px' }}>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>School ID (Profile)</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.schoolCode || 'Not Set'}</div>
+
+                {/* School ID */}
+                <div style={{ 
+                    background: 'rgba(255,255,255,0.18)', 
+                    backdropFilter: 'blur(10px)',
+                    padding: '12px 18px', 
+                    borderRadius: '12px', 
+                    color: 'white', 
+                    flex: '1', 
+                    minWidth: '150px' 
+                }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.85, fontWeight: '700' }}>School ID</div>
+                    <div style={{ fontSize: '17px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                        {currentTenant?.schoolCode || tenant?.schoolCode || <span style={{ opacity: 0.7, fontWeight: 500, fontSize: '14px' }}>Not Set</span>}
+                    </div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px 20px', borderRadius: '10px', color: 'white', flex: 1, minWidth: '160px' }}>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>DISE No.</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{tenant?.diseCode || 'Not Set'}</div>
+
+                {/* UDISE No. */}
+                <div style={{ 
+                    background: 'rgba(255,255,255,0.18)', 
+                    backdropFilter: 'blur(10px)',
+                    padding: '12px 18px', 
+                    borderRadius: '12px', 
+                    color: 'white', 
+                    flex: '1', 
+                    minWidth: '150px' 
+                }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.85, fontWeight: '700' }}>UDISE No.</div>
+                    <div style={{ fontSize: '17px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                        {currentTenant?.diseCode || tenant?.diseCode || <span style={{ opacity: 0.7, fontWeight: 500, fontSize: '14px' }}>Not Set</span>}
+                    </div>
                 </div>
-                <button
-                    onClick={logout}
-                    title="Logout from Super Admin"
-                    style={{
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '10px',
-                        padding: '14px 22px',
-                        fontSize: '14px',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
-                        whiteSpace: 'nowrap',
-                    }}
-                >
-                    🚪 Logout
-                </button>
+
+                {/* Actions: Edit Profile CTA + Logout */}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginLeft: 'auto' }}>
+                    <Link
+                        href="/dashboard/profile"
+                        style={{
+                            background: '#ffffff',
+                            color: '#4f46e5',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '12px 18px',
+                            fontSize: '13px',
+                            fontWeight: '800',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        ✏️ Edit Profile
+                    </Link>
+                    <button
+                        onClick={logout}
+                        title="Logout from Super Admin"
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '12px 18px',
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        🚪 Logout
+                    </button>
+                </div>
             </div>
 
             {/* Quick Action Buttons — all sidebar options */}
@@ -116,9 +209,10 @@ export default function SuperAdminPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '16px' }}>
                     {[
                         { href: '/dashboard/super-admin', icon: '👑', label: 'Platform Overview', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                        { href: '/dashboard/profile', icon: '🏢', label: 'School Profile', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
                         { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-                        { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
-                        { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
+                        { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
+                        { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
                         { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
                     ].map(a => (
                         <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>

@@ -108,11 +108,18 @@ function AdmitCardPrintTemplate({ acs, tenant }: { acs: any, tenant: any }) {
   return (
     <div style={{ width: '800px', margin: '0 auto', fontFamily: 'Arial, sans-serif', border: '3px solid #1a5c38', borderRadius: '16px', overflow: 'hidden', background: 'white', color: '#0a0a0a' }}>
       <div style={{ background: 'linear-gradient(135deg, #1a5c38, #0f3d26)', padding: '24px 32px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-        {tenant?.logo && <img src={tenant.logo} alt="Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '12px', background: 'white', padding: '4px' }} />}
-        <div>
+        {tenant?.logo && <img src={tenant.logo} alt="Logo" style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '12px', background: 'white', padding: '4px', flexShrink: 0 }} />}
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: '22px', fontWeight: '900', color: 'white' }}>{tenant?.name || 'School Name'}</div>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginTop: '4px' }}>{tenant?.address || ''}</div>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>Phone: {tenant?.phone || ''}</div>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>{tenant?.address || ''}</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginTop: '2px' }}>
+            Phone: {tenant?.phone || 'N/A'} {tenant?.email ? `| Email: ${tenant.email}` : ''} {tenant?.website ? `| Web: ${tenant.website}` : ''}
+          </div>
+          {(tenant?.schoolCode || tenant?.diseCode) && (
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.95)', marginTop: '4px', fontWeight: '700' }}>
+              {tenant?.schoolCode ? `School ID: ${tenant.schoolCode}` : ''} {tenant?.schoolCode && tenant?.diseCode ? ' | ' : ''} {tenant?.diseCode ? `UDISE No: ${tenant.diseCode}` : ''}
+            </div>
+          )}
         </div>
       </div>
       <div style={{ background: '#f0fdf4', padding: '14px 32px', textAlign: 'center', borderBottom: '2px dashed #1a5c38' }}>

@@ -24,17 +24,20 @@ export default function TCGenerationPage() {
     })
 
     const tcRef = useRef<HTMLDivElement>(null)
+    const [currentTenant, setCurrentTenant] = useState<any>(tenant)
 
     useEffect(() => {
         if (!token) return
         Promise.all([
             fetch('/api/courses', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
             fetch('/api/batches', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-            fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
-        ]).then(([cRes, bRes, sRes]) => {
+            fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+            fetch('/api/tenant', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json())
+        ]).then(([cRes, bRes, sRes, tRes]) => {
             if (cRes.success) setCourses(cRes.data)
             if (bRes.success) setBatches(bRes.data)
             if (sRes.success) setStudents(sRes.data)
+            if (tRes.success && tRes.tenant) setCurrentTenant(tRes.tenant)
         })
     }, [token])
 
@@ -242,15 +245,15 @@ export default function TCGenerationPage() {
                     }}>
                         {/* School Header */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '3px solid #1e293b', paddingBottom: '20px', marginBottom: '30px' }}>
-                            {tenant?.logo ? (
-                                <img src={tenant.logo} alt="School Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} crossOrigin="anonymous" />
+                            {(currentTenant?.logo || tenant?.logo) ? (
+                                <img src={currentTenant?.logo || tenant?.logo} alt="School Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} crossOrigin="anonymous" />
                             ) : <div style={{ width: '100px' }} />}
                             
                             <div style={{ flex: 1, textAlign: 'center', padding: '0 20px' }}>
-                                <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', color: '#1e293b', textTransform: 'uppercase' }}>{tenant?.name || 'UNIVERSAL DAY BOARDING ACADEMY'}</h1>
-                                <p style={{ margin: '0 0 5px 0', fontSize: '14px' }}>{tenant?.address || 'School Address Not Provided'}</p>
-                                <p style={{ margin: 0, fontSize: '14px' }}>Phone: {tenant?.phone || 'N/A'} | Email: {tenant?.email || 'N/A'}</p>
-                                <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}><strong>School Code:</strong> {tenant?.schoolCode || '___'} &nbsp;&nbsp;&nbsp; <strong>DISE Code:</strong> {tenant?.diseCode || '___'}</p>
+                                <h1 style={{ margin: '0 0 8px 0', fontSize: '26px', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{currentTenant?.name || tenant?.name || 'UNIVERSAL DAY BOARDING ACADEMY'}</h1>
+                                <p style={{ margin: '0 0 4px 0', fontSize: '13px' }}>{currentTenant?.address || tenant?.address || 'School Address Not Provided'}</p>
+                                <p style={{ margin: 0, fontSize: '13px' }}>Phone: {currentTenant?.phone || tenant?.phone || 'N/A'} | Email: {currentTenant?.email || tenant?.email || 'N/A'}{(currentTenant?.website || tenant?.website) ? ` | Web: ${currentTenant?.website || tenant?.website}` : ''}</p>
+                                <p style={{ margin: '5px 0 0 0', fontSize: '13px', fontWeight: 'bold' }}><strong>School Code:</strong> {currentTenant?.schoolCode || tenant?.schoolCode || '___'} &nbsp;&nbsp;&nbsp; <strong>UDISE Code:</strong> {currentTenant?.diseCode || tenant?.diseCode || '___'}</p>
                             </div>
 
                             {studentData.photo ? (
