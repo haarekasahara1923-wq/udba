@@ -7,6 +7,7 @@ import { downloadCSV, generateAndPrintPDF } from '@/lib/reportExport'
 interface Student {
     id: string
     fullName: string
+    scholarNo?: string
     phone: string
     parentPhone: string
     courseName: string
@@ -15,12 +16,23 @@ interface Student {
     status: string
 }
 
+interface SiblingStudent {
+    id: string
+    fullName: string
+    scholarNo?: string
+    courseName?: string
+    batchName?: string
+    totalFee: number
+    paidFee: number
+}
+
 export default function FeesPage() {
     const { token, tenant } = useAuth()
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('outstanding')
     const [toast, setToast] = useState('')
+    const [feeSearch, setFeeSearch] = useState('')
 
     // Installments Modal State
     const [selectedStudentForFees, setSelectedStudentForFees] = useState<Student | null>(null)
@@ -29,6 +41,12 @@ export default function FeesPage() {
     const [paymentMode, setPaymentMode] = useState('CASH')
     const [processingPayment, setProcessingPayment] = useState<string | null>(null)
     const [depositDate, setDepositDate] = useState(new Date().toISOString().split('T')[0])
+
+    // Siblings state in fee modal
+    const [studentSiblings, setStudentSiblings] = useState<SiblingStudent[]>([])
+    const [siblingsLoading, setSiblingsLoading] = useState(false)
+    const [grossAmount, setGrossAmount] = useState('')
+    const [processingGross, setProcessingGross] = useState(false)
 
     const fetchStudents = () => {
         fetch('/api/students', { headers: { Authorization: `Bearer ${token}` } })
@@ -55,12 +73,41 @@ export default function FeesPage() {
     const openInstallments = async (student: Student) => {
         setSelectedStudentForFees(student)
         setFeesLoading(true)
-        const res = await fetch(`/api/fees?studentId=${student.id}`, { headers: { Authorization: `Bearer ${token}` } })
-        const data = await res.json()
-        if (data.success) {
-            setStudentFees(data.data)
+        setSiblingsLoading(true)
+        setStudentSiblings([])
+        setGrossAmount('')
+
+        const [feesRes, siblingsRes] = await Promise.all([
+            fetch(`/api/fees?studentId=${student.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+            fetch(`/api/students/siblings?studentId=${student.id}`, { headers: { Authorization: `Bearer ${token}` } })
+        ])
+
+        const [feesData, siblingsData] = await Promise.all([feesRes.json(), siblingsRes.json()])
+        if (feesData.success) setStudentFees(feesData.data)
+        if (siblingsData.success) {
+            // Fetch student details (paidFee, totalFee) for each sibling for proportional calculation
+            const siblingIds = siblingsData.data.map((s: any) => s.id)
+            if (siblingIds.length > 0) {
+                try {
+                    const sibStudentsRes = await fetch(`/api/students`, { headers: { Authorization: `Bearer ${token}` } })
+                    const sibStudentsData = await sibStudentsRes.json()
+                    if (sibStudentsData.success) {
+                        const sibMap = new Map(sibStudentsData.data.map((s: any) => [s.id, s]))
+                        const enrichedSiblings = siblingsData.data.map((sib: any) => {
+                            const full = sibMap.get(sib.id) as any
+                            return {
+                                ...sib,
+                                totalFee: full?.totalFee || 0,
+                                paidFee: full?.paidFee || 0,
+                            }
+                        })
+                        setStudentSiblings(enrichedSiblings)
+                    }
+                } catch {}
+            }
         }
         setFeesLoading(false)
+        setSiblingsLoading(false)
     }
 
     const generateFeeReceipt = (payment: any, student: Student, amount: number) => {
@@ -166,7 +213,81 @@ export default function FeesPage() {
         setProcessingPayment(null)
     }
 
-    const getCurrentList = () => activeTab === 'outstanding' ? outstanding : activeTab === 'paid' ? paid : students
+    // Gross family payment: distribute proportionally among student + siblings based on pending dues
+    const handleGrossPayment = async () => {
+        const grossAmt = parseFloat(grossAmount)
+        if (!grossAmt || grossAmt <= 0) { alert('Enter a valid gross amount'); return }
+        if (!selectedStudentForFees) return
+
+        // Build list of all family members with pending fee
+        const allFamily = [
+            { ...selectedStudentForFees, pending: selectedStudentForFees.totalFee - selectedStudentForFees.paidFee },
+            ...studentSiblings.map(s => ({ ...s, pending: s.totalFee - s.paidFee }))
+        ].filter(m => m.pending > 0)
+
+        if (allFamily.length === 0) { alert('No pending fees for any family member'); return }
+
+        const totalPending = allFamily.reduce((sum, m) => sum + m.pending, 0)
+        if (grossAmt > totalPending) {
+            if (!confirm(`Gross amount (${formatCurrency(grossAmt)}) exceeds total family pending (${formatCurrency(totalPending)}). Proceed with ₹${totalPending.toFixed(2)}?`)) return
+        }
+
+        const effectiveAmt = Math.min(grossAmt, totalPending)
+
+        // Calculate proportional distribution
+        const distributions = allFamily.map(m => ({
+            studentId: m.id,
+            name: m.fullName,
+            proportion: m.pending / totalPending,
+            amount: Math.round((m.pending / totalPending) * effectiveAmt * 100) / 100
+        }))
+
+        // Adjust for rounding
+        const distribSum = distributions.reduce((s, d) => s + d.amount, 0)
+        if (distributions.length > 0) distributions[0].amount += Math.round((effectiveAmt - distribSum) * 100) / 100
+
+        const confirmMsg = distributions.map(d => `${d.name}: ${formatCurrency(d.amount)}`).join('\n')
+        if (!confirm(`Gross family payment of ${formatCurrency(effectiveAmt)} will be distributed as:\n\n${confirmMsg}\n\nProceed?`)) return
+
+        setProcessingGross(true)
+        try {
+            for (const dist of distributions) {
+                if (dist.amount <= 0) continue
+                await fetch('/api/payments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({
+                        studentId: dist.studentId,
+                        amount: dist.amount,
+                        mode: paymentMode,
+                        notes: `Family Gross Payment (proportional share)`,
+                        date: depositDate
+                    })
+                })
+            }
+            setToast('Family gross payment distributed successfully!')
+            setTimeout(() => setToast(''), 4000)
+            setGrossAmount('')
+            openInstallments(selectedStudentForFees)
+            fetchStudents()
+        } catch (err) {
+            alert('Error processing gross payment')
+        }
+        setProcessingGross(false)
+    }
+
+    const getCurrentList = () => {
+        let list = activeTab === 'outstanding' ? outstanding : activeTab === 'paid' ? paid : students
+        if (feeSearch.trim()) {
+            const q = feeSearch.toLowerCase()
+            list = list.filter(s =>
+                s.fullName.toLowerCase().includes(q) ||
+                (s.scholarNo || '').toLowerCase().includes(q) ||
+                (s.phone || '').includes(q)
+            )
+        }
+        return list
+    }
 
     const handleExportCSV = () => {
         const list = getCurrentList()
@@ -179,13 +300,14 @@ export default function FeesPage() {
             ['Total Outstanding Dues', formatCurrency(totalDue)],
             ['Total Collected', formatCurrency(totalCollected)],
             [''],
-            ['Student Name', 'Phone', 'Parent Phone', 'Course', 'Total Fee (INR)', 'Paid Fee (INR)', 'Pending Due (INR)', 'Payment %', 'Status']
+            ['Student Name', 'Scholar No.', 'Phone', 'Parent Phone', 'Course', 'Total Fee (INR)', 'Paid Fee (INR)', 'Pending Due (INR)', 'Payment %', 'Status']
         ]
         list.forEach(s => {
             const pending = s.totalFee - s.paidFee
             const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
             rows.push([
                 s.fullName,
+                s.scholarNo || '-',
                 s.phone || '-',
                 s.parentPhone || '-',
                 s.courseName || '-',
@@ -218,12 +340,13 @@ export default function FeesPage() {
             tables: [
                 {
                     title: `Fee Accounts (${list.length} Students)`,
-                    headers: ['Student Name', 'Phone', 'Course', 'Total Fee', 'Paid', 'Pending Due', 'Payment %'],
+                    headers: ['Student Name', 'Scholar No.', 'Phone', 'Course', 'Total Fee', 'Paid', 'Pending Due', 'Payment %'],
                     rows: list.map(s => {
                         const pending = s.totalFee - s.paidFee
                         const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
                         return [
                             s.fullName,
+                            s.scholarNo || '-',
                             s.parentPhone || s.phone || '-',
                             s.courseName,
                             formatCurrency(s.totalFee),
@@ -237,8 +360,21 @@ export default function FeesPage() {
         })
     }
 
+    const displayList = getCurrentList()
+
     return (
         <div>
+            {toast && (
+                <div style={{
+                    position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
+                    background: '#10b981', color: 'white', padding: '12px 20px',
+                    borderRadius: '12px', fontWeight: '700', fontSize: '14px',
+                    boxShadow: '0 4px 20px rgba(16,185,129,0.4)', animation: 'slideIn 0.3s ease'
+                }}>
+                    ✅ {toast}
+                </div>
+            )}
+
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                     <h1 className="page-title">💰 Fee Management</h1>
@@ -280,6 +416,24 @@ export default function FeesPage() {
                 ))}
             </div>
 
+            {/* Search */}
+            <div className="card" style={{ marginBottom: '16px', padding: '14px 16px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                        className="input"
+                        style={{ flex: 1 }}
+                        placeholder="🔍 Search by student name or scholar no..."
+                        value={feeSearch}
+                        onChange={e => setFeeSearch(e.target.value)}
+                    />
+                    {feeSearch && (
+                        <button className="btn btn-secondary" onClick={() => setFeeSearch('')} style={{ whiteSpace: 'nowrap' }}>
+                            ✕ Clear
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {/* Tabs */}
             <div className="tabs">
                 <button className={`tab ${activeTab === 'outstanding' ? 'active' : ''}`} onClick={() => setActiveTab('outstanding')}>⚠️ Outstanding ({outstanding.length})</button>
@@ -305,7 +459,7 @@ export default function FeesPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {(activeTab === 'outstanding' ? outstanding : activeTab === 'paid' ? paid : students).map(s => {
+                                {displayList.map(s => {
                                     const pending = s.totalFee - s.paidFee
                                     const pct = s.totalFee > 0 ? Math.round((s.paidFee / s.totalFee) * 100) : 0
                                     return (
@@ -315,7 +469,10 @@ export default function FeesPage() {
                                                     <div className="avatar" style={{ width: '32px', height: '32px', fontSize: '12px' }}>{s.fullName.charAt(0)}</div>
                                                     <div>
                                                         <div style={{ fontWeight: '600', fontSize: '14px' }}>{s.fullName}</div>
-                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.phone}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                            {s.scholarNo && <span style={{ color: '#f97316', fontWeight: '700' }}>{s.scholarNo} • </span>}
+                                                            {s.phone}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -348,6 +505,13 @@ export default function FeesPage() {
                                         </tr>
                                     )
                                 })}
+                                {displayList.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                                            {feeSearch ? `No students found for "${feeSearch}"` : 'No students in this category'}
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     )}
@@ -357,11 +521,15 @@ export default function FeesPage() {
             {/* Installments Modal */}
             {selectedStudentForFees && (
                 <div className="modal-overlay" onClick={() => setSelectedStudentForFees(null)}>
-                    <div className="modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+                    <div className="modal" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <div>
                                 <h3 style={{ fontWeight: '700', fontSize: '18px' }}>📜 Fee Installments</h3>
-                                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{selectedStudentForFees.fullName} • {selectedStudentForFees.courseName}</p>
+                                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                    {selectedStudentForFees.fullName}
+                                    {selectedStudentForFees.scholarNo && <span style={{ color: '#f97316', fontWeight: '700' }}> • {selectedStudentForFees.scholarNo}</span>}
+                                    {' • '}{selectedStudentForFees.courseName}
+                                </p>
                             </div>
                             <button onClick={() => setSelectedStudentForFees(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
                         </div>
@@ -397,7 +565,8 @@ export default function FeesPage() {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                    <div style={{ padding: '12px', background: 'var(--surface-2)', borderRadius: '12px', marginBottom: '8px' }}>
+                                    {/* Summary Bar */}
+                                    <div style={{ padding: '12px', background: 'var(--surface-2)', borderRadius: '12px' }}>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                             <div>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '800' }}>Total Fee</div>
@@ -413,33 +582,36 @@ export default function FeesPage() {
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginBottom: '-4px' }}>
-                                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>Payment Mode</div>
-                                        <select 
-                                            className="input" 
-                                            style={{ width: 'auto', padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
-                                            value={paymentMode} 
-                                            onChange={e => setPaymentMode(e.target.value)}
-                                        >
-                                            <option value="CASH">💵 Cash</option>
-                                            <option value="UPI">📱 UPI</option>
-                                            <option value="BANK_TRANSFER">🏦 Bank Transfer</option>
-                                            <option value="CHEQUE">💳 Cheque</option>
-                                            <option value="CARD">💳 Card</option>
-                                        </select>
+                                    {/* Payment Mode & Date */}
+                                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                        <div style={{ flex: 1, minWidth: '140px' }}>
+                                            <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Payment Mode</div>
+                                            <select 
+                                                className="input" 
+                                                style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
+                                                value={paymentMode} 
+                                                onChange={e => setPaymentMode(e.target.value)}
+                                            >
+                                                <option value="CASH">💵 Cash</option>
+                                                <option value="UPI">📱 UPI</option>
+                                                <option value="BANK_TRANSFER">🏦 Bank Transfer</option>
+                                                <option value="CHEQUE">💳 Cheque</option>
+                                                <option value="CARD">💳 Card</option>
+                                            </select>
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: '140px' }}>
+                                            <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px' }}>Deposit Date</div>
+                                            <input 
+                                                type="date"
+                                                className="input" 
+                                                style={{ padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
+                                                value={depositDate} 
+                                                onChange={e => setDepositDate(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', marginBottom: '8px' }}>
-                                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-secondary)' }}>Deposit Date</div>
-                                        <input 
-                                            type="date"
-                                            className="input" 
-                                            style={{ width: 'auto', padding: '6px 12px', fontSize: '13px', borderRadius: '8px' }}
-                                            value={depositDate} 
-                                            onChange={e => setDepositDate(e.target.value)}
-                                        />
-                                    </div>
-
+                                    {/* Installment Slots */}
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                                         {[0, 1, 2, 3, 4, 5].map(idx => {
                                             const fee = studentFees[idx]
@@ -474,7 +646,107 @@ export default function FeesPage() {
                                             )
                                         })}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '8px' }}>
+
+                                    {/* Siblings Fee Section */}
+                                    {siblingsLoading ? (
+                                        <div style={{ textAlign: 'center', padding: '12px' }}><div className="spinner" style={{ margin: '0 auto', width: '20px', height: '20px' }} /></div>
+                                    ) : studentSiblings.length > 0 && (
+                                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                                            <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                👨‍👩‍👧‍👦 Siblings Fee Summary
+                                                <span style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#6366f1', borderRadius: '999px', padding: '1px 8px', fontSize: '11px' }}>
+                                                    {studentSiblings.length} sibling{studentSiblings.length > 1 ? 's' : ''}
+                                                </span>
+                                            </div>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                                {/* Current student row */}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '10px' }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: '700', fontSize: '13px' }}>{selectedStudentForFees.fullName} <span style={{ fontSize: '11px', color: '#6366f1', fontWeight: '800' }}>(Current)</span></div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{selectedStudentForFees.courseName}</div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <div style={{ fontSize: '13px', fontWeight: '700', color: selectedStudentForFees.totalFee - selectedStudentForFees.paidFee > 0 ? '#ef4444' : '#10b981' }}>
+                                                            Pending: {formatCurrency(selectedStudentForFees.totalFee - selectedStudentForFees.paidFee)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {studentSiblings.map(sib => (
+                                                    <div key={sib.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+                                                        <div>
+                                                            <div style={{ fontWeight: '600', fontSize: '13px' }}>{sib.fullName}</div>
+                                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                                {sib.scholarNo && <span style={{ color: '#f97316' }}>{sib.scholarNo} • </span>}
+                                                                {sib.courseName || 'N/A'}
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <div style={{ fontSize: '13px', fontWeight: '700', color: sib.totalFee - sib.paidFee > 0 ? '#ef4444' : '#10b981' }}>
+                                                                Pending: {formatCurrency(sib.totalFee - sib.paidFee)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Gross Payment Input */}
+                                            <div style={{ padding: '14px', background: 'rgba(16,185,129,0.06)', border: '1.5px solid rgba(16,185,129,0.25)', borderRadius: '12px' }}>
+                                                <div style={{ fontSize: '13px', fontWeight: '800', color: '#059669', marginBottom: '10px' }}>
+                                                    💰 Gross Family Payment
+                                                    <div style={{ fontSize: '11px', fontWeight: '400', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                        Enter total amount. It will be split proportionally among all family members with pending dues.
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <div style={{ position: 'relative', flex: 1 }}>
+                                                        <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontWeight: '700', color: 'var(--text-muted)' }}>₹</span>
+                                                        <input
+                                                            type="number"
+                                                            className="input"
+                                                            style={{ paddingLeft: '28px', fontWeight: '700', fontSize: '16px' }}
+                                                            placeholder="Enter gross amount..."
+                                                            value={grossAmount}
+                                                            onChange={e => setGrossAmount(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        className="btn btn-success"
+                                                        style={{ padding: '0 18px', fontWeight: '800', fontSize: '13px', whiteSpace: 'nowrap' }}
+                                                        onClick={handleGrossPayment}
+                                                        disabled={processingGross || !grossAmount}
+                                                    >
+                                                        {processingGross ? '⏳ Processing...' : '🏦 Distribute & Deposit'}
+                                                    </button>
+                                                </div>
+                                                {grossAmount && (() => {
+                                                    const amt = parseFloat(grossAmount)
+                                                    const allFamily = [
+                                                        { name: selectedStudentForFees.fullName, pending: selectedStudentForFees.totalFee - selectedStudentForFees.paidFee },
+                                                        ...studentSiblings.map(s => ({ name: s.fullName, pending: s.totalFee - s.paidFee }))
+                                                    ].filter(m => m.pending > 0)
+                                                    const totalPending = allFamily.reduce((s, m) => s + m.pending, 0)
+                                                    if (!amt || amt <= 0 || totalPending <= 0) return null
+                                                    const effective = Math.min(amt, totalPending)
+                                                    return (
+                                                        <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                            <strong style={{ color: 'var(--text-secondary)' }}>Preview distribution:</strong>
+                                                            {allFamily.map(m => (
+                                                                <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
+                                                                    <span>{m.name}</span>
+                                                                    <span style={{ fontWeight: '700', color: '#059669' }}>
+                                                                        {formatCurrency(Math.round((m.pending / totalPending) * effective * 100) / 100)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
                                         * Enter amount in any slot. Dashboard will update in real-time.
                                     </div>
                                 </div>

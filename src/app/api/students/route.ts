@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
                 { fullName: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search } },
                 { studentId: { contains: search, mode: 'insensitive' } },
+                { scholarNo: { contains: search, mode: 'insensitive' } },
             ]
         }
 

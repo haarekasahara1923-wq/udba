@@ -14,6 +14,8 @@ interface Student {
     gender: string
     courseName: string
     batchName: string
+    courseId: string
+    batchId?: string
     totalFee: number
     paidFee: number
     status: string
@@ -24,6 +26,18 @@ interface Student {
     penId?: string
     aparId?: string
     samagraId?: string
+    hasSiblings?: boolean
+}
+
+interface SiblingStudent {
+    id: string
+    fullName: string
+    scholarNo: string
+    studentId: string
+    fatherName: string
+    phone: string
+    courseName?: string
+    batchName?: string
 }
 
 const statusColors: Record<string, string> = {
@@ -44,14 +58,61 @@ export default function StudentsPage() {
     const [editForm, setEditForm] = useState<any>({})
     const [actionLoading, setActionLoading] = useState(false)
 
+    // Sibling states
+    const [showSiblingModal, setShowSiblingModal] = useState(false)
+    const [siblingSearch, setSiblingSearch] = useState('')
+    const [siblingSearchResults, setSiblingSearchResults] = useState<SiblingStudent[]>([])
+    const [siblingSearchLoading, setSiblingSearchLoading] = useState(false)
+    const [currentSiblings, setCurrentSiblings] = useState<SiblingStudent[]>([])
+    const [siblingsLoading, setSiblingsLoading] = useState(false)
+    const [siblingActionLoading, setSiblingActionLoading] = useState(false)
+
+    // courses and batches for edit form dropdowns
+    const [courses, setCourses] = useState<any[]>([])
+    const [batches, setBatches] = useState<any[]>([])
+
     const fetchStudents = async () => {
         if (!token) return
         const params = new URLSearchParams()
         if (search) params.set('search', search)
         const res = await fetch(`/api/students?${params}`, { headers: { Authorization: `Bearer ${token}` } })
         const data = await res.json()
-        if (data.success) setStudents(data.data)
+        if (data.success) {
+            setStudents(data.data)
+            // Load sibling status to show + indicator
+            fetchSiblingStatus(data.data)
+        }
         setLoading(false)
+    }
+
+    const fetchSiblingStatus = async (studentList: Student[]) => {
+        if (!token || studentList.length === 0) return
+        // We'll just load all siblings for all students in parallel (batched)
+        try {
+            const siblingsRes = await fetch(`/api/students/siblings/all`, { headers: { Authorization: `Bearer ${token}` } })
+            if (siblingsRes.ok) {
+                const siblingsData = await siblingsRes.json()
+                if (siblingsData.success) {
+                    const siblingSet = new Set<string>(siblingsData.data)
+                    setStudents(prev => prev.map(s => ({ ...s, hasSiblings: siblingSet.has(s.id) })))
+                }
+            }
+        } catch (err) {
+            // silently fail, not critical
+        }
+    }
+
+    const fetchCoursesAndBatches = async () => {
+        if (!token) return
+        try {
+            const [cRes, bRes] = await Promise.all([
+                fetch('/api/courses', { headers: { Authorization: `Bearer ${token}` } }),
+                fetch('/api/batches', { headers: { Authorization: `Bearer ${token}` } }),
+            ])
+            const [cData, bData] = await Promise.all([cRes.json(), bRes.json()])
+            if (cData.success) setCourses(cData.data)
+            if (bData.success) setBatches(bData.data)
+        } catch (err) {}
     }
 
     const handleDelete = async (id: string) => {
@@ -128,7 +189,91 @@ export default function StudentsPage() {
         setActionLoading(false)
     }
 
+    // ─── Sibling Functions ────────────────────────────────────────────────────
+    const loadCurrentSiblings = async (studentId: string) => {
+        if (!token) return
+        setSiblingsLoading(true)
+        try {
+            const res = await fetch(`/api/students/siblings?studentId=${studentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (data.success) setCurrentSiblings(data.data)
+        } catch (err) {}
+        setSiblingsLoading(false)
+    }
+
+    const searchSiblings = async (q: string) => {
+        if (!token || q.trim().length < 2) { setSiblingSearchResults([]); return }
+        setSiblingSearchLoading(true)
+        try {
+            const res = await fetch(`/api/students/siblings?studentId=${selectedStudent?.id}&search=${encodeURIComponent(q)}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (data.success) setSiblingSearchResults(data.data)
+        } catch (err) {}
+        setSiblingSearchLoading(false)
+    }
+
+    const addSibling = async (siblingId: string) => {
+        if (!token || !selectedStudent) return
+        setSiblingActionLoading(true)
+        try {
+            const res = await fetch('/api/students/siblings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ studentId: selectedStudent.id, siblingId })
+            })
+            const data = await res.json()
+            if (data.success) {
+                alert('Sibling added successfully!')
+                setSiblingSearch('')
+                setSiblingSearchResults([])
+                loadCurrentSiblings(selectedStudent.id)
+                fetchStudents()
+            } else {
+                alert(data.error || 'Failed to add sibling')
+            }
+        } catch (err) {
+            alert('Error adding sibling')
+        }
+        setSiblingActionLoading(false)
+    }
+
+    const removeSibling = async (siblingId: string) => {
+        if (!token || !selectedStudent) return
+        if (!confirm('Remove this sibling relationship?')) return
+        setSiblingActionLoading(true)
+        try {
+            const res = await fetch(`/api/students/siblings?studentId=${selectedStudent.id}&siblingId=${siblingId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (data.success) {
+                loadCurrentSiblings(selectedStudent.id)
+                fetchStudents()
+            } else {
+                alert(data.error || 'Failed to remove sibling')
+            }
+        } catch (err) {
+            alert('Error removing sibling')
+        }
+        setSiblingActionLoading(false)
+    }
+
+    const openSiblingModal = () => {
+        setSiblingSearch('')
+        setSiblingSearchResults([])
+        if (selectedStudent) loadCurrentSiblings(selectedStudent.id)
+        setShowSiblingModal(true)
+    }
+
     useEffect(() => { fetchStudents() }, [token, search])
+    useEffect(() => { fetchCoursesAndBatches() }, [token])
+
+    const filteredBatches = batches.filter(b => !editForm.courseId || b.courseId === editForm.courseId)
 
     return (
         <div>
@@ -149,7 +294,7 @@ export default function StudentsPage() {
                         <input
                             className="input"
                             style={{ flex: 1 }}
-                            placeholder="🔍 Search by student name or mobile no..."
+                            placeholder="🔍 Search by student name / scholar no..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && fetchStudents()}
@@ -228,7 +373,17 @@ export default function StudentsPage() {
                                                         {s.fullName.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <div style={{ fontWeight: '600', fontSize: '14px' }}>{s.fullName}</div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            <span style={{ fontWeight: '600', fontSize: '14px' }}>{s.fullName}</span>
+                                                            {s.hasSiblings && (
+                                                                <span title="Has siblings in this school" style={{
+                                                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                                                    width: '18px', height: '18px', borderRadius: '50%',
+                                                                    background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.4)',
+                                                                    color: '#6366f1', fontSize: '11px', fontWeight: '800', cursor: 'default',
+                                                                }}>+</span>
+                                                            )}
+                                                        </div>
                                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.studentId}</div>
                                                     </div>
                                                 </div>
@@ -262,7 +417,7 @@ export default function StudentsPage() {
                                                     <button onClick={() => setSelectedStudent(s)} className="btn btn-secondary btn-sm" title="View">👁️</button>
                                                     {canEditOrDelete && (
                                                         <>
-                                                            <button onClick={() => { setSelectedStudent(s); setEditForm(s); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit">✏️</button>
+                                                            <button onClick={() => { setSelectedStudent(s); setEditForm({ ...s }); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit">✏️</button>
                                                             <button onClick={() => toggleBlock(s)} className={`btn btn-sm ${s.status === 'ACTIVE' ? 'btn-secondary' : 'btn-success'}`} title={s.status === 'ACTIVE' ? 'Block' : 'Unblock'}>
                                                                 {s.status === 'ACTIVE' ? '🚫' : '✅'}
                                                             </button>
@@ -283,56 +438,102 @@ export default function StudentsPage() {
 
             {/* Student Detail / Edit Modal */}
             {selectedStudent && (
-                <div className="modal-overlay" onClick={() => { setSelectedStudent(null); setIsEditing(false); }}>
-                    <div className="modal" style={{ maxWidth: isEditing ? '600px' : '500px' }} onClick={e => e.stopPropagation()}>
+                <div className="modal-overlay" onClick={() => { setSelectedStudent(null); setIsEditing(false); setShowSiblingModal(false); }}>
+                    <div className="modal" style={{ maxWidth: isEditing ? '640px' : '500px' }} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div className="avatar" style={{ width: '48px', height: '48px', fontSize: '20px' }}>{selectedStudent.fullName.charAt(0)}</div>
                                 <div>
                                     <h3 style={{ fontWeight: '700', fontSize: '18px' }}>{isEditing ? 'Edit Student' : selectedStudent.fullName}</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.studentId}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.studentId} {selectedStudent.scholarNo ? `• Scholar: ${selectedStudent.scholarNo}` : ''}</p>
                                 </div>
                             </div>
-                            <button onClick={() => { setSelectedStudent(null); setIsEditing(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                            <button onClick={() => { setSelectedStudent(null); setIsEditing(false); setShowSiblingModal(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
                         </div>
                         <div className="modal-body">
                             {isEditing ? (
-                                <form onSubmit={handleUpdate} className="grid-cols-2" style={{ gap: '16px' }}>
-                                    <div className="col-span-2">
-                                        <label className="label">Full Name</label>
-                                        <input className="input" value={editForm.fullName} onChange={e => setEditForm({...editForm, fullName: e.target.value})} />
+                                <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div className="col-span-2" style={{ gridColumn: '1 / -1' }}>
+                                            <label className="label">Full Name</label>
+                                            <input className="input" value={editForm.fullName || ''} onChange={e => setEditForm({ ...editForm, fullName: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Scholar No. (Editable)</label>
+                                            <input className="input" value={editForm.scholarNo || ''} onChange={e => setEditForm({ ...editForm, scholarNo: e.target.value })} placeholder="Scholar number" />
+                                        </div>
+                                        <div>
+                                            <label className="label">Father's Name</label>
+                                            <input className="input" value={editForm.fatherName || ''} onChange={e => setEditForm({ ...editForm, fatherName: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Phone Number</label>
+                                            <input className="input" value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Parent Phone</label>
+                                            <input className="input" value={editForm.parentPhone || ''} onChange={e => setEditForm({ ...editForm, parentPhone: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Class</label>
+                                            <select className="input" value={editForm.courseId || ''} onChange={e => setEditForm({ ...editForm, courseId: e.target.value, batchId: '' })}>
+                                                <option value="">Select Class</option>
+                                                {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="label">Section</label>
+                                            <select className="input" value={editForm.batchId || ''} onChange={e => setEditForm({ ...editForm, batchId: e.target.value })}>
+                                                <option value="">Select Section</option>
+                                                {filteredBatches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="label">Total Fee</label>
+                                            <input type="number" className="input" value={editForm.totalFee || ''} onChange={e => setEditForm({ ...editForm, totalFee: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="label">Status</label>
+                                            <select className="input" value={editForm.status || ''} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+                                                <option value="ACTIVE">ACTIVE</option>
+                                                <option value="INACTIVE">INACTIVE</option>
+                                                <option value="DROPOUT">DROPOUT</option>
+                                                <option value="PASSED">PASSED</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="label">Phone Number</label>
-                                        <input className="input" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="label">Parent Phone</label>
-                                        <input className="input" value={editForm.parentPhone} onChange={e => setEditForm({...editForm, parentPhone: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="label">Father's Name</label>
-                                        <input className="input" value={editForm.fatherName} onChange={e => setEditForm({...editForm, fatherName: e.target.value})} />
-                                    </div>
-                                    <div>
-                                        <label className="label">Total Fee</label>
-                                        <input type="number" className="input" value={editForm.totalFee} onChange={e => setEditForm({...editForm, totalFee: e.target.value})} />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="label">Status</label>
-                                        <select className="input" value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})}>
-                                            <option value="ACTIVE">ACTIVE</option>
-                                            <option value="INACTIVE">INACTIVE</option>
-                                            <option value="DROPOUT">DROPOUT</option>
-                                            <option value="PASSED">PASSED</option>
-                                        </select>
-                                    </div>
-                                    <div className="col-span-2" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                                         <button type="submit" className="btn btn-primary" disabled={actionLoading} style={{ flex: 1 }}>
                                             {actionLoading ? 'Saving...' : '💾 Save Changes'}
                                         </button>
                                         <button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary">Cancel</button>
                                     </div>
+
+                                    {/* Add Sibling CTA - only for SUPER_ADMIN */}
+                                    {canEditOrDelete && (
+                                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={openSiblingModal}
+                                                className="btn btn-secondary"
+                                                style={{
+                                                    width: '100%',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                    background: 'rgba(99,102,241,0.08)', border: '1.5px dashed rgba(99,102,241,0.5)',
+                                                    color: '#6366f1', fontWeight: '700', fontSize: '14px', padding: '12px'
+                                                }}
+                                            >
+                                                👨‍👩‍👧‍👦 Manage Siblings
+                                                {currentSiblings.length > 0 && (
+                                                    <span style={{
+                                                        background: '#6366f1', color: 'white',
+                                                        borderRadius: '999px', padding: '1px 7px', fontSize: '11px', fontWeight: '800'
+                                                    }}>{currentSiblings.length}</span>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
                                 </form>
                             ) : (
                                 <div className="grid-cols-2">
@@ -365,12 +566,129 @@ export default function StudentsPage() {
                         {!isEditing && (
                             <div className="modal-footer">
                                 {canEditOrDelete && (
-                                    <button onClick={() => { setEditForm(selectedStudent); setIsEditing(true); }} className="btn btn-secondary">✏️ Edit Details</button>
+                                    <button onClick={() => { setEditForm({ ...selectedStudent }); setIsEditing(true); }} className="btn btn-secondary">✏️ Edit Details</button>
                                 )}
                                 <a href={`https://wa.me/${(selectedStudent.parentPhone || selectedStudent.phone)?.replace(/\D/g, '')}?text=Dear Parent, This is regarding ${selectedStudent.fullName} from our school institute.`} target="_blank" className="btn btn-success">💬 WhatsApp Parent</a>
                                 <button onClick={() => setSelectedStudent(null)} className="btn btn-secondary">Close</button>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Sibling Management Modal */}
+            {showSiblingModal && selectedStudent && (
+                <div className="modal-overlay" onClick={() => setShowSiblingModal(false)} style={{ zIndex: 1100 }}>
+                    <div className="modal" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div>
+                                <h3 style={{ fontWeight: '700', fontSize: '18px' }}>👨‍👩‍👧‍👦 Manage Siblings</h3>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                                    {selectedStudent.fullName} • Max 3 siblings allowed
+                                </p>
+                            </div>
+                            <button onClick={() => setShowSiblingModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                        </div>
+                        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* Current Siblings */}
+                            <div>
+                                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>
+                                    Current Siblings ({currentSiblings.length}/3)
+                                </div>
+                                {siblingsLoading ? (
+                                    <div style={{ textAlign: 'center', padding: '20px' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
+                                ) : currentSiblings.length === 0 ? (
+                                    <div style={{ padding: '16px', background: 'var(--surface-2)', borderRadius: '10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                        No siblings added yet
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {currentSiblings.map(sib => (
+                                            <div key={sib.id} style={{
+                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                padding: '10px 14px', background: 'rgba(99,102,241,0.06)',
+                                                border: '1px solid rgba(99,102,241,0.2)', borderRadius: '10px'
+                                            }}>
+                                                <div>
+                                                    <div style={{ fontWeight: '600', fontSize: '14px' }}>{sib.fullName}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                        Scholar: {sib.scholarNo || 'N/A'} • {sib.courseName || 'N/A'} - {sib.batchName || 'N/A'}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeSibling(sib.id)}
+                                                    disabled={siblingActionLoading}
+                                                    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '8px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                                                >
+                                                    ✕ Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Add Sibling Search */}
+                            {currentSiblings.length < 3 && (
+                                <div>
+                                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.5px' }}>
+                                        Add Sibling
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                                        <input
+                                            className="input"
+                                            style={{ flex: 1 }}
+                                            placeholder="Search by name or scholar no..."
+                                            value={siblingSearch}
+                                            onChange={e => { setSiblingSearch(e.target.value); searchSiblings(e.target.value); }}
+                                        />
+                                        {siblingSearchLoading && <div className="spinner" style={{ width: '20px', height: '20px', alignSelf: 'center' }} />}
+                                    </div>
+                                    {siblingSearchResults.length > 0 && (
+                                        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            {siblingSearchResults.filter(r => {
+                                                // exclude already-added siblings and the student themselves
+                                                return r.id !== selectedStudent.id && !currentSiblings.find(s => s.id === r.id)
+                                            }).map(result => (
+                                                <div key={result.id} style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '10px 14px', background: 'var(--surface-2)',
+                                                    border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer'
+                                                }}>
+                                                    <div>
+                                                        <div style={{ fontWeight: '600', fontSize: '14px' }}>{result.fullName}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                            Scholar: {result.scholarNo || 'N/A'} • {result.courseName || 'N/A'} {result.batchName ? `- ${result.batchName}` : ''}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => addSibling(result.id)}
+                                                        disabled={siblingActionLoading}
+                                                        className="btn btn-primary"
+                                                        style={{ padding: '5px 12px', fontSize: '12px', fontWeight: '700' }}
+                                                    >
+                                                        + Add
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {siblingSearch.length >= 2 && siblingSearchResults.filter(r => r.id !== selectedStudent.id && !currentSiblings.find(s => s.id === r.id)).length === 0 && !siblingSearchLoading && (
+                                        <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                            No students found for "{siblingSearch}"
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {currentSiblings.length >= 3 && (
+                                <div style={{ padding: '12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '10px', color: '#d97706', fontSize: '13px', fontWeight: '600', textAlign: 'center' }}>
+                                    ⚠️ Maximum 3 siblings limit reached. Remove a sibling to add another.
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button onClick={() => setShowSiblingModal(false)} className="btn btn-secondary">Close</button>
+                        </div>
                     </div>
                 </div>
             )}
