@@ -21,9 +21,7 @@ export async function GET(req: NextRequest) {
             orderBy: { createdAt: 'desc' }
         })
 
-        // Include plan limit info in response
-        const limitCheck = await checkPlanLimit(user!.tenantId, 'maxMockTests', tests.length)
-
+        // Plan limits removed - unlimited mock tests
         return NextResponse.json({
             success: true,
             data: tests.map(t => ({
@@ -32,10 +30,10 @@ export async function GET(req: NextRequest) {
                 questionCount: t._count.questions,
             })),
             planInfo: {
-                limit: limitCheck.limit,
+                limit: -1,
                 used: tests.length,
-                currentPlan: limitCheck.currentPlan,
-                canAdd: limitCheck.allowed,
+                currentPlan: 'UNLIMITED',
+                canAdd: true,
             },
         })
     } catch (err) {
@@ -49,24 +47,7 @@ export async function POST(req: NextRequest) {
     if (error) return error
 
     try {
-        // Feature gate check
-        const featureCheck = await requireFeature(req, 'mockTests')
-        if (featureCheck.error) return featureCheck.error
-
-        // Limit check
-        const currentCount = await prisma.mockTest.count({ where: { tenantId: user!.tenantId } })
-        const limitCheck = await checkPlanLimit(user!.tenantId, 'maxMockTests', currentCount)
-
-        if (!limitCheck.allowed) {
-            return NextResponse.json({
-                error: limitCheck.message,
-                code: 'PLAN_LIMIT_REACHED',
-                currentPlan: limitCheck.currentPlan,
-                limit: limitCheck.limit,
-                used: currentCount,
-            }, { status: 403 })
-        }
-
+        // Plan limits removed - unlimited mock tests allowed for all schools
         const body = await req.json()
         const { title, subject, type, duration, totalMarks, passingMarks, negativeMarks, instructions, batchId } = body
 

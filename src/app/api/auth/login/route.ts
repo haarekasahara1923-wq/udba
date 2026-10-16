@@ -127,7 +127,17 @@ export async function POST(req: NextRequest) {
                 schoolCode: tenant.schoolCode,
                 diseCode: tenant.diseCode,
             } : null,
-            subscription: subscription || null,
+            subscription: subscription ? {
+                ...subscription,
+                plan: 'UNLIMITED',
+                status: 'ACTIVE',
+            } : {
+                id: 'unlimited-sub',
+                tenantId: user.tenantId,
+                plan: 'UNLIMITED',
+                status: 'ACTIVE',
+                amount: 0,
+            },
         })
     } catch (error) {
         console.error('Login error:', error)

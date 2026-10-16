@@ -13,18 +13,16 @@ export async function GET(req: NextRequest) {
             orderBy: { createdAt: 'desc' }
         })
 
-        // Include plan limit info in response
-        const limitCheck = await checkPlanLimit(user!.tenantId, 'maxTeachers', teachers.length)
-
+        // Plan limits removed - unlimited teachers
         return NextResponse.json({
             success: true,
             data: teachers,
             total: teachers.length,
             planInfo: {
-                limit: limitCheck.limit,
+                limit: -1,
                 used: teachers.length,
-                currentPlan: limitCheck.currentPlan,
-                canAdd: limitCheck.allowed,
+                currentPlan: 'UNLIMITED',
+                canAdd: true,
             },
         })
     } catch (err) {
@@ -38,20 +36,7 @@ export async function POST(req: NextRequest) {
     if (error) return error
 
     try {
-        // Check plan limit before adding
-        const currentCount = await prisma.teacher.count({ where: { tenantId: user!.tenantId } })
-        const limitCheck = await checkPlanLimit(user!.tenantId, 'maxTeachers', currentCount)
-
-        if (!limitCheck.allowed) {
-            return NextResponse.json({
-                error: limitCheck.message,
-                code: 'PLAN_LIMIT_REACHED',
-                currentPlan: limitCheck.currentPlan,
-                limit: limitCheck.limit,
-                used: currentCount,
-            }, { status: 403 })
-        }
-
+        // Plan limits removed - unlimited teachers allowed for all schools
         const body = await req.json()
         const { name, email, phone, subject, salary, joinDate } = body
 

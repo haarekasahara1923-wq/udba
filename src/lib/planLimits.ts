@@ -1,12 +1,11 @@
 // =============================================
 // PLAN LIMITS & FEATURE GATING CONFIGURATION
 // =============================================
-// This is the single source of truth for all plan-based restrictions.
-// Basic → Limited features (starter schools)
-// Pro → Advanced features (growing institutes)
-// Elite → Everything unlimited (large chains)
+// Plan restrictions are completely disabled / inactive.
+// All schools/institutes and Super Admins have unlimited students, teachers,
+// courses, mock tests, and access to all platform features without restriction.
 
-export type PlanType = 'BASIC' | 'PRO' | 'ELITE'
+export type PlanType = 'BASIC' | 'PRO' | 'ELITE' | 'UNLIMITED'
 
 export interface PlanLimits {
     maxStudents: number       // -1 = unlimited
@@ -47,177 +46,102 @@ export interface PlanConfig {
     features: PlanFeatures
 }
 
-// =============================================
-// PLAN CONFIGURATIONS
-// =============================================
+// All limits set to -1 (UNLIMITED)
+const UNLIMITED_LIMITS: PlanLimits = {
+    maxStudents: -1,
+    maxTeachers: -1,
+    maxBranches: -1,
+    maxMockTests: -1,
+    maxAIQuestions: -1,
+    maxWhatsAppMessages: -1,
+    maxLeads: -1,
+    maxCourses: -1,
+    maxBatches: -1,
+}
 
-export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
-    BASIC: {
-        name: 'BASIC',
-        displayName: 'Basic',
-        price: 999,
-        limits: {
-            maxStudents: 100,
-            maxTeachers: 2,
-            maxBranches: 1,
-            maxMockTests: 5,
-            maxAIQuestions: 0,       // Not available in basic
-            maxWhatsAppMessages: 0,  // Not available in basic
-            maxLeads: 0,             // Not available in basic
-            maxCourses: 5,
-            maxBatches: 10,
-        },
-        features: {
-            feeManagement: true,
-            attendance: true,       // Basic attendance only
-            analytics: false,       // Pro+ feature
-            mockTests: false,       // Pro+ feature
-            aiTools: false,         // Pro+ feature
-            whatsApp: false,        // Pro+ feature
-            leadManagement: false,  // Pro+ feature
-            expenseTracking: true,  // Basic has basic expense tracking
-            multiBranch: false,     // Elite feature
-            whiteLabel: false,      // Elite feature
-            customDomain: false,    // Elite feature
-            apiAccess: false,       // Elite feature
-            franchiseMode: false,   // Elite feature
-            advancedReports: false, // Pro+ feature
-            bulkSmsEmail: false,    // Pro+ feature
-            parentPortal: false,    // Pro+ feature
-        },
-    },
+// All features enabled
+const ALL_FEATURES_ENABLED: PlanFeatures = {
+    feeManagement: true,
+    attendance: true,
+    analytics: true,
+    mockTests: true,
+    aiTools: true,
+    whatsApp: true,
+    leadManagement: true,
+    expenseTracking: true,
+    multiBranch: true,
+    whiteLabel: true,
+    customDomain: true,
+    apiAccess: true,
+    franchiseMode: true,
+    advancedReports: true,
+    bulkSmsEmail: true,
+    parentPortal: true,
+}
 
-    PRO: {
-        name: 'PRO',
-        displayName: 'Pro',
-        price: 2999,
-        limits: {
-            maxStudents: 500,
-            maxTeachers: 10,
-            maxBranches: 1,
-            maxMockTests: -1,        // Unlimited
-            maxAIQuestions: 500,     // 500 per month
-            maxWhatsAppMessages: 1000,
-            maxLeads: -1,            // Unlimited
-            maxCourses: -1,
-            maxBatches: -1,
-        },
-        features: {
-            feeManagement: true,
-            attendance: true,
-            analytics: true,
-            mockTests: true,
-            aiTools: true,
-            whatsApp: true,
-            leadManagement: true,
-            expenseTracking: true,
-            multiBranch: false,     // Elite feature
-            whiteLabel: false,      // Elite feature
-            customDomain: false,    // Elite feature
-            apiAccess: false,       // Elite feature
-            franchiseMode: false,   // Elite feature
-            advancedReports: true,
-            bulkSmsEmail: true,
-            parentPortal: true,
-        },
-    },
+const UNLIMITED_CONFIG: PlanConfig = {
+    name: 'UNLIMITED',
+    displayName: 'Unlimited Lifetime Plan',
+    price: 0,
+    limits: UNLIMITED_LIMITS,
+    features: ALL_FEATURES_ENABLED,
+}
 
-    ELITE: {
-        name: 'ELITE',
-        displayName: 'Elite',
-        price: 5999,
-        limits: {
-            maxStudents: -1,        // Unlimited
-            maxTeachers: -1,        // Unlimited
-            maxBranches: -1,        // Unlimited
-            maxMockTests: -1,       // Unlimited
-            maxAIQuestions: -1,     // Unlimited
-            maxWhatsAppMessages: -1,// Unlimited
-            maxLeads: -1,           // Unlimited
-            maxCourses: -1,         // Unlimited
-            maxBatches: -1,         // Unlimited
-        },
-        features: {
-            feeManagement: true,
-            attendance: true,
-            analytics: true,
-            mockTests: true,
-            aiTools: true,
-            whatsApp: true,
-            leadManagement: true,
-            expenseTracking: true,
-            multiBranch: true,
-            whiteLabel: true,
-            customDomain: true,
-            apiAccess: true,
-            franchiseMode: true,
-            advancedReports: true,
-            bulkSmsEmail: true,
-            parentPortal: true,
-        },
-    },
+export const PLAN_CONFIGS: Record<string, PlanConfig> = {
+    BASIC: UNLIMITED_CONFIG,
+    PRO: UNLIMITED_CONFIG,
+    ELITE: UNLIMITED_CONFIG,
+    UNLIMITED: UNLIMITED_CONFIG,
 }
 
 // =============================================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (Always return unlimited / allowed)
 // =============================================
 
-export function getPlanConfig(plan: string): PlanConfig {
-    const normalized = (plan || 'BASIC').toUpperCase() as PlanType
-    return PLAN_CONFIGS[normalized] || PLAN_CONFIGS.BASIC
+export function getPlanConfig(_plan?: string): PlanConfig {
+    return UNLIMITED_CONFIG
 }
 
-export function hasFeature(plan: string, feature: keyof PlanFeatures): boolean {
-    const config = getPlanConfig(plan)
-    return config.features[feature]
+export function hasFeature(_plan: string, _feature: keyof PlanFeatures): boolean {
+    return true
 }
 
-export function getLimit(plan: string, limit: keyof PlanLimits): number {
-    const config = getPlanConfig(plan)
-    return config.limits[limit]
+export function getLimit(_plan: string, _limit: keyof PlanLimits): number {
+    return -1
 }
 
-export function isWithinLimit(plan: string, limit: keyof PlanLimits, currentCount: number): boolean {
-    const max = getLimit(plan, limit)
-    if (max === -1) return true // Unlimited
-    return currentCount < max
+export function isWithinLimit(_plan: string, _limit: keyof PlanLimits, _currentCount: number): boolean {
+    return true
 }
 
-export function getLimitDisplay(plan: string, limit: keyof PlanLimits): string {
-    const max = getLimit(plan, limit)
-    if (max === -1) return 'Unlimited'
-    if (max === 0) return 'Not available'
-    return max.toString()
+export function getLimitDisplay(_plan: string, _limit: keyof PlanLimits): string {
+    return 'Unlimited'
 }
 
-export function getUpgradePlanForFeature(feature: keyof PlanFeatures): PlanType {
-    if (PLAN_CONFIGS.PRO.features[feature]) return 'PRO'
-    return 'ELITE'
+export function getUpgradePlanForFeature(_feature: keyof PlanFeatures): PlanType {
+    return 'UNLIMITED'
 }
 
-export function getUpgradePlanForLimit(limit: keyof PlanLimits, currentPlan: string): PlanType | null {
-    const plan = (currentPlan || 'BASIC').toUpperCase() as PlanType
-    if (plan === 'BASIC') return 'PRO'
-    if (plan === 'PRO') return 'ELITE'
-    return null // Already on Elite
+export function getUpgradePlanForLimit(_limit: keyof PlanLimits, _currentPlan: string): PlanType | null {
+    return null
 }
 
-// Sidebar navigation items with their required features
+// Sidebar navigation items with their required features (all accessible)
 export const NAV_FEATURE_MAP: Record<string, keyof PlanFeatures | null> = {
-    '/dashboard': null,              // Always available
-    '/dashboard/students': null,     // Always available (limited by count)
-    '/dashboard/students/add': null, // Always available (limited by count)
-    '/dashboard/courses': null,      // Always available
-    '/dashboard/fees': null,         // fee management - always available
-    '/dashboard/payments': null,     // fee management - always available
-    '/dashboard/expenses': null,     // Basic expense tracking
-    '/dashboard/attendance': null,   // Basic attendance - always available
-    '/dashboard/profile': null,      // Always available
-    '/dashboard/subscription': null, // Always available
-    '/dashboard/analytics': 'analytics',
-    '/dashboard/mock-tests': 'mockTests',
-    '/dashboard/ai-tools': 'aiTools',
-    '/dashboard/teachers': null,     // Always available (limited by count)
-    '/dashboard/leads': 'leadManagement',
-    '/dashboard/whatsapp': 'whatsApp',
+    '/dashboard': null,
+    '/dashboard/students': null,
+    '/dashboard/students/add': null,
+    '/dashboard/courses': null,
+    '/dashboard/fees': null,
+    '/dashboard/payments': null,
+    '/dashboard/expenses': null,
+    '/dashboard/attendance': null,
+    '/dashboard/profile': null,
+    '/dashboard/subscription': null,
+    '/dashboard/analytics': null,
+    '/dashboard/mock-tests': null,
+    '/dashboard/ai-tools': null,
+    '/dashboard/teachers': null,
+    '/dashboard/leads': null,
+    '/dashboard/whatsapp': null,
 }

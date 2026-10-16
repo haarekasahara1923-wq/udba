@@ -170,7 +170,7 @@ export default function AllTenantsPage() {
                                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.phone || '—'}</div>
                                             </td>
                                             <td>
-                                                <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '700', background: `${pc}20`, color: pc }}>{t.plan}</span>
+                                                <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '700', background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>UNLIMITED</span>
                                             </td>
                                             <td style={{ fontWeight: '600' }}>{t.studentCount}</td>
                                             <td style={{ fontWeight: '600' }}>₹{t.availableBalance || 0}</td>
@@ -181,18 +181,11 @@ export default function AllTenantsPage() {
                                             </td>
                                             <td>
                                                 <span className={`badge ${t.isActive ? 'badge-success' : 'badge-danger'}`}>
-                                                    {t.isActive ? 'ACTIVE' : 'BLOCKED'}
+                                                     {t.isActive ? 'ACTIVE' : 'BLOCKED'}
                                                 </span>
                                             </td>
                                             <td>
                                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                                    <select className="input" style={{ padding: '4px 6px', fontSize: '11px', width: '80px' }} id={`plan-t-${t.id}`} defaultValue={t.plan}>
-                                                        <option value="BASIC">BASIC</option>
-                                                        <option value="PRO">PRO</option>
-                                                        <option value="ELITE">ELITE</option>
-                                                    </select>
-                                                    <button className="btn btn-sm" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontSize: '11px', padding: '4px 8px' }}
-                                                        onClick={() => { const sel = document.getElementById(`plan-t-${t.id}`) as HTMLSelectElement; handleAction(t.id, 'mark_paid', sel.value) }}>✅ Paid</button>
                                                     
                                                     <button className="btn btn-sm" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)', fontSize: '11px', padding: '4px 8px' }}
                                                         onClick={() => { setEditingTenant(t); setEditForm({ name: t.name, email: t.email || '', phone: t.phone || '', address: t.address || '', upiId: t.upiId || '' }) }}>✏️ Edit</button>
