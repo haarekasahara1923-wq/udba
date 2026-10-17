@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { Eye, Edit, Trash2, Ban, CheckCircle, MessageSquare } from 'lucide-react'
 
 interface Student {
     id: string
@@ -553,11 +554,11 @@ export default function StudentsPage() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">&#x1F468;&#x200D;&#x1F393; Students</h1>
+                    <h1 className="page-title">👨‍🎓 Students</h1>
                     <p className="page-subtitle">{students.length} students registered</p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <Link href="/dashboard/students/add" className="btn btn-primary">&#x2795; Add Student</Link>
+                    <Link href="/dashboard/students/add" className="btn btn-primary">➕ Add Student</Link>
                 </div>
             </div>
 
@@ -570,13 +571,13 @@ export default function StudentsPage() {
                         onClick={() => { setSelectionMode('individual'); setClasswiseStudents([]); setClasswiseLoaded(false); }}
                         style={modeBtnStyle(selectionMode === 'individual', '#6366f1')}
                     >
-                        &#x1F464; Student Name / Scholar No.
+                        👤 Student Name / Scholar No.
                     </button>
                     <button
                         onClick={() => { setSelectionMode('classwise'); setIndividualSearch(''); setShowIndividualDropdown(false); }}
                         style={modeBtnStyle(selectionMode === 'classwise', '#10b981')}
                     >
-                        &#x1F3EB; Class-wise Selection
+                        🏫 Class-wise Selection
                     </button>
                 </div>
 
@@ -588,7 +589,7 @@ export default function StudentsPage() {
                                 <input
                                     className="input"
                                     style={{ width: '100%' }}
-                                    placeholder="&#x1F50D; Search student by name or scholar no..."
+                                    placeholder="🔍 Search student by name or scholar no..."
                                     value={individualSearch}
                                     onChange={e => searchIndividual(e.target.value)}
                                     onFocus={() => individualResults.length > 0 && setShowIndividualDropdown(true)}
@@ -600,7 +601,7 @@ export default function StudentsPage() {
                             </div>
                             {individualSearch && (
                                 <button className="btn btn-secondary" onClick={() => { setIndividualSearch(''); setIndividualResults([]); setShowIndividualDropdown(false); setSelectedStudent(null); }}>
-                                    &#x2715; Clear
+                                    ✕ Clear
                                 </button>
                             )}
                         </div>
@@ -685,12 +686,12 @@ export default function StudentsPage() {
                                 onClick={() => fetchClasswiseStudents(selectedCourseId, selectedBatchId)}
                                 disabled={classwiseLoading}
                             >
-                                {classwiseLoading ? '&#x23F3; Loading...' : '&#x1F50D; Get Students'}
+                                {classwiseLoading ? '⏳ Loading...' : '🔍 Get Students'}
                             </button>
                         )}
                         {classwiseLoaded && (
                             <button className="btn btn-secondary" onClick={() => { setSelectedCourseId(''); setSelectedBatchId(''); setClasswiseStudents([]); setClasswiseLoaded(false); }}>
-                                &#x1F504; Reset
+                                🔄 Reset
                             </button>
                         )}
                     </div>
@@ -708,9 +709,9 @@ export default function StudentsPage() {
                                 onChange={e => setSearch(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && fetchStudents()}
                             />
-                            <button className="btn btn-primary" onClick={fetchStudents} style={{ whiteSpace: 'nowrap' }}>&#x1F50D; Search</button>
+                            <button className="btn btn-primary" onClick={fetchStudents} style={{ whiteSpace: 'nowrap' }}>🔍 Search</button>
                         </div>
-                        <button className="btn btn-secondary" onClick={() => { setSearch(''); setTimeout(fetchStudents, 0); }}>&#x1F504; Refresh</button>
+                        <button className="btn btn-secondary" onClick={() => { setSearch(''); setTimeout(fetchStudents, 0); }}>🔄 Refresh</button>
                     </div>
                 )}
             </div>
@@ -868,7 +869,7 @@ export default function StudentsPage() {
                             </div>
                         ) : students.length === 0 ? (
                             <div style={{ padding: '60px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '48px', marginBottom: '16px' }}>&#x1F468;&#x200D;&#x1F393;</div>
+                                <div style={{ fontSize: '48px', marginBottom: '16px' }}>👨‍🎓</div>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '16px' }}>No students found</p>
                                 <Link href="/dashboard/students/add" className="btn btn-primary">Add First Student</Link>
                             </div>
@@ -924,24 +925,32 @@ export default function StudentsPage() {
                                                         <div className="progress-fill" style={{ width: `${pct}%`, background: pct >= 100 ? '#10b981' : pct > 50 ? '#f59e0b' : '#ef4444' }} />
                                                     </div>
                                                     <div style={{ fontSize: '11px', color: owing > 0 ? '#f59e0b' : '#10b981', fontWeight: '600' }}>
-                                                        {pct}% paid {owing > 0 ? `&#x2022; Due: ${formatCurrency(owing)}` : '&#x2713;'}
+                                                        {pct}% paid {owing > 0 ? `• Due: ${formatCurrency(owing)}` : '✓'}
                                                     </div>
                                                 </td>
                                                 <td><span className={`badge ${statusColors[s.status] || 'badge-gray'}`}>{s.status}</span></td>
                                                 <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{s.admissionDate ? formatDate(s.admissionDate) : '-'}</td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px' }}>
-                                                        <button onClick={() => setSelectedStudent(s)} className="btn btn-secondary btn-sm" title="View">&#x1F441;&#xFE0F;</button>
+                                                        <button onClick={() => setSelectedStudent(s)} className="btn btn-secondary btn-sm" title="View" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px' }}>
+                                                            <Eye size={15} />
+                                                        </button>
                                                         {canEditOrDelete && (
                                                             <>
-                                                                <button onClick={() => { setSelectedStudent(s); setEditForm({ ...s }); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit">&#x270F;&#xFE0F;</button>
-                                                                <button onClick={() => toggleBlock(s)} className={`btn btn-sm ${s.status === 'ACTIVE' ? 'btn-secondary' : 'btn-success'}`} title={s.status === 'ACTIVE' ? 'Block' : 'Unblock'}>
-                                                                    {s.status === 'ACTIVE' ? '&#x1F6AB;' : '&#x2705;'}
+                                                                <button onClick={() => { setSelectedStudent(s); setEditForm({ ...s }); setIsEditing(true); }} className="btn btn-secondary btn-sm" title="Edit" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px' }}>
+                                                                    <Edit size={15} />
                                                                 </button>
-                                                                <button onClick={() => handleDelete(s.id)} className="btn btn-secondary btn-sm" style={{ color: '#ef4444' }} title="Delete">&#x1F5D1;&#xFE0F;</button>
+                                                                <button onClick={() => toggleBlock(s)} className={`btn btn-sm ${s.status === 'ACTIVE' ? 'btn-secondary' : 'btn-success'}`} title={s.status === 'ACTIVE' ? 'Block' : 'Unblock'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px' }}>
+                                                                    {s.status === 'ACTIVE' ? <Ban size={15} style={{ color: '#ef4444' }} /> : <CheckCircle size={15} />}
+                                                                </button>
+                                                                <button onClick={() => handleDelete(s.id)} className="btn btn-secondary btn-sm" style={{ color: '#ef4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px' }} title="Delete">
+                                                                    <Trash2 size={15} />
+                                                                </button>
                                                             </>
                                                         )}
-                                                        <a href={`https://wa.me/${s.parentPhone?.replace(/\D/g, '') || s.phone?.replace(/\D/g, '')}`} target="_blank" className="btn btn-sm" style={{ background: '#25d366', color: 'white', textDecoration: 'none' }} title="WhatsApp">&#x1F4AC;</a>
+                                                        <a href={`https://wa.me/${s.parentPhone?.replace(/\D/g, '') || s.phone?.replace(/\D/g, '')}`} target="_blank" className="btn btn-sm" style={{ background: '#25d366', color: 'white', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px' }} title="WhatsApp">
+                                                            <MessageSquare size={15} />
+                                                        </a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -963,10 +972,10 @@ export default function StudentsPage() {
                                 <div className="avatar" style={{ width: '48px', height: '48px', fontSize: '20px' }}>{selectedStudent.fullName.charAt(0)}</div>
                                 <div>
                                     <h3 style={{ fontWeight: '700', fontSize: '18px' }}>{isEditing ? 'Edit Student' : selectedStudent.fullName}</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.studentId} {selectedStudent.scholarNo ? `&#x2022; Scholar: ${selectedStudent.scholarNo}` : ''}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.studentId} {selectedStudent.scholarNo ? `• Scholar: ${selectedStudent.scholarNo}` : ''}</p>
                                 </div>
                             </div>
-                            <button onClick={() => { setSelectedStudent(null); setIsEditing(false); setShowSiblingModal(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>&#x2715;</button>
+                            <button onClick={() => { setSelectedStudent(null); setIsEditing(false); setShowSiblingModal(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
                         </div>
                         <div className="modal-body">
                             {isEditing ? (
@@ -1021,13 +1030,13 @@ export default function StudentsPage() {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                                        <button type="submit" className="btn btn-primary" disabled={actionLoading} style={{ flex: 1 }}>{actionLoading ? 'Saving...' : '&#x1F4BE; Save Changes'}</button>
+                                        <button type="submit" className="btn btn-primary" disabled={actionLoading} style={{ flex: 1 }}>{actionLoading ? 'Saving...' : '💾 Save Changes'}</button>
                                         <button type="button" onClick={() => setIsEditing(false)} className="btn btn-secondary">Cancel</button>
                                     </div>
                                     {canEditOrDelete && (
                                         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
                                             <button type="button" onClick={openSiblingModal} className="btn btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(99,102,241,0.08)', border: '1.5px dashed rgba(99,102,241,0.5)', color: '#6366f1', fontWeight: '700', fontSize: '14px', padding: '12px' }}>
-                                                &#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466; Manage Siblings
+                                                👨‍👩‍👧‍👦 Manage Siblings
                                                 {currentSiblings.length > 0 && <span style={{ background: '#6366f1', color: 'white', borderRadius: '999px', padding: '1px 7px', fontSize: '11px', fontWeight: '800' }}>{currentSiblings.length}</span>}
                                             </button>
                                         </div>
@@ -1036,25 +1045,25 @@ export default function StudentsPage() {
                             ) : (
                                 <div className="grid-cols-2">
                                     {[
-                                        ['&#x1F393; Scholar No.', selectedStudent.scholarNo || 'N/A'],
-                                        ['&#x1F4F1; Phone', selectedStudent.phone],
-                                        ['&#x1F468; Father', selectedStudent.fatherName || 'N/A'],
-                                        ['&#x1F4E7; Email', selectedStudent.email || 'N/A'],
-                                        ['&#x1F4DE; Parent Phone', selectedStudent.parentPhone || 'N/A'],
-                                        ['&#x1F4DA; Class', selectedStudent.courseName],
-                                        ['&#x1F550; Section', selectedStudent.batchName],
-                                        ['&#x1F4B0; Total Fee', formatCurrency(selectedStudent.totalFee)],
-                                        ['&#x2705; Paid', formatCurrency(selectedStudent.paidFee)],
-                                        ['&#x26A0;&#xFE0F; Pending', formatCurrency(selectedStudent.totalFee - selectedStudent.paidFee)],
-                                        ['&#x1F4C5; Admission', selectedStudent.admissionDate ? formatDate(selectedStudent.admissionDate) : 'N/A'],
-                                        ['&#x1F6A9; Status', selectedStudent.status],
-                                        ['&#x1FAA6; Aadhaar No.', selectedStudent.aadhaarNo || 'N/A'],
-                                        ['&#x1F194; PEN ID', selectedStudent.penId || 'N/A'],
-                                        ['&#x1F194; APAR ID', selectedStudent.aparId || 'N/A'],
-                                        ['&#x1F194; Samagra ID', selectedStudent.samagraId || 'N/A'],
+                                        ['🎓 Scholar No.', selectedStudent.scholarNo || 'N/A'],
+                                        ['📱 Phone', selectedStudent.phone],
+                                        ['👨 Father', selectedStudent.fatherName || 'N/A'],
+                                        ['📧 Email', selectedStudent.email || 'N/A'],
+                                        ['📞 Parent Phone', selectedStudent.parentPhone || 'N/A'],
+                                        ['📚 Class', selectedStudent.courseName],
+                                        ['⏱ Section', selectedStudent.batchName],
+                                        ['💰 Total Fee', formatCurrency(selectedStudent.totalFee)],
+                                        ['✅ Paid', formatCurrency(selectedStudent.paidFee)],
+                                        ['⚠️ Pending', formatCurrency(selectedStudent.totalFee - selectedStudent.paidFee)],
+                                        ['📅 Admission', selectedStudent.admissionDate ? formatDate(selectedStudent.admissionDate) : 'N/A'],
+                                        ['🚩 Status', selectedStudent.status],
+                                        ['🆔 Aadhaar No.', selectedStudent.aadhaarNo || 'N/A'],
+                                        ['🆔 PEN ID', selectedStudent.penId || 'N/A'],
+                                        ['🆔 APAR ID', selectedStudent.aparId || 'N/A'],
+                                        ['🆔 Samagra ID', selectedStudent.samagraId || 'N/A'],
                                     ].map(([label, value]) => (
                                         <div key={label} style={{ padding: '10px', background: 'var(--surface-2)', borderRadius: '8px' }}>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }} dangerouslySetInnerHTML={{ __html: label }} />
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>{label}</div>
                                             <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{value}</div>
                                         </div>
                                     ))}
@@ -1063,8 +1072,8 @@ export default function StudentsPage() {
                         </div>
                         {!isEditing && (
                             <div className="modal-footer">
-                                {canEditOrDelete && <button onClick={() => { setEditForm({ ...selectedStudent }); setIsEditing(true); }} className="btn btn-secondary">&#x270F;&#xFE0F; Edit Details</button>}
-                                <a href={`https://wa.me/${(selectedStudent.parentPhone || selectedStudent.phone)?.replace(/\D/g, '')}?text=Dear Parent, This is regarding ${selectedStudent.fullName} from our school institute.`} target="_blank" className="btn btn-success">&#x1F4AC; WhatsApp Parent</a>
+                                {canEditOrDelete && <button onClick={() => { setEditForm({ ...selectedStudent }); setIsEditing(true); }} className="btn btn-secondary">✏️ Edit Details</button>}
+                                <a href={`https://wa.me/${(selectedStudent.parentPhone || selectedStudent.phone)?.replace(/\D/g, '')}?text=Dear Parent, This is regarding ${selectedStudent.fullName} from our school institute.`} target="_blank" className="btn btn-success">💬 WhatsApp Parent</a>
                                 <button onClick={() => setSelectedStudent(null)} className="btn btn-secondary">Close</button>
                             </div>
                         )}
@@ -1078,10 +1087,10 @@ export default function StudentsPage() {
                     <div className="modal" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <div>
-                                <h3 style={{ fontWeight: '700', fontSize: '18px' }}>&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466; Manage Siblings</h3>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.fullName} &#x2022; Max 3 siblings allowed</p>
+                                <h3 style={{ fontWeight: '700', fontSize: '18px' }}>👨‍👩‍👧‍👦 Manage Siblings</h3>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{selectedStudent.fullName} • Max 3 siblings allowed</p>
                             </div>
-                            <button onClick={() => setShowSiblingModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>&#x2715;</button>
+                            <button onClick={() => setShowSiblingModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
                         </div>
                         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
@@ -1098,10 +1107,10 @@ export default function StudentsPage() {
                                             <div key={sib.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '10px' }}>
                                                 <div>
                                                     <div style={{ fontWeight: '600', fontSize: '14px' }}>{sib.fullName}</div>
-                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Scholar: {sib.scholarNo || 'N/A'} &#x2022; {sib.courseName || 'N/A'} - {sib.batchName || 'N/A'}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Scholar: {sib.scholarNo || 'N/A'} • {sib.courseName || 'N/A'} - {sib.batchName || 'N/A'}</div>
                                                 </div>
                                                 <button onClick={() => removeSibling(sib.id)} disabled={siblingActionLoading} style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '8px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}>
-                                                    &#x2715; Remove
+                                                    ✕ Remove
                                                 </button>
                                             </div>
                                         ))}
@@ -1121,7 +1130,7 @@ export default function StudentsPage() {
                                                 <div key={result.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '10px' }}>
                                                     <div>
                                                         <div style={{ fontWeight: '600', fontSize: '14px' }}>{result.fullName}</div>
-                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Scholar: {result.scholarNo || 'N/A'} &#x2022; {result.courseName || 'N/A'}{result.batchName ? ` - ${result.batchName}` : ''}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Scholar: {result.scholarNo || 'N/A'} • {result.courseName || 'N/A'}{result.batchName ? ` - ${result.batchName}` : ''}</div>
                                                     </div>
                                                     <button onClick={() => addSibling(result.id)} disabled={siblingActionLoading} className="btn btn-primary" style={{ padding: '5px 12px', fontSize: '12px', fontWeight: '700' }}>+ Add</button>
                                                 </div>
@@ -1135,7 +1144,7 @@ export default function StudentsPage() {
                             )}
                             {currentSiblings.length >= 3 && (
                                 <div style={{ padding: '12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '10px', color: '#d97706', fontSize: '13px', fontWeight: '600', textAlign: 'center' }}>
-                                    &#x26A0;&#xFE0F; Maximum 3 siblings limit reached. Remove a sibling to add another.
+                                    ⚠️ Maximum 3 siblings limit reached. Remove a sibling to add another.
                                 </div>
                             )}
                         </div>
