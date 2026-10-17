@@ -32,6 +32,38 @@ export async function GET(req: NextRequest) {
         }
         where.tenantId = tenantId
 
+        const checkScholar = new URL(req.url).searchParams.get('checkScholar')
+        if (checkScholar) {
+            const cleanScholar = checkScholar.trim()
+            const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+            const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+            const tenantIdsToCheck = Array.from(new Set([tenantId, user!.tenantId, primaryTenant?.id].filter(Boolean) as string[]))
+
+            const existing = await prisma.student.findFirst({
+                where: {
+                    tenantId: { in: tenantIdsToCheck },
+                    scholarNo: { equals: cleanScholar, mode: 'insensitive' }
+                },
+                include: {
+                    course: { select: { name: true } },
+                    batch: { select: { name: true } }
+                }
+            })
+
+            return NextResponse.json({
+                success: true,
+                exists: !!existing,
+                student: existing ? {
+                    id: existing.id,
+                    fullName: existing.fullName,
+                    fatherName: existing.fatherName,
+                    scholarNo: existing.scholarNo,
+                    courseName: existing.course?.name || 'N/A',
+                    batchName: existing.batch?.name || 'N/A'
+                } : null
+            })
+        }
+
         const resolvedCourseId = course || courseId
         const resolvedBatchId = batch || batchId
         if (resolvedCourseId) where.courseId = resolvedCourseId
@@ -108,8 +140,22 @@ export async function POST(req: NextRequest) {
     if (error) return error
 
     try {
-        // Plan limits removed - unlimited students allowed for all schools
-        const currentCount = await prisma.student.count({ where: { tenantId: user!.tenantId } })
+        let tenantId = user!.tenantId
+        const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+        const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+
+        if (!tenantId) {
+            if (primaryTenant) tenantId = primaryTenant.id
+        } else if (user!.role === 'SUPER_ADMIN') {
+            const studentCount = await prisma.student.count({ where: { tenantId } })
+            if (studentCount === 0 && primaryTenant) {
+                tenantId = primaryTenant.id
+            }
+        }
+
+        const tenantIdsToCheck = Array.from(new Set([tenantId, user!.tenantId, primaryTenant?.id].filter(Boolean) as string[]))
+        const currentCount = await prisma.student.count({ where: { tenantId } })
+
         const body = await req.json()
         const { 
             fullName, phone, courseId, batchId, fatherName, motherName, parentPhone, email, address, 
@@ -118,25 +164,78 @@ export async function POST(req: NextRequest) {
             bankName, bankAccountNo, ifscCode, photo, subjectGroup, idProof
         } = body
 
-        if (!fullName || !fatherName || !scholarNo || !phone || !courseId) {
+        const cleanFullName = (fullName || '').trim()
+        const cleanFatherName = (fatherName || '').trim()
+        const cleanScholarNo = (scholarNo ? String(scholarNo) : '').trim()
+        const cleanPhone = (phone || '').trim()
+
+        if (!cleanFullName || !cleanFatherName || !cleanScholarNo || !cleanPhone || !courseId) {
             return NextResponse.json({ error: 'Required fields missing: Student Name, Father Name, Phone, Class, and Scholar No. are mandatory.' }, { status: 400 })
         }
 
-        const existingStudent = await prisma.student.findFirst({
+        // 1. STRICT RESTRICTION: Check Scholar No. first!
+        // No duplicate Scholar No. allowed in the database under any circumstance!
+        const existingStudentByScholarNo = await prisma.student.findFirst({
             where: {
-                tenantId: user!.tenantId,
-                fullName,
-                fatherName,
-                scholarNo
+                tenantId: { in: tenantIdsToCheck },
+                scholarNo: {
+                    equals: cleanScholarNo,
+                    mode: 'insensitive'
+                }
+            },
+            include: {
+                course: { select: { name: true } },
+                batch: { select: { name: true } }
             }
         })
 
-        if (existingStudent) {
-            return NextResponse.json({ error: 'Student added previously' }, { status: 400 })
+        if (existingStudentByScholarNo) {
+            return NextResponse.json({
+                error: `Duplicate Entry Alert! Scholar No. "${cleanScholarNo}" is already registered to "${existingStudentByScholarNo.fullName}" (${existingStudentByScholarNo.course?.name || 'Class N/A'}). Duplicate student cannot be saved.`,
+                isDuplicate: true,
+                duplicateField: 'scholarNo',
+                existingStudent: {
+                    id: existingStudentByScholarNo.id,
+                    fullName: existingStudentByScholarNo.fullName,
+                    fatherName: existingStudentByScholarNo.fatherName,
+                    scholarNo: existingStudentByScholarNo.scholarNo,
+                    courseName: existingStudentByScholarNo.course?.name || 'N/A',
+                    batchName: existingStudentByScholarNo.batch?.name || 'N/A'
+                }
+            }, { status: 409 })
         }
 
-        const course = await prisma.course.findUnique({
-            where: { id: courseId, tenantId: user!.tenantId }
+        // 2. Check duplicate Full Name + Father Name in same tenant
+        const existingStudentByName = await prisma.student.findFirst({
+            where: {
+                tenantId: { in: tenantIdsToCheck },
+                fullName: { equals: cleanFullName, mode: 'insensitive' },
+                fatherName: { equals: cleanFatherName, mode: 'insensitive' },
+            },
+            include: {
+                course: { select: { name: true } },
+                batch: { select: { name: true } }
+            }
+        })
+
+        if (existingStudentByName) {
+            return NextResponse.json({
+                error: `Duplicate Entry Alert! Student "${cleanFullName}" with Father's Name "${cleanFatherName}" already exists in ${existingStudentByName.course?.name || 'the school'} (Scholar No: ${existingStudentByName.scholarNo || 'N/A'}). Duplicate student cannot be saved.`,
+                isDuplicate: true,
+                duplicateField: 'name',
+                existingStudent: {
+                    id: existingStudentByName.id,
+                    fullName: existingStudentByName.fullName,
+                    fatherName: existingStudentByName.fatherName,
+                    scholarNo: existingStudentByName.scholarNo,
+                    courseName: existingStudentByName.course?.name || 'N/A',
+                    batchName: existingStudentByName.batch?.name || 'N/A'
+                }
+            }, { status: 409 })
+        }
+
+        const course = await prisma.course.findFirst({
+            where: { id: courseId, tenantId: { in: tenantIdsToCheck } }
         })
 
         if (!course) {
@@ -145,17 +244,17 @@ export async function POST(req: NextRequest) {
 
         const student = await prisma.student.create({
             data: {
-                tenantId: user!.tenantId,
+                tenantId,
                 courseId,
                 batchId: batchId || null,
                 studentId: `STU${String(currentCount + 1).padStart(3, '0')}`,
-                fullName,
-                fatherName: fatherName || '',
-                motherName: motherName || '',
-                phone,
-                parentPhone: parentPhone || '',
-                email: email || '',
-                address: address || '',
+                fullName: cleanFullName,
+                fatherName: cleanFatherName,
+                motherName: motherName ? motherName.trim() : '',
+                phone: cleanPhone,
+                parentPhone: parentPhone ? parentPhone.trim() : '',
+                email: email ? email.trim() : '',
+                address: address ? address.trim() : '',
                 gender: gender as any || 'MALE',
                 dob: dob ? new Date(dob) : null,
                 admissionDate: admissionDate ? new Date(admissionDate) : new Date(),
@@ -164,11 +263,11 @@ export async function POST(req: NextRequest) {
                 paidFee: 0,
                 status: 'ACTIVE',
                 notes: notes || '',
-                aadhaarNo: aadhaarNo || '',
-                penId: penId || '',
-                aparId: aparId || '',
-                samagraId: samagraId || '',
-                scholarNo: scholarNo || '',
+                aadhaarNo: aadhaarNo ? aadhaarNo.trim() : '',
+                penId: penId ? penId.trim() : '',
+                aparId: aparId ? aparId.trim() : '',
+                samagraId: samagraId ? samagraId.trim() : '',
+                scholarNo: cleanScholarNo,
                 caste: caste || '',
                 scholarshipScheme: scholarshipScheme || '',
                 dobInWords: dobInWords || '',
@@ -176,8 +275,8 @@ export async function POST(req: NextRequest) {
                 firstAdmissionClass: firstAdmissionClass || '',
                 firstAdmissionDate: firstAdmissionDate ? new Date(firstAdmissionDate) : null,
                 bankName: bankName || '',
-                bankAccountNo: bankAccountNo || '',
-                ifscCode: ifscCode || '',
+                bankAccountNo: bankAccountNo ? bankAccountNo.trim() : '',
+                ifscCode: ifscCode ? ifscCode.trim() : '',
                 photo: photo || '',
                 subjectGroup: subjectGroup || '',
                 idProof: idProof || '',
@@ -193,7 +292,7 @@ export async function POST(req: NextRequest) {
             
             await prisma.fee.create({
                 data: {
-                    tenantId: user!.tenantId,
+                    tenantId,
                     studentId: student.id,
                     amount: 0,
                     dueDate,
@@ -224,21 +323,49 @@ export async function PATCH(req: NextRequest) {
 
         if (!id) return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
 
+        let tenantId = user!.tenantId
+        const schoolSlug = process.env.NEXT_PUBLIC_SCHOOL_SLUG || 'udba'
+        const primaryTenant = await prisma.tenant.findFirst({ where: { slug: schoolSlug } })
+        if (!tenantId && primaryTenant) tenantId = primaryTenant.id
+        const tenantIdsToCheck = Array.from(new Set([tenantId, user!.tenantId, primaryTenant?.id].filter(Boolean) as string[]))
+
+        // If updating scholarNo, verify it doesn't already belong to another student
+        if (scholarNo) {
+            const cleanScholarNo = String(scholarNo).trim()
+            const duplicateScholar = await prisma.student.findFirst({
+                where: {
+                    tenantId: { in: tenantIdsToCheck },
+                    scholarNo: { equals: cleanScholarNo, mode: 'insensitive' },
+                    NOT: { id }
+                },
+                include: {
+                    course: { select: { name: true } }
+                }
+            })
+            if (duplicateScholar) {
+                return NextResponse.json({
+                    error: `Duplicate Entry Alert! Scholar No. "${cleanScholarNo}" is already assigned to student "${duplicateScholar.fullName}" (${duplicateScholar.course?.name || 'N/A'}). Duplicate update rejected.`,
+                    isDuplicate: true,
+                    duplicateField: 'scholarNo'
+                }, { status: 409 })
+            }
+        }
+
         const student = await prisma.student.update({
-            where: { id, tenantId: user!.tenantId },
+            where: { id },
             data: {
-                fullName,
-                phone,
+                fullName: fullName !== undefined ? String(fullName).trim() : undefined,
+                phone: phone !== undefined ? String(phone).trim() : undefined,
                 courseId,
                 batchId: batchId || null,
                 status: status as any,
-                fatherName,
+                fatherName: fatherName !== undefined ? String(fatherName).trim() : undefined,
                 parentPhone,
                 email,
                 totalFee: totalFee !== undefined ? parseFloat(totalFee) : undefined,
                 admissionDate: admissionDate ? new Date(admissionDate) : undefined,
                 notes,
-                scholarNo,
+                scholarNo: scholarNo !== undefined ? String(scholarNo).trim() : undefined,
                 caste,
                 scholarshipScheme,
                 dobInWords,

@@ -425,8 +425,18 @@ export default function StudentsPage() {
                 body: JSON.stringify(editForm)
             })
             const data = await res.json()
-            if (data.success) { alert('Student updated successfully'); setIsEditing(false); setSelectedStudent(data.data); fetchStudents() }
-            else alert(data.error || 'Failed to update student')
+            if (data.success) {
+                alert('Student updated successfully')
+                setIsEditing(false)
+                setSelectedStudent(data.data)
+                fetchStudents()
+            } else {
+                if (data.isDuplicate) {
+                    alert(`⚠️ DUPLICATE ENTRY ALERT!\n\n${data.error}\n\nDuplicate student database me save nahi ho sakta!`)
+                } else {
+                    alert(data.error || 'Failed to update student')
+                }
+            }
         } catch (err) { alert('Error updating student') }
         setActionLoading(false)
     }

@@ -94,6 +94,26 @@ export default function AddStudentPage() {
     const [toast, setToast] = useState('')
     const [metadataLoading, setMetadataLoading] = useState(true)
 
+    // Scholar No. Duplicate Restriction Logic
+    const [duplicateModal, setDuplicateModal] = useState<{
+        open: boolean
+        scholarNo: string
+        student: any
+        message: string
+    }>({
+        open: false,
+        scholarNo: '',
+        student: null,
+        message: ''
+    })
+    const [checkingScholar, setCheckingScholar] = useState(false)
+    const [scholarStatus, setScholarStatus] = useState<{
+        checked: boolean
+        isDuplicate: boolean
+        student?: any
+        message?: string
+    }>({ checked: false, isDuplicate: false })
+
     const [form, setForm] = useState({
         scholarNo: '', fullName: '', fatherName: '', motherName: '', phone: '', parentPhone: '',
         email: '', address: '', gender: 'MALE', dob: '', dobInWords: '', courseId: '', batchId: '',
@@ -352,8 +372,59 @@ export default function AddStudentPage() {
     const filteredBatches = batches.filter(b => !form.courseId || b.courseId === form.courseId)
     const uniqueClassNames = Array.from(new Set(sortedCourses.map(c => c.name)))
 
+    // Check if Scholar No. is duplicate before submitting
+    const checkScholarDuplicate = async (scholarNoVal: string) => {
+        const val = scholarNoVal.trim()
+        if (!val || !token) {
+            setScholarStatus({ checked: false, isDuplicate: false })
+            return false
+        }
+        setCheckingScholar(true)
+        try {
+            const res = await fetch(`/api/students?checkScholar=${encodeURIComponent(val)}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            setCheckingScholar(false)
+            if (data.exists && data.student) {
+                setScholarStatus({
+                    checked: true,
+                    isDuplicate: true,
+                    student: data.student,
+                    message: `Scholar No. "${val}" already assigned to ${data.student.fullName} (${data.student.courseName})`
+                })
+                setDuplicateModal({
+                    open: true,
+                    scholarNo: val,
+                    student: data.student,
+                    message: `Scholar No. "${val}" is already assigned to student "${data.student.fullName}" (${data.student.courseName}). Duplicate student database me save nahi ho sakta.`
+                })
+                return true
+            } else {
+                setScholarStatus({ checked: true, isDuplicate: false })
+                return false
+            }
+        } catch (err) {
+            setCheckingScholar(false)
+            return false
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        const cleanScholar = form.scholarNo.trim()
+        if (!cleanScholar) {
+            setToast('Scholar No. is mandatory.')
+            return
+        }
+
+        // Strictly check Scholar No. first!
+        const isDup = await checkScholarDuplicate(cleanScholar)
+        if (isDup) {
+            return
+        }
+
         setLoading(true)
         try {
             // Serialize govt ID docs into idProof field as JSON
@@ -362,7 +433,7 @@ export default function AddStudentPage() {
             const res = await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ ...form, idProof }),
+                body: JSON.stringify({ ...form, scholarNo: cleanScholar, idProof }),
             })
             const data = await res.json()
             setLoading(false)
@@ -371,6 +442,20 @@ export default function AddStudentPage() {
                 setToast('Student added successfully!')
                 setTimeout(() => router.push('/dashboard/students'), 1500)
             } else {
+                if (data.isDuplicate) {
+                    setDuplicateModal({
+                        open: true,
+                        scholarNo: cleanScholar,
+                        student: data.existingStudent,
+                        message: data.error
+                    })
+                    setScholarStatus({
+                        checked: true,
+                        isDuplicate: true,
+                        student: data.existingStudent,
+                        message: data.error
+                    })
+                }
                 setToast(data.error || 'Failed to add student')
             }
         } catch (error) {
@@ -439,7 +524,42 @@ export default function AddStudentPage() {
 
                     <div className="grid-cols-2">
                         <Field label="Scholar No. *">
-                            <input className="input" placeholder="e.g. 1001" value={form.scholarNo} onChange={e => setForm({ ...form, scholarNo: e.target.value })} required />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    id="scholarNoInput"
+                                    className="input"
+                                    placeholder="e.g. 1001"
+                                    value={form.scholarNo}
+                                    onChange={e => {
+                                        const val = e.target.value
+                                        setForm({ ...form, scholarNo: val })
+                                        if (scholarStatus.checked) {
+                                            setScholarStatus({ checked: false, isDuplicate: false })
+                                        }
+                                    }}
+                                    onBlur={e => checkScholarDuplicate(e.target.value)}
+                                    style={{
+                                        borderColor: scholarStatus.isDuplicate ? '#ef4444' : scholarStatus.checked && !scholarStatus.isDuplicate ? '#10b981' : undefined,
+                                        backgroundColor: scholarStatus.isDuplicate ? 'rgba(239, 68, 68, 0.08)' : undefined
+                                    }}
+                                    required
+                                />
+                                {checkingScholar && (
+                                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '11px', color: '#94a3b8' }}>
+                                        Checking...
+                                    </span>
+                                )}
+                                {scholarStatus.checked && !scholarStatus.isDuplicate && (
+                                    <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#10b981', fontWeight: 'bold' }}>
+                                        ✓ Unique
+                                    </span>
+                                )}
+                            </div>
+                            {scholarStatus.isDuplicate && (
+                                <p style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: '600' }}>
+                                    ⚠️ {scholarStatus.message || 'Duplicate Scholar No.! Already registered in database.'}
+                                </p>
+                            )}
                         </Field>
                         <Field label="Full Name *">
                             <input className="input" placeholder="Arjun Sharma" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} required />
@@ -767,6 +887,131 @@ export default function AddStudentPage() {
             )}
 
             {/* Off-screen hidden file inputs removed — now using label+input overlay pattern for Android compatibility */}
+
+            {/* DUPLICATE SCHOLAR NO POP-UP MODAL */}
+            {duplicateModal.open && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backdropFilter: 'blur(5px)',
+                    zIndex: 999999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#1e293b',
+                        border: '2px solid #ef4444',
+                        borderRadius: '16px',
+                        maxWidth: '500px',
+                        width: '100%',
+                        padding: '28px',
+                        boxShadow: '0 25px 60px rgba(239, 68, 68, 0.35)',
+                        textAlign: 'center',
+                        color: '#f8fafc',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}>
+                        <div style={{
+                            width: '70px',
+                            height: '70px',
+                            borderRadius: '50%',
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            color: '#ef4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '36px',
+                            margin: '0 auto 16px auto',
+                            border: '2px solid rgba(239, 68, 68, 0.4)'
+                        }}>
+                            ⚠️
+                        </div>
+
+                        <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#ef4444', marginBottom: '8px' }}>
+                            DUPLICATE ENTRY DETECTED!
+                        </h2>
+                        <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fca5a5', marginBottom: '16px' }}>
+                            डुप्लिकेट स्कॉलर नंबर अलर्ट
+                        </h3>
+
+                        <p style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '18px', lineHeight: 1.6 }}>
+                            Scholar No. <strong style={{ color: '#f97316', fontSize: '16px', textDecoration: 'underline' }}>&quot;{duplicateModal.scholarNo}&quot;</strong> se pahle se student database me darj hai! Duplicate entry save nahi hogi.
+                        </p>
+
+                        {duplicateModal.student && (
+                            <div style={{
+                                background: '#0f172a',
+                                border: '1px solid #334155',
+                                borderRadius: '12px',
+                                padding: '14px 18px',
+                                marginBottom: '20px',
+                                textAlign: 'left',
+                                fontSize: '13px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+                                    <span style={{ color: '#94a3b8' }}>Existing Student:</span>
+                                    <strong style={{ color: '#38bdf8', fontSize: '14px' }}>{duplicateModal.student.fullName}</strong>
+                                </div>
+                                {duplicateModal.student.fatherName && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+                                        <span style={{ color: '#94a3b8' }}>Father Name:</span>
+                                        <span style={{ color: '#e2e8f0' }}>{duplicateModal.student.fatherName}</span>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+                                    <span style={{ color: '#94a3b8' }}>Class / Batch:</span>
+                                    <span style={{ color: '#a7f3d0', fontWeight: '600' }}>
+                                        {duplicateModal.student.courseName || duplicateModal.student.className || 'N/A'} {duplicateModal.student.batchName ? `- ${duplicateModal.student.batchName}` : ''}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#94a3b8' }}>Scholar No:</span>
+                                    <strong style={{ color: '#f97316', fontSize: '14px' }}>{duplicateModal.student.scholarNo}</strong>
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px dashed #ef4444',
+                            borderRadius: '8px',
+                            padding: '10px 14px',
+                            color: '#fca5a5',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            marginBottom: '20px'
+                        }}>
+                            ⛔ Duplicate student database me save nahi kiya gaya hai. Kripya alag Scholar Number darj karein.
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDuplicateModal(prev => ({ ...prev, open: false }))
+                                const el = document.getElementById('scholarNoInput')
+                                if (el) (el as HTMLInputElement).focus()
+                            }}
+                            className="btn btn-primary"
+                            style={{
+                                width: '100%',
+                                padding: '14px',
+                                background: '#dc2626',
+                                borderColor: '#b91c1c',
+                                borderRadius: '10px',
+                                color: '#ffffff',
+                                fontWeight: '700',
+                                fontSize: '15px',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)'
+                            }}
+                        >
+                            Theek Hai / Change Scholar No.
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

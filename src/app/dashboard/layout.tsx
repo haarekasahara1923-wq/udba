@@ -127,12 +127,21 @@ const adminTransportNav = [
     },
 ]
 
+const adminStudentNav = [
+    {
+        group: 'STUDENTS', items: [
+            { href: '/dashboard/students', icon: '👨‍🎓', label: 'All Students' },
+            { href: '/dashboard/students/add', icon: '➕', label: 'Add Student' },
+        ]
+    },
+]
+
 const getNavForRole = (role: string) => {
     if (role === 'SUPER_ADMIN') return [...superAdminNav, ...adminOperationNav, ...settingsNav]
     if (role === 'ADMIN_OPERATION') return [...adminOperationNav, ...settingsNav]
-    if (role === 'ADMIN_LIBRARY') return adminLibraryNav
-    if (role === 'ADMIN_SPORTS') return adminSportsNav
-    if (role === 'ADMIN_TRANSPORT') return adminTransportNav
+    if (role === 'ADMIN_LIBRARY') return [...adminLibraryNav, ...adminStudentNav]
+    if (role === 'ADMIN_SPORTS') return [...adminSportsNav, ...adminStudentNav]
+    if (role === 'ADMIN_TRANSPORT') return [...adminTransportNav, ...adminStudentNav]
     return navItems
 }
 
