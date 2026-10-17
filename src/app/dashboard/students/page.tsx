@@ -50,7 +50,7 @@ const statusColors: Record<string, string> = {
 type SelectionMode = 'individual' | 'classwise'
 
 export default function StudentsPage() {
-    const { token, user } = useAuth()
+    const { token, user, tenant } = useAuth()
     const canEditOrDelete = user?.role === 'SUPER_ADMIN' || user?.role === 'COACHING_ADMIN'
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
@@ -85,6 +85,7 @@ export default function StudentsPage() {
     const [classwiseStudents, setClasswiseStudents] = useState<Student[]>([])
     const [classwiseLoading, setClasswiseLoading] = useState(false)
     const [classwiseLoaded, setClasswiseLoaded] = useState(false)
+    const [pdfLoading, setPdfLoading] = useState(false)
     const printRef = useRef<HTMLDivElement>(null)
 
     const fetchStudents = async () => {
@@ -209,20 +210,196 @@ export default function StudentsPage() {
     }
 
     const downloadPDF = async () => {
-        if (!printRef.current) return
+        if (!classwiseStudents || classwiseStudents.length === 0) return
+        setPdfLoading(true)
         try {
             const html2pdf = (await import('html2pdf.js')).default
             const cName = courses.find(c => c.id === selectedCourseId)?.name || 'Class'
-            const bName = batches.find(b => b.id === selectedBatchId)?.name || 'All'
-            html2pdf().set({
-                margin: [10, 10, 10, 10],
-                filename: `students_${cName}_${bName}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            }).from(printRef.current).save()
+            const bName = batches.find(b => b.id === selectedBatchId)?.name || 'All Sections'
+
+            const esc = (str: any) => {
+                if (str === null || str === undefined) return ''
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+            }
+
+            const schoolName = tenant?.name || 'UNIVERSAL DAY BOARDING ACADEMY'
+            const schoolAddress = tenant?.address || ''
+            const schoolPhone = tenant?.phone ? `Phone: ${tenant.phone}` : ''
+            const schoolEmail = tenant?.email ? `Email: ${tenant.email}` : ''
+            const printDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+
+            const totalStudents = classwiseStudents.length
+            const activeStudents = classwiseStudents.filter(s => s.status === 'ACTIVE').length
+            const duesStudents = classwiseStudents.filter(s => (s.totalFee || 0) > (s.paidFee || 0)).length
+            const totalDueAmount = classwiseStudents.reduce((sum, s) => sum + Math.max(0, (s.totalFee || 0) - (s.paidFee || 0)), 0)
+
+            const rowsHtml = classwiseStudents.map((s, idx) => {
+                const totalFee = s.totalFee || 0
+                const paidFee = s.paidFee || 0
+                const dueFee = Math.max(0, totalFee - paidFee)
+                const isEven = idx % 2 === 1
+                const rowBg = isEven ? '#f8fafc' : '#ffffff'
+
+                const statusBadgeBg = s.status === 'ACTIVE' ? '#dcfce7' : s.status === 'DROPOUT' ? '#fee2e2' : '#f1f5f9'
+                const statusTextColor = s.status === 'ACTIVE' ? '#166534' : s.status === 'DROPOUT' ? '#991b1b' : '#475569'
+
+                return `
+                    <tr style="background-color: ${rowBg}; page-break-inside: avoid;">
+                        <td style="padding: 7px 6px; border: 1px solid #cbd5e1; text-align: center; font-size: 11px; color: #475569;">${idx + 1}</td>
+                        <td style="padding: 7px 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700; font-size: 11px; color: #c2410c;">${esc(s.scholarNo || '—')}</td>
+                        <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left;">
+                            <div style="font-weight: 700; font-size: 12px; color: #0f172a; line-height: 1.3;">${esc(s.fullName || '—')}</div>
+                            ${s.studentId ? `<div style="font-size: 10px; color: #64748b;">ID: ${esc(s.studentId)}</div>` : ''}
+                        </td>
+                        <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 12px; color: #1e293b; font-weight: 600;">
+                            ${esc(s.fatherName || '—')}
+                        </td>
+                        <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11px; color: #334155;">
+                            <div>${esc(s.phone || '—')}</div>
+                            ${s.parentPhone ? `<div style="font-size: 10px; color: #64748b;">P: ${esc(s.parentPhone)}</div>` : ''}
+                        </td>
+                        <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11px; color: #1e293b;">
+                            <div style="font-weight: 600;">${esc(s.courseName || cName)}</div>
+                            <div style="font-size: 10px; color: #64748b;">${esc(s.batchName || bName)}</div>
+                        </td>
+                        <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: right; font-size: 11px;">
+                            <div style="color: #334155; font-weight: 600;">₹${paidFee.toLocaleString('en-IN')} / ₹${totalFee.toLocaleString('en-IN')}</div>
+                            ${dueFee > 0 
+                                ? `<div style="font-weight: 700; color: #dc2626; font-size: 10px;">Due: ₹${dueFee.toLocaleString('en-IN')}</div>`
+                                : `<div style="font-weight: 700; color: #16a34a; font-size: 10px;">Fully Paid</div>`
+                            }
+                        </td>
+                        <td style="padding: 7px 6px; border: 1px solid #cbd5e1; text-align: center;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background-color: ${statusBadgeBg}; color: ${statusTextColor};">
+                                ${esc(s.status || 'ACTIVE')}
+                            </span>
+                        </td>
+                        <td style="padding: 7px 6px; border: 1px solid #cbd5e1; text-align: center; font-size: 11px; color: #475569;">
+                            ${s.admissionDate ? esc(formatDate(s.admissionDate)) : '—'}
+                        </td>
+                    </tr>
+                `
+            }).join('')
+
+            const container = document.createElement('div')
+            container.id = 'classwise-pdf-export'
+            container.style.position = 'fixed'
+            container.style.top = '0'
+            container.style.left = '0'
+            container.style.width = '1120px'
+            container.style.zIndex = '-99999'
+            container.style.background = '#ffffff'
+            container.style.color = '#0f172a'
+            container.style.fontFamily = "'Segoe UI', Arial, sans-serif"
+            container.style.padding = '24px 28px'
+            container.style.boxSizing = 'border-box'
+
+            container.innerHTML = `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #ffffff; color: #0f172a;">
+                    <!-- School Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+                        <div style="flex: 1;">
+                            <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; text-transform: uppercase;">
+                                ${esc(schoolName)}
+                            </h1>
+                            <div style="font-size: 11px; color: #475569; margin-top: 3px;">
+                                ${esc(schoolAddress)}${schoolAddress && (schoolPhone || schoolEmail) ? ' &bull; ' : ''}${esc(schoolPhone)} ${schoolEmail ? `&bull; ${esc(schoolEmail)}` : ''}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="display: inline-block; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Student Class List
+                            </div>
+                            <div style="font-size: 10px; color: #64748b; margin-top: 4px;">Date: ${esc(printDate)}</div>
+                        </div>
+                    </div>
+
+                    <!-- Filter / Class Banner -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;">
+                        <div>
+                            <span style="font-size: 12px; font-weight: 600; color: #475569;">Class: </span>
+                            <span style="font-size: 14px; font-weight: 800; color: #0f172a;">${esc(cName)}</span>
+                            <span style="margin: 0 8px; color: #94a3b8;">|</span>
+                            <span style="font-size: 12px; font-weight: 600; color: #475569;">Batch / Section: </span>
+                            <span style="font-size: 14px; font-weight: 800; color: #0f172a;">${esc(bName)}</span>
+                        </div>
+                        <div style="font-size: 12px; font-weight: 700; color: #1e40af;">
+                            Total Records: ${totalStudents}
+                        </div>
+                    </div>
+
+                    <!-- Students Table -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+                        <thead>
+                            <tr style="background: #0f172a; color: #ffffff;">
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 35px;">#</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 85px;">Scholar No</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 180px;">Student Name</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 150px;">Father's Name</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 110px;">Contact</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 110px;">Class / Section</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: right; width: 115px;">Fee (Paid / Total)</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 75px;">Status</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 80px;">Admission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+
+                    <!-- Summary Cards -->
+                    <div style="display: flex; gap: 12px; margin-top: 14px;">
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Students</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalStudents}</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #166534; text-transform: uppercase;">Active Students</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #166534; margin-top: 2px;">${activeStudents}</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #b45309; text-transform: uppercase;">Students with Dues</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #b45309; margin-top: 2px;">${duesStudents}</div>
+                        </div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Total Dues Amount</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #b91c1c; margin-top: 2px;">₹${totalDueAmount.toLocaleString('en-IN')}</div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Note -->
+                    <div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8;">
+                        <span>System Generated Report &bull; ${esc(schoolName)}</span>
+                        <span>Generated on ${esc(printDate)}</span>
+                    </div>
+                </div>
+            `
+
+            document.body.appendChild(container)
+
+            const opt = {
+                margin: [8, 8, 8, 8] as [number, number, number, number],
+                filename: `students_${cName.replace(/\s+/g, '_')}_${bName.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'landscape' as const },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            }
+
+            await html2pdf().set(opt).from(container).save()
+            if (container.parentNode) {
+                container.parentNode.removeChild(container)
+            }
         } catch (err) {
-            alert('PDF generation failed. Please try CSV instead.')
+            console.error('PDF generation error:', err)
+            alert('PDF generation failed. Please try CSV or Excel download.')
+        } finally {
+            setPdfLoading(false)
         }
     }
 
@@ -443,8 +620,8 @@ export default function StudentsPage() {
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ fontWeight: '600', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.fullName}</div>
                                             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                                Scholar: <strong style={{ color: '#f97316' }}>{s.scholarNo || '&#x2014;'}</strong>
-                                                {' '}&#x2022; {s.courseName}{s.batchName ? ` &#x2022; ${s.batchName}` : ''}
+                                                Scholar: <strong style={{ color: '#f97316' }}>{s.scholarNo || '—'}</strong>
+                                                {' '}• {s.courseName}{s.batchName ? ` • ${s.batchName}` : ''}
                                             </div>
                                         </div>
                                         <span className={`badge ${statusColors[s.status] || 'badge-gray'}`} style={{ fontSize: '10px' }}>{s.status}</span>
@@ -534,7 +711,7 @@ export default function StudentsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                         <div>
                             <h2 style={{ fontWeight: '800', fontSize: '18px', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                                &#x1F3EB; {selectedCourseName} &#x2014; {selectedBatchName}
+                                🏫 {selectedCourseName} — {selectedBatchName}
                             </h2>
                             <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                                 {classwiseStudents.length} student{classwiseStudents.length !== 1 ? 's' : ''} found
@@ -543,13 +720,13 @@ export default function StudentsPage() {
                         {/* Download Buttons */}
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <button onClick={downloadCSV} disabled={classwiseStudents.length === 0} style={dlBtnStyle('#10b981', 'rgba(16,185,129,0.4)', classwiseStudents.length === 0)}>
-                                &#x1F4C4; Download CSV
+                                📄 Download CSV
                             </button>
                             <button onClick={downloadExcel} disabled={classwiseStudents.length === 0} style={dlBtnStyle('#16a34a', 'rgba(34,197,94,0.4)', classwiseStudents.length === 0)}>
-                                &#x1F4CA; Download Excel
+                                📊 Download Excel
                             </button>
-                            <button onClick={downloadPDF} disabled={classwiseStudents.length === 0} style={dlBtnStyle('#ef4444', 'rgba(239,68,68,0.4)', classwiseStudents.length === 0)}>
-                                &#x1F5A8;&#xFE0F; Download PDF
+                            <button onClick={downloadPDF} disabled={classwiseStudents.length === 0 || pdfLoading} style={dlBtnStyle('#ef4444', 'rgba(239,68,68,0.4)', classwiseStudents.length === 0 || pdfLoading)}>
+                                {pdfLoading ? '⏳ Generating PDF...' : '🖨️ Download PDF'}
                             </button>
                         </div>
                     </div>
@@ -560,17 +737,17 @@ export default function StudentsPage() {
                         </div>
                     ) : classwiseStudents.length === 0 ? (
                         <div style={{ padding: '40px', textAlign: 'center' }}>
-                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>&#x1F3EB;</div>
+                            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏫</div>
                             <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>No students found in this class/section.</p>
                         </div>
                     ) : (
                         <div ref={printRef}>
                             <div style={{ marginBottom: '12px', padding: '12px 16px', background: 'rgba(99,102,241,0.06)', borderRadius: '10px', border: '1px solid rgba(99,102,241,0.15)' }}>
                                 <div style={{ fontWeight: '800', fontSize: '15px', color: 'var(--text-primary)' }}>
-                                    Student List &#x2014; {selectedCourseName} | {selectedBatchName}
+                                    Student List — {selectedCourseName} | {selectedBatchName}
                                 </div>
                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                    Total: {classwiseStudents.length} students &#x2022; Generated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    Total: {classwiseStudents.length} students • Generated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                 </div>
                             </div>
                             <div className="table-container">
@@ -597,37 +774,37 @@ export default function StudentsPage() {
                                                     <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{idx + 1}</td>
                                                     <td>
                                                         <div style={{ display: 'inline-flex', background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', fontWeight: '700', fontSize: '13px', borderRadius: '8px', padding: '4px 10px' }}>
-                                                            {s.scholarNo || '&#x2014;'}
+                                                            {s.scholarNo || '—'}
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                             <div className="avatar">{s.fullName.charAt(0)}</div>
                                                             <div>
-                                                                <div style={{ fontWeight: '600', fontSize: '14px' }}>{s.fullName}</div>
+                                                                <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)' }}>{s.fullName}</div>
                                                                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.studentId}</div>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td style={{ fontSize: '13px' }}>{s.fatherName || '&#x2014;'}</td>
+                                                    <td style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{s.fatherName || '—'}</td>
                                                     <td>
-                                                        <div style={{ fontSize: '13px' }}>{s.phone}</div>
+                                                        <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{s.phone}</div>
                                                         {s.parentPhone && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>P: {s.parentPhone}</div>}
                                                     </td>
                                                     <td>
-                                                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{s.courseName}</div>
-                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.batchName}</div>
+                                                        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{s.courseName}</div>
+                                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.batchName || '—'}</div>
                                                     </td>
                                                     <td>
                                                         <div className="progress-bar" style={{ height: '4px', marginBottom: '4px' }}>
                                                             <div className="progress-fill" style={{ width: `${pct}%`, background: pct >= 100 ? '#10b981' : pct > 50 ? '#f59e0b' : '#ef4444' }} />
                                                         </div>
                                                         <div style={{ fontSize: '11px', color: owing > 0 ? '#f59e0b' : '#10b981', fontWeight: '600' }}>
-                                                            {pct}% paid {owing > 0 ? `&#x2022; Due: ${formatCurrency(owing)}` : '&#x2713;'}
+                                                            {pct}% paid {owing > 0 ? `• Due: ${formatCurrency(owing)}` : '✓'}
                                                         </div>
                                                     </td>
                                                     <td><span className={`badge ${statusColors[s.status] || 'badge-gray'}`}>{s.status}</span></td>
-                                                    <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{s.admissionDate ? formatDate(s.admissionDate) : '-'}</td>
+                                                    <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{s.admissionDate ? formatDate(s.admissionDate) : '—'}</td>
                                                 </tr>
                                             )
                                         })}
@@ -707,7 +884,7 @@ export default function StudentsPage() {
                                             <tr key={s.id}>
                                                 <td>
                                                     <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316', fontWeight: '700', fontSize: '13px', borderRadius: '8px', padding: '4px 10px', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
-                                                        {s.scholarNo || '&#x2014;'}
+                                                        {s.scholarNo || '—'}
                                                     </div>
                                                 </td>
                                                 <td>
