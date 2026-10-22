@@ -62,6 +62,7 @@ const superAdminNav = [
             { href: '/dashboard/profile', icon: '🏢', label: 'School Profile' },
             { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools' },
             { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins' },
+            { href: '/dashboard/super-admin/attendance', icon: '✅', label: 'Attendance Viewer' },
             { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards' },
             { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation' },
         ]

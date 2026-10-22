@@ -76,11 +76,18 @@ export default function ParentHome() {
             <div style={{ fontSize: '16px', fontWeight: '800', color: '#6366f1', marginTop: '2px' }}>{notices.length}</div>
           </div>
         </Link>
-        <Link href="/portal/parent/admit-cards" style={{ textDecoration: 'none' }}>
+        <Link href="/portal/parent/attendance" style={{ textDecoration: 'none' }}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '4px' }}>🎫</div>
-            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Admit Card</div>
-            <div style={{ fontSize: '16px', fontWeight: '800', color: '#38bdf8', marginTop: '2px' }}>Download</div>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>✅</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Attendance</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#10b981', marginTop: '2px' }}>View</div>
+          </div>
+        </Link>
+        <Link href="/portal/parent/children" style={{ textDecoration: 'none' }}>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '14px', padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '4px' }}>👶</div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'white' }}>Children</div>
+            <div style={{ fontSize: '16px', fontWeight: '800', color: '#ec4899', marginTop: '2px' }}>{children.length}</div>
           </div>
         </Link>
       </div>

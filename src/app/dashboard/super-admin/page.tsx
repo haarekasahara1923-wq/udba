@@ -212,6 +212,7 @@ export default function SuperAdminPage() {
                         { href: '/dashboard/profile', icon: '🏢', label: 'School Profile', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
                         { href: '/dashboard/super-admin/tenants', icon: '🏗️', label: 'Schools', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
                         { href: '/dashboard/super-admin/manage-admins', icon: '👥', label: 'Manage Admins', color: '#ec4899', bg: 'rgba(236,72,153,0.1)' },
+                        { href: '/dashboard/super-admin/attendance', icon: '✅', label: 'Attendance Viewer', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
                         { href: '/dashboard/super-admin/admit-cards', icon: '🎫', label: 'Admit Cards', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
                         { href: '/dashboard/super-admin/tc', icon: '📜', label: 'TC Generation', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
                     ].map(a => (
