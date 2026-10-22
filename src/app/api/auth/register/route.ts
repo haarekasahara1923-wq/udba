@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
                     name,
                     role: userRole as any,
                     isActive: true,
+                    lastLogin: new Date(),
                 }
             })
 

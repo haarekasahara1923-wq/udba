@@ -28,6 +28,8 @@ interface Student {
     aparId?: string
     samagraId?: string
     hasSiblings?: boolean
+    parentLoggedIn?: boolean
+    parentLastLogin?: string | null
 }
 
 interface SiblingStudent {
@@ -173,9 +175,10 @@ export default function StudentsPage() {
     }, [])
 
     const downloadCSV = () => {
-        const headers = ['Scholar No', 'Full Name', 'Father Name', 'Phone', 'Parent Phone', 'Class', 'Batch/Section', 'Total Fee', 'Paid Fee', 'Due Fee', 'Status', 'Admission Date']
+        const headers = ['Scholar No', 'Full Name', 'Father Name', 'Phone', 'Parent Phone', 'Parent Portal', 'Class', 'Batch/Section', 'Total Fee', 'Paid Fee', 'Due Fee', 'Status', 'Admission Date']
         const rows = classwiseStudents.map(s => [
             s.scholarNo || '', s.fullName, s.fatherName, s.phone, s.parentPhone || '',
+            s.parentLoggedIn ? 'Logged In' : 'Not Logged In',
             s.courseName, s.batchName || '', s.totalFee, s.paidFee, s.totalFee - s.paidFee,
             s.status, s.admissionDate ? formatDate(s.admissionDate) : ''
         ])
@@ -190,9 +193,10 @@ export default function StudentsPage() {
     }
 
     const downloadExcel = () => {
-        const headers = ['Scholar No', 'Full Name', 'Father Name', 'Phone', 'Parent Phone', 'Class', 'Batch/Section', 'Total Fee', 'Paid Fee', 'Due Fee', 'Status', 'Admission Date']
+        const headers = ['Scholar No', 'Full Name', 'Father Name', 'Phone', 'Parent Phone', 'Parent Portal', 'Class', 'Batch/Section', 'Total Fee', 'Paid Fee', 'Due Fee', 'Status', 'Admission Date']
         const rows = classwiseStudents.map(s => [
             s.scholarNo || '', s.fullName, s.fatherName, s.phone, s.parentPhone || '',
+            s.parentLoggedIn ? 'Logged In' : 'Not Logged In',
             s.courseName, s.batchName || '', s.totalFee, s.paidFee, s.totalFee - s.paidFee,
             s.status, s.admissionDate ? formatDate(s.admissionDate) : ''
         ])
@@ -235,6 +239,7 @@ export default function StudentsPage() {
 
             const totalStudents = classwiseStudents.length
             const activeStudents = classwiseStudents.filter(s => s.status === 'ACTIVE').length
+            const parentLoggedInCount = classwiseStudents.filter(s => s.parentLoggedIn).length
             const duesStudents = classwiseStudents.filter(s => (s.totalFee || 0) > (s.paidFee || 0)).length
             const totalDueAmount = classwiseStudents.reduce((sum, s) => sum + Math.max(0, (s.totalFee || 0) - (s.paidFee || 0)), 0)
 
@@ -247,6 +252,9 @@ export default function StudentsPage() {
 
                 const statusBadgeBg = s.status === 'ACTIVE' ? '#dcfce7' : s.status === 'DROPOUT' ? '#fee2e2' : '#f1f5f9'
                 const statusTextColor = s.status === 'ACTIVE' ? '#166534' : s.status === 'DROPOUT' ? '#991b1b' : '#475569'
+
+                const parentBadgeBg = s.parentLoggedIn ? '#dcfce7' : '#fee2e2'
+                const parentBadgeColor = s.parentLoggedIn ? '#166534' : '#991b1b'
 
                 return `
                     <tr style="background-color: ${rowBg}; page-break-inside: avoid;">
@@ -262,6 +270,11 @@ export default function StudentsPage() {
                         <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11px; color: #334155;">
                             <div>${esc(s.phone || '—')}</div>
                             ${s.parentPhone ? `<div style="font-size: 10px; color: #64748b;">P: ${esc(s.parentPhone)}</div>` : ''}
+                        </td>
+                        <td style="padding: 7px 6px; border: 1px solid #cbd5e1; text-align: center;">
+                            <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; background-color: ${parentBadgeBg}; color: ${parentBadgeColor};">
+                                ${s.parentLoggedIn ? '✓ Logged In' : '✕ Not Logged In'}
+                            </span>
                         </td>
                         <td style="padding: 7px 8px; border: 1px solid #cbd5e1; text-align: left; font-size: 11px; color: #1e293b;">
                             <div style="font-weight: 600;">${esc(s.courseName || cName)}</div>
@@ -338,14 +351,15 @@ export default function StudentsPage() {
                         <thead>
                             <tr style="background: #0f172a; color: #ffffff;">
                                 <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 35px;">#</th>
-                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 85px;">Scholar No</th>
-                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 180px;">Student Name</th>
-                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 150px;">Father's Name</th>
-                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 110px;">Contact</th>
-                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 110px;">Class / Section</th>
-                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: right; width: 115px;">Fee (Paid / Total)</th>
-                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 75px;">Status</th>
-                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 80px;">Admission</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 80px;">Scholar No</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 170px;">Student Name</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 140px;">Father's Name</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 105px;">Contact</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 95px;">Parent Portal</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: left; width: 105px;">Class / Section</th>
+                                <th style="padding: 8px 8px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: right; width: 110px;">Fee (Paid / Total)</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 70px;">Status</th>
+                                <th style="padding: 8px 6px; border: 1px solid #0f172a; font-size: 11px; font-weight: 700; text-align: center; width: 75px;">Admission</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -354,23 +368,28 @@ export default function StudentsPage() {
                     </table>
 
                     <!-- Summary Cards -->
-                    <div style="display: flex; gap: 12px; margin-top: 14px;">
-                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                    <div style="display: flex; gap: 10px; margin-top: 14px;">
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f8fafc; text-align: center;">
                             <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Students</div>
-                            <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalStudents}</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalStudents}</div>
                         </div>
-                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f8fafc; text-align: center;">
                             <div style="font-size: 10px; font-weight: 700; color: #166534; text-transform: uppercase;">Active Students</div>
-                            <div style="font-size: 18px; font-weight: 800; color: #166534; margin-top: 2px;">${activeStudents}</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #166534; margin-top: 2px;">${activeStudents}</div>
                         </div>
-                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
-                            <div style="font-size: 10px; font-weight: 700; color: #b45309; text-transform: uppercase;">Students with Dues</div>
-                            <div style="font-size: 18px; font-weight: 800; color: #b45309; margin-top: 2px;">${duesStudents}</div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f0fdf4; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #15803d; text-transform: uppercase;">Parent App Login</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #15803d; margin-top: 2px;">${parentLoggedInCount} <span style="font-size: 11px; font-weight: 600;">(${totalStudents > 0 ? Math.round((parentLoggedInCount / totalStudents) * 100) : 0}%)</span></div>
                         </div>
-                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
-                            <div style="font-size: 10px; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Total Dues Amount</div>
-                            <div style="font-size: 18px; font-weight: 800; color: #b91c1c; margin-top: 2px;">₹${totalDueAmount.toLocaleString('en-IN')}</div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #b45309; text-transform: uppercase;">With Dues</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #b45309; margin-top: 2px;">${duesStudents}</div>
                         </div>
+                        <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f8fafc; text-align: center;">
+                            <div style="font-size: 10px; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Total Dues</div>
+                            <div style="font-size: 17px; font-weight: 800; color: #b91c1c; margin-top: 2px;">₹${totalDueAmount.toLocaleString('en-IN')}</div>
+                        </div>
+                    </div>
                     </div>
 
                     <!-- Footer Note -->
@@ -770,6 +789,7 @@ export default function StudentsPage() {
                                             <th>Student Name</th>
                                             <th>Father Name</th>
                                             <th>Phone</th>
+                                            <th>Parent Portal</th>
                                             <th>Class / Section</th>
                                             <th>Fee Status</th>
                                             <th>Status</th>
@@ -803,6 +823,26 @@ export default function StudentsPage() {
                                                         {s.parentPhone && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>P: {s.parentPhone}</div>}
                                                     </td>
                                                     <td>
+                                                        {s.parentLoggedIn ? (
+                                                            <div>
+                                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', color: '#10b981', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                                                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
+                                                                    Logged In
+                                                                </span>
+                                                                {s.parentLastLogin && (
+                                                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                                        {formatDate(s.parentLastLogin)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></span>
+                                                                Not Logged In
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td>
                                                         <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{s.courseName}</div>
                                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.batchName || '—'}</div>
                                                     </td>
@@ -823,15 +863,20 @@ export default function StudentsPage() {
                                 </table>
                             </div>
                             {/* Summary Stats */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '16px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '16px' }}>
                                 {[
                                     { label: 'Total Students', value: classwiseStudents.length, color: '#6366f1' },
                                     { label: 'Active', value: classwiseStudents.filter(s => s.status === 'ACTIVE').length, color: '#10b981' },
+                                    { 
+                                        label: 'Parent App Login', 
+                                        value: `${classwiseStudents.filter(s => s.parentLoggedIn).length} (${classwiseStudents.length > 0 ? Math.round((classwiseStudents.filter(s => s.parentLoggedIn).length / classwiseStudents.length) * 100) : 0}%)`, 
+                                        color: '#059669' 
+                                    },
                                     { label: 'With Dues', value: classwiseStudents.filter(s => s.totalFee > s.paidFee).length, color: '#f59e0b' },
                                     { label: 'Dropout', value: classwiseStudents.filter(s => s.status === 'DROPOUT').length, color: '#ef4444' },
                                 ].map(stat => (
                                     <div key={stat.label} style={{ padding: '12px', background: 'var(--surface-2)', borderRadius: '10px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '22px', fontWeight: '800', color: stat.color }}>{stat.value}</div>
+                                        <div style={{ fontSize: '20px', fontWeight: '800', color: stat.color }}>{stat.value}</div>
                                         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{stat.label}</div>
                                     </div>
                                 ))}
@@ -843,16 +888,21 @@ export default function StudentsPage() {
 
             {/* Stats (individual mode) */}
             {selectionMode === 'individual' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
                     {[
                         { label: 'Total', value: students.length, color: '#6366f1' },
                         { label: 'Active', value: students.filter(s => s.status === 'ACTIVE').length, color: '#10b981' },
-                        { label: 'Dropout', value: students.filter(s => s.status === 'DROPOUT').length, color: '#ef4444' },
+                        { 
+                            label: 'Parent App Login', 
+                            value: `${students.filter(s => s.parentLoggedIn).length} (${students.length > 0 ? Math.round((students.filter(s => s.parentLoggedIn).length / students.length) * 100) : 0}%)`, 
+                            color: '#059669' 
+                        },
                         { label: 'With Dues', value: students.filter(s => s.totalFee > s.paidFee).length, color: '#f59e0b' },
+                        { label: 'Dropout', value: students.filter(s => s.status === 'DROPOUT').length, color: '#ef4444' },
                     ].map(s => (
                         <div key={s.label} style={{ padding: '14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
-                            <div style={{ fontSize: '24px', fontWeight: '800', color: s.color }}>{s.value}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{s.label}</div>
+                            <div style={{ fontSize: '22px', fontWeight: '800', color: s.color }}>{s.value}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>{s.label}</div>
                         </div>
                     ))}
                 </div>
@@ -881,6 +931,7 @@ export default function StudentsPage() {
                                         <th>Student</th>
                                         <th>Class / Section</th>
                                         <th>Phone</th>
+                                        <th>Parent Portal</th>
                                         <th>Fee Status</th>
                                         <th>Status</th>
                                         <th>Admission</th>
@@ -919,6 +970,26 @@ export default function StudentsPage() {
                                                 <td>
                                                     <div style={{ fontSize: '13px' }}>{s.phone}</div>
                                                     {s.parentPhone && <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>P: {s.parentPhone}</div>}
+                                                </td>
+                                                <td>
+                                                    {s.parentLoggedIn ? (
+                                                        <div>
+                                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', color: '#10b981', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                                                                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
+                                                                Logged In
+                                                            </span>
+                                                            {s.parentLastLogin && (
+                                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                                                    {formatDate(s.parentLastLogin)}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                                                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></span>
+                                                            Not Logged In
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td>
                                                     <div className="progress-bar" style={{ height: '4px', marginBottom: '4px' }}>
@@ -1050,6 +1121,7 @@ export default function StudentsPage() {
                                         ['👨 Father', selectedStudent.fatherName || 'N/A'],
                                         ['📧 Email', selectedStudent.email || 'N/A'],
                                         ['📞 Parent Phone', selectedStudent.parentPhone || 'N/A'],
+                                        ['📱 Parent App Status', selectedStudent.parentLoggedIn ? `🟢 Logged In ${selectedStudent.parentLastLogin ? `(${formatDate(selectedStudent.parentLastLogin)})` : ''}` : '🔴 Not Logged In'],
                                         ['📚 Class', selectedStudent.courseName],
                                         ['⏱ Section', selectedStudent.batchName],
                                         ['💰 Total Fee', formatCurrency(selectedStudent.totalFee)],

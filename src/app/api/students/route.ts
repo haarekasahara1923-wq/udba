@@ -109,11 +109,77 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        const data = students.map(s => ({
-            ...s,
-            courseName: s.course?.name || 'N/A',
-            batchName: s.batch?.name || 'N/A',
-        }))
+        // Normalize phone number helper (extract last 10 digits)
+        const normalizePhone = (p?: string | null): string => {
+            if (!p) return ''
+            const digits = p.replace(/\D/g, '')
+            return digits.length >= 10 ? digits.slice(-10) : digits
+        }
+
+        // Fetch all parent users to check Parent Portal login status by mobile number
+        const parentUsers = await prisma.user.findMany({
+            where: {
+                role: 'PARENT',
+                isActive: true,
+            },
+            select: {
+                id: true,
+                phone: true,
+                email: true,
+                lastLogin: true,
+                parentProfile: {
+                    select: {
+                        phone: true,
+                        children: { select: { id: true } }
+                    }
+                }
+            }
+        })
+
+        // Fast lookup maps for parent login status
+        const phoneToParentMap = new Map<string, { lastLogin: Date | null }>()
+        const childIdToParentMap = new Map<string, { lastLogin: Date | null }>()
+
+        for (const p of parentUsers) {
+            const loginInfo = { lastLogin: p.lastLogin }
+
+            const userPhoneNorm = normalizePhone(p.phone)
+            if (userPhoneNorm) phoneToParentMap.set(userPhoneNorm, loginInfo)
+
+            const profilePhoneNorm = normalizePhone(p.parentProfile?.phone)
+            if (profilePhoneNorm) phoneToParentMap.set(profilePhoneNorm, loginInfo)
+
+            if (p.email) {
+                const emailDigitsMatch = p.email.match(/^(\d{10})/)
+                if (emailDigitsMatch) phoneToParentMap.set(emailDigitsMatch[1], loginInfo)
+            }
+
+            if (p.parentProfile?.children) {
+                for (const child of p.parentProfile.children) {
+                    childIdToParentMap.set(child.id, loginInfo)
+                }
+            }
+        }
+
+        const data = students.map(s => {
+            const parentPhoneNorm = normalizePhone(s.parentPhone)
+            const studentPhoneNorm = normalizePhone(s.phone)
+
+            const parentInfo = childIdToParentMap.get(s.id) 
+                || (parentPhoneNorm ? phoneToParentMap.get(parentPhoneNorm) : undefined)
+                || (studentPhoneNorm ? phoneToParentMap.get(studentPhoneNorm) : undefined)
+
+            const parentLoggedIn = Boolean(parentInfo && parentInfo.lastLogin !== null)
+            const parentLastLogin = parentInfo?.lastLogin ? parentInfo.lastLogin.toISOString() : null
+
+            return {
+                ...s,
+                courseName: s.course?.name || 'N/A',
+                batchName: s.batch?.name || 'N/A',
+                parentLoggedIn,
+                parentLastLogin,
+            }
+        })
 
         // Plan limits removed - unlimited students
         const totalCount = await prisma.student.count({ where: { tenantId: user!.tenantId } })
