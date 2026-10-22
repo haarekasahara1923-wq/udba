@@ -58,7 +58,7 @@ export default function SuperAdminAttendancePage() {
 
     useEffect(() => {
         if (!token) return
-        fetch('/api/batches', { headers: { Authorization: `Bearer ${token}` } })
+        fetch('/api/super-admin/batches', { headers: { Authorization: `Bearer ${token}` } })
             .then(r => r.json())
             .then(d => {
                 if (d.success) setBatches(d.data)
