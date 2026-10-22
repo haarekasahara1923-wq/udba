@@ -4,14 +4,15 @@ import { requireRole } from '@/app/api/middleware'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest) {
-    const { error, user } = requireRole(req, ['SUPER_ADMIN'])
+    const { error } = requireRole(req, ['SUPER_ADMIN'])
     if (error) return error
 
     try {
-        const { batchId, date } = Object.fromEntries(new URL(req.url).searchParams.entries())
+        const { courseId, classId, batchId, date } = Object.fromEntries(new URL(req.url).searchParams.entries())
+        const resolvedCourseId = courseId || classId
 
-        if (!batchId || !date) {
-            return NextResponse.json({ error: 'batchId and date are required' }, { status: 400 })
+        if ((!resolvedCourseId && !batchId) || !date) {
+            return NextResponse.json({ error: 'Class (courseId) or Batch (batchId) and date are required' }, { status: 400 })
         }
 
         const startDate = new Date(date)
@@ -19,34 +20,50 @@ export async function GET(req: NextRequest) {
         const endDate = new Date(date)
         endDate.setHours(23, 59, 59, 999)
 
-        // Get batch info
-        const batch = await prisma.batch.findUnique({
-            where: { id: batchId },
-            include: { course: { select: { name: true } } }
-        })
+        // Resolve course and batch details
+        let course = resolvedCourseId ? await prisma.course.findUnique({ where: { id: resolvedCourseId } }) : null
+        let batch = batchId ? await prisma.batch.findUnique({ where: { id: batchId }, include: { course: true } }) : null
 
-        if (!batch) {
-            return NextResponse.json({ error: 'Batch not found' }, { status: 404 })
+        if (!course && batch?.course) {
+            course = batch.course
         }
 
-        // Get all students in batch
+        // Build student query
+        const studentWhere: any = { status: 'ACTIVE' }
+        if (resolvedCourseId) {
+            studentWhere.courseId = resolvedCourseId
+        }
+        if (batchId) {
+            studentWhere.batchId = batchId
+        }
+
+        // Get all active students for this class / batch
         const students = await prisma.student.findMany({
-            where: { batchId, status: 'ACTIVE' },
-            select: { id: true, fullName: true, studentId: true, photo: true },
+            where: studentWhere,
+            select: {
+                id: true,
+                fullName: true,
+                studentId: true,
+                photo: true,
+                scholarNo: true,
+                batch: { select: { id: true, name: true } },
+                course: { select: { id: true, name: true } }
+            },
             orderBy: { fullName: 'asc' }
         })
 
+        const studentIds = students.map(s => s.id)
+
         // Get attendance records for the date
-        const attendances = await prisma.attendance.findMany({
+        const attendances = studentIds.length > 0 ? await prisma.attendance.findMany({
             where: {
-                batchId,
                 date: { gte: startDate, lte: endDate },
-                studentId: { in: students.map(s => s.id) }
+                studentId: { in: studentIds }
             },
             include: {
                 student: { select: { fullName: true } }
             }
-        })
+        }) : []
 
         // Map attendance by studentId
         const attendanceMap = new Map(attendances.map(a => [a.studentId, a]))
@@ -56,9 +73,10 @@ export async function GET(req: NextRequest) {
             const att = attendanceMap.get(s.id)
             return {
                 studentId: s.id,
-                studentCode: s.studentId,
+                studentCode: s.studentId || s.scholarNo,
                 fullName: s.fullName,
                 photo: s.photo,
+                batchName: s.batch?.name || null,
                 status: att?.status || null,
                 notes: att?.notes || null,
                 markedBy: att?.markedBy || null,
@@ -66,26 +84,35 @@ export async function GET(req: NextRequest) {
             }
         })
 
-        // Summary
+        // Summary calculations
+        const present = attendances.filter(a => a.status === 'PRESENT').length
+        const absent = attendances.filter(a => a.status === 'ABSENT').length
+        const late = attendances.filter(a => a.status === 'LATE').length
+        const leave = attendances.filter(a => a.status === 'LEAVE').length
+        const halfDay = attendances.filter(a => a.status === 'HALF_DAY').length
+        const total = students.length
+        const markedCount = attendances.length
+        const notMarked = Math.max(0, total - markedCount)
+        const attendancePercentage = total > 0 ? Math.round((present / total) * 100) : 0
+
         const summary = {
-            total: students.length,
-            present: attendances.filter(a => a.status === 'PRESENT').length,
-            absent: attendances.filter(a => a.status === 'ABSENT').length,
-            late: attendances.filter(a => a.status === 'LATE').length,
-            leave: attendances.filter(a => a.status === 'LEAVE').length,
-            halfDay: attendances.filter(a => a.status === 'HALF_DAY').length,
-            notMarked: students.length - attendances.length,
-            attendancePercentage: students.length > 0
-                ? Math.round((attendances.filter(a => a.status === 'PRESENT').length / students.length) * 100)
-                : 0
+            total,
+            present,
+            absent,
+            late,
+            leave,
+            halfDay,
+            notMarked,
+            attendancePercentage
         }
 
         return NextResponse.json({
             success: true,
-            batch: {
-                id: batch.id,
-                name: batch.name,
-                courseName: batch.course?.name || ''
+            classInfo: {
+                id: course?.id || batch?.courseId || '',
+                name: course?.name || 'Class',
+                batchId: batch?.id || null,
+                batchName: batch?.name || null,
             },
             date,
             students: studentList,
